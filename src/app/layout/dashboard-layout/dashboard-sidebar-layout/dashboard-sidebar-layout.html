@@ -1,13 +1,13 @@
-<hlm-sidebar class="pt-6 pb-2 pl-2 pr-2">
+<hlm-sidebar>
   <div hlmSidebarContent>
     <div hlmSidebarGroup>
       <div hlmSidebarGroupLabel>Navegación</div>
       <div hlmSidebarGroupContent>
-        <ul hlmSidebarMenu aria-label="Menú principal de navegación">
+        <ul hlmSidebarMenu>
           @for (item of menuItems(); track item.route) {
             <li hlmSidebarMenuItem>
-              <a hlmSidebarMenuButton [routerLink]="item.route" routerLinkActive="bg-accent">
-                <ng-icon [name]="item.icon" hlm size="base"/>
+              <a hlmSidebarMenuButton class="p-2" [routerLink]="item.route" routerLinkActive="bg-accent">
+                <ng-icon hlm [name]="item.icon"/>
                 <span>{{ item.label }}</span>
               </a>
             </li>
@@ -18,18 +18,17 @@
   </div>
 
   <div hlmSidebarFooter>
-    <ul hlmSidebarMenu aria-label="Menú de configuración y cierre de sesión">
+    <ul hlmSidebarMenu>
       <li hlmSidebarMenuItem>
         <button
           hlmSidebarMenuButton
           (click)="toggleTheme()"
-          class="w-full"
           [attr.aria-label]="isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
         >
           @if (isDark()) {
-            <ng-icon name="lucideSun" hlm size="base"/>
+            <ng-icon hlm name="lucideSun"/>
           } @else {
-            <ng-icon name="lucideMoon" hlm size="base"/>
+            <ng-icon hlm name="lucideMoon"/>
           }
           <span>{{ isDark() ? 'Modo Claro' : 'Modo Oscuro' }}</span>
         </button>
@@ -41,9 +40,9 @@
         <button
           hlmSidebarMenuButton
           (click)="logout()"
-          class="w-full text-destructive hover:text-destructive"
+          class="text-destructive hover:text-destructive"
         >
-          <ng-icon name="lucideLogOut" hlm size="base"/>
+          <ng-icon hlm name="lucideLogOut"/>
           <span>Cerrar Sesión</span>
         </button>
       </li>

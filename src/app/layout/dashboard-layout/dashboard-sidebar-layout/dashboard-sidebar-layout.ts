@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ThemeService } from '@app/core/services/theme/theme';
+import { MenuItemInterface } from '@shared/data/models/menu-item.interface';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideHouse,
@@ -23,6 +24,7 @@ import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
     HlmSidebarImports,
     RouterLink,
     RouterLinkActive,
+
   ],
   templateUrl: './dashboard-sidebar-layout.html',
   styleUrl: './dashboard-sidebar-layout.css',
@@ -79,6 +81,8 @@ export class DashboardSidebarLayout {
 
   logout(): void {
     console.log('Logout clicked');
-    this.router.navigate(['/auth/account/login']).then(r => !r && console.error('Navigation to login failed'));
+    this.router
+      .navigate(['/auth/account/login'])
+      .then((r) => !r && console.error('Navigation to login failed'));
   }
 }

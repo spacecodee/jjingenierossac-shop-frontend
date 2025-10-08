@@ -1,4 +1,4 @@
-import { UserRole } from '@shared/models/user-role.enum';
+import { UserRole } from '@shared/data/models/user-role.enum';
 
 export interface User {
   id: string;

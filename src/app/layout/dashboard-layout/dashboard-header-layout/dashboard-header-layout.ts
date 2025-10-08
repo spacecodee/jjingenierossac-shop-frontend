@@ -5,12 +5,13 @@ import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
 import { User } from '@core/models/user.interface';
 import { RoleTranslationService } from '@core/services/role-translation/role-translation';
 import { CompanyLogoComponent } from '@shared/components/company-logo-component/company-logo-component';
-import { UserRole } from '@shared/models/user-role.enum';
+import { UserRole } from '@shared/data/models/user-role.enum';
 import { NgOptimizedImage } from '@angular/common';
+import { HlmSidebarTrigger } from '@spartan-ng/helm/sidebar';
 
 @Component({
   selector: 'app-dashboard-header-layout',
-  imports: [HlmAvatarImports, CompanyLogoComponent, NgOptimizedImage],
+  imports: [HlmAvatarImports, CompanyLogoComponent, NgOptimizedImage, HlmSidebarTrigger],
   templateUrl: './dashboard-header-layout.html',
   styleUrl: './dashboard-header-layout.css',
   providers: [provideIcons({ lucideMoon, lucideSun })],

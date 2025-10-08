@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { RoleTranslationService } from './role-translation';
-import { UserRole } from '@app/shared/models/user-role.enum';
+import { UserRole } from '@shared/data/models/user-role.enum';
 
 describe('RoleTranslationService', () => {
   let service: RoleTranslationService;

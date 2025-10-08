@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { RoleTranslation } from '@shared/models/role-translation.type';
-import { UserRole } from '@shared/models/user-role.enum';
+import { RoleTranslation } from '@shared/data/models/role-translation.type';
+import { UserRole } from '@shared/data/models/user-role.enum';
 
 @Injectable({
   providedIn: 'root',

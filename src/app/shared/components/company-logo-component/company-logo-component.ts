@@ -1,5 +1,5 @@
 import { Component, computed, input } from '@angular/core';
-import { LogoTextSizeType } from '@shared/data/types/logo-text-size-type';
+import { LogoTextSizeType } from '@shared/data/types/logo-text-size.type';
 
 @Component({
   selector: 'app-company-logo',
