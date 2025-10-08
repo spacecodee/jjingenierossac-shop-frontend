@@ -76,6 +76,9 @@
       ],
       "@spartan-ng/helm/aspect-ratio": [
         "./libs/ui/ui-aspect-ratio-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/skeleton": [
+        "./libs/ui/ui-skeleton-helm/src/index.ts"
       ]
     }
   },
