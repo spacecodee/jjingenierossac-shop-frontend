@@ -1,17 +1,21 @@
-<section class="w-full" hlmCard>
-  <div hlmCardHeader>
-    <h3 hlmCardTitle>Iniciar sesión</h3>
-    <p hlmCardDescription>Ingresa tu correo electrónico y contraseña para acceder a tu cuenta</p>
+<div class="w-full max-w-sm">
+  <header class="w-full flex justify-end mb-8">
+    <button hlmBtn variant="link" routerLink="/auth/register" class="text-sm font-medium">
+      Registro
+    </button>
+  </header>
 
-    <div hlmCardAction>
-      <button hlmBtn variant="link" routerLink="/auth/register">Registrarse</button>
+  <div class="space-y-6">
+    <div class="text-center space-y-2">
+      <h2 class="text-2xl font-semibold tracking-tight">Iniciar sesión en tu cuenta</h2>
+      <p class="text-sm text-muted-foreground">
+        Ingresa tu correo electrónico y contraseña para iniciar sesión
+      </p>
     </div>
-  </div>
 
-  <div hlmCardContent>
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <div class="flex flex-col gap-6">
-        <div class="grid gap-2">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
+      <div class="space-y-4">
+        <div class="space-y-2">
           <label hlmLabel for="email">Correo electrónico</label>
           <input
             type="email"
@@ -22,22 +26,20 @@
           />
         </div>
 
-        <div class="grid gap-2">
-          <div class="flex items-center">
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
             <label hlmLabel for="password">Contraseña</label>
-            <a href="#" class="ml-auto inline-block text-sm underline-offset-4 hover:underline">
+            <a href="#" class="text-sm underline-offset-4 hover:underline">
               ¿Olvidaste tu contraseña?
             </a>
           </div>
           <input type="password" id="password" formControlName="password" hlmInput/>
         </div>
       </div>
+
+      <button hlmBtn type="submit" class="w-full" [disabled]="!loginForm.valid">
+        Iniciar sesión
+      </button>
     </form>
   </div>
-
-  <div hlmCardFooter>
-    <button hlmBtn type="submit" class="w-full" [disabled]="!loginForm.valid" (click)="onSubmit()">
-      Iniciar sesión
-    </button>
-  </div>
-</section>
+</div>

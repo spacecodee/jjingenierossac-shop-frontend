@@ -1,29 +1,21 @@
-<section class="w-full" hlmCard>
-  <div hlmCardHeader>
-    <h3 hlmCardTitle>Crear cuenta</h3>
-    <p hlmCardDescription>Ingresa tus datos para crear una nueva cuenta</p>
+<div class="w-full max-w-sm">
+  <header class="w-full flex justify-end mb-8">
+    <button hlmBtn variant="link" routerLink="/auth/login" class="text-sm font-medium">
+      Iniciar sesión
+    </button>
+  </header>
 
-    <div hlmCardAction>
-      <button hlmBtn variant="link" routerLink="/auth/login">Iniciar sesión</button>
+  <div class="space-y-6">
+    <div class="text-center space-y-2">
+      <h2 class="text-2xl font-semibold tracking-tight">Crear una cuenta</h2>
+      <p class="text-sm text-muted-foreground">
+        Ingresa tu correo electrónico para crear tu cuenta
+      </p>
     </div>
-  </div>
 
-  <div hlmCardContent>
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-      <div class="flex flex-col gap-4">
-        <div class="grid gap-2">
-          <label hlmLabel for="fullName">Nombre completo</label>
-          <input
-            type="text"
-            id="fullName"
-            placeholder="Juan Pérez"
-            formControlName="fullName"
-            hlmInput
-          />
-        </div>
-
-        <div class="grid gap-2">
-          <label hlmLabel for="register-email">Correo electrónico</label>
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-4">
+      <div class="space-y-4">
+        <div class="space-y-2">
           <input
             type="email"
             id="register-email"
@@ -32,35 +24,11 @@
             hlmInput
           />
         </div>
-
-        <div class="grid gap-2">
-          <label hlmLabel for="register-password">Contraseña</label>
-          <input
-            type="password"
-            id="register-password"
-            placeholder="Mínimo 6 caracteres"
-            formControlName="password"
-            hlmInput
-          />
-        </div>
-
-        <div class="grid gap-2">
-          <label hlmLabel for="confirmPassword">Confirmar contraseña</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            placeholder="Repite tu contraseña"
-            formControlName="confirmPassword"
-            hlmInput
-          />
-        </div>
       </div>
+
+      <button hlmBtn type="submit" class="w-full" [disabled]="!registerForm.valid">
+        Registrarse con correo electrónico
+      </button>
     </form>
   </div>
-
-  <div hlmCardFooter>
-    <button hlmBtn type="submit" class="w-full" [disabled]="!isFormValid()" (click)="onSubmit()">
-      Registrarse
-    </button>
-  </div>
-</section>
+</div>
