@@ -1,27 +1,27 @@
-<div class="w-full max-w-sm">
+<article class="w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-sm">
   <header class="w-full flex justify-end mb-8">
-    <button hlmBtn variant="link" routerLink="/auth/register" class="text-sm font-medium">
+    <button hlmBtn variant="link" routerLink="/auth/account/register" class="text-sm font-medium cursor-pointer">
       Registro
     </button>
   </header>
 
-  <div class="space-y-6">
-    <div class="text-center space-y-2">
-      <h2 class="text-2xl font-semibold tracking-tight">Iniciar sesión en tu cuenta</h2>
+  <section class="space-y-6">
+    <header class="text-center space-y-2">
+      <h1 class="text-2xl font-semibold tracking-tight">Iniciar sesión en tu cuenta</h1>
       <p class="text-sm text-muted-foreground">
-        Ingresa tu correo electrónico y contraseña para iniciar sesión
+        Ingresa tu nombre de usuario y contraseña para iniciar sesión
       </p>
-    </div>
+    </header>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
-      <div class="space-y-4">
+      <fieldset class="space-y-4">
         <div class="space-y-2">
-          <label hlmLabel for="email">Correo electrónico</label>
+          <label hlmLabel for="username">Nombre de usuario</label>
           <input
-            type="email"
-            id="email"
-            placeholder="correo@ejemplo.com"
-            formControlName="email"
+            type="text"
+            id="username"
+            placeholder="nombre_usuario"
+            formControlName="username"
             hlmInput
           />
         </div>
@@ -29,17 +29,26 @@
         <div class="space-y-2">
           <div class="flex items-center justify-between">
             <label hlmLabel for="password">Contraseña</label>
-            <a href="#" class="text-sm underline-offset-4 hover:underline">
+            <a
+              routerLink="/auth/forgot-password"
+              class="text-sm underline-offset-4 hover:underline"
+            >
               ¿Olvidaste tu contraseña?
             </a>
           </div>
-          <input type="password" id="password" formControlName="password" hlmInput/>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            placeholder="Ingresa tu contraseña"
+            hlmInput
+          />
         </div>
-      </div>
+      </fieldset>
 
       <button hlmBtn type="submit" class="w-full" [disabled]="!loginForm.valid">
         Iniciar sesión
       </button>
     </form>
-  </div>
-</div>
+  </section>
+</article>

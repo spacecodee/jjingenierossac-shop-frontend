@@ -1,34 +1,33 @@
-<div class="w-full max-w-sm">
+<article class="w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-sm">
   <header class="w-full flex justify-end mb-8">
-    <button hlmBtn variant="link" routerLink="/auth/login" class="text-sm font-medium">
+    <button hlmBtn variant="link" routerLink="/auth/account/login" class="text-sm font-medium cursor-pointer">
       Iniciar sesión
     </button>
   </header>
 
-  <div class="space-y-6">
-    <div class="text-center space-y-2">
-      <h2 class="text-2xl font-semibold tracking-tight">Crear una cuenta</h2>
-      <p class="text-sm text-muted-foreground">
-        Ingresa tu correo electrónico para crear tu cuenta
-      </p>
-    </div>
+  <section class="space-y-6">
+    <header class="text-center space-y-2">
+      <h1 class="text-2xl font-semibold tracking-tight">Crear una cuenta</h1>
+      <p class="text-sm text-muted-foreground">Ingresa tu nombre de usuario para crear tu cuenta</p>
+    </header>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-4">
-      <div class="space-y-4">
+      <fieldset class="space-y-4">
         <div class="space-y-2">
+          <label hlmLabel for="register-username">Nombre de usuario</label>
           <input
-            type="email"
-            id="register-email"
-            placeholder="correo@ejemplo.com"
-            formControlName="email"
+            type="text"
+            id="register-username"
+            placeholder="nombre_usuario"
+            formControlName="username"
             hlmInput
           />
         </div>
-      </div>
+      </fieldset>
 
       <button hlmBtn type="submit" class="w-full" [disabled]="!registerForm.valid">
-        Registrarse con correo electrónico
+        Registrarse
       </button>
     </form>
-  </div>
-</div>
+  </section>
+</article>

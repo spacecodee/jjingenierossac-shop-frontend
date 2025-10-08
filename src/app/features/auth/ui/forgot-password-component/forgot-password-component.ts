@@ -6,20 +6,19 @@ import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 
 @Component({
-  selector: 'app-login-form',
+  selector: 'app-forgot-password',
   imports: [ReactiveFormsModule, RouterLink, HlmInputImports, HlmButtonImports, HlmLabelImports],
-  templateUrl: './login-form-component.html',
-  styleUrl: './login-form-component.css',
+  templateUrl: './forgot-password-component.html',
+  styleUrl: './forgot-password-component.css',
 })
-export class LoginFormComponent {
-  loginForm = new FormGroup({
+export class ForgotPasswordComponent {
+  forgotPasswordForm = new FormGroup({
     username: new FormControl('', [Validators.required]),
-    password: new FormControl('', [Validators.required]),
   });
 
   onSubmit(): void {
-    if (this.loginForm.valid) {
-      console.log('Login form submitted:', this.loginForm.value);
+    if (this.forgotPasswordForm.valid) {
+      console.log('Forgot password form submitted:', this.forgotPasswordForm.value);
     }
   }
 }

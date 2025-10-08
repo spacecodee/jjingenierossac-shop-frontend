@@ -3,16 +3,17 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmLabelImports } from '@spartan-ng/helm/label';
 
 @Component({
   selector: 'app-register-form',
-  imports: [ReactiveFormsModule, RouterLink, HlmInputImports, HlmButtonImports],
+  imports: [ReactiveFormsModule, RouterLink, HlmInputImports, HlmButtonImports, HlmLabelImports],
   templateUrl: './register-form-component.html',
   styleUrl: './register-form-component.css',
 })
 export class RegisterFormComponent {
   registerForm = new FormGroup({
-    email: new FormControl('', [Validators.required, Validators.email]),
+    username: new FormControl('', [Validators.required]),
   });
 
   onSubmit(): void {

@@ -1,15 +1,18 @@
 import { Routes } from '@angular/router';
-import { AuthLayout } from '@app/layout/auth-layout/auth-layout';
 
 export const routes: Routes = [
   {
-    path: '**',
+    path: '',
+    redirectTo: 'auth/account/login',
     pathMatch: 'full',
-    redirectTo: 'auth',
   },
   {
     path: 'auth',
-    component: AuthLayout,
-    loadChildren: () => (import('./features/auth/auth.routes').then(m => m.routes)),
-  }
+    loadComponent: () => import('./layout/auth-layout/auth-layout').then((m) => m.AuthLayout),
+    loadChildren: () => import('./features/auth/auth.routes').then((m) => m.routes),
+  },
+  {
+    path: '**',
+    redirectTo: 'auth/account/login',
+  },
 ];
