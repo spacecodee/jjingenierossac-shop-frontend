@@ -11,6 +11,7 @@ This is the frontend application for a sales management web system designed for 
 The system implements a reservation-based purchase model where customers can reserve products through the web application, but payment processing occurs outside the system through direct coordination between the company and the client.
 
 ### 2. Core Technical Rules (Mandatory)
+
 - **Language**: For code use **English only**, for UI use **Spanish only**.
 - **Package Manager**: You **MUST** use `pnpm` for all dependency management. Do not suggest `npm` or `yarn` commands.
 - **Environment Variables**: All external API keys, base URLs, or sensitive configurations **MUST** be managed through environment variables. Use Angular's `environment.ts` files. Do not hardcode secrets.
@@ -86,3 +87,20 @@ The system implements a reservation-based purchase model where customers can res
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+### Security Best Practices
+
+- Never store sensitive data in localStorage (use secure httpOnly cookies when possible)
+- Implement CSRF protection
+- Sanitize user inputs
+- Use Angular's built-in XSS protection
+- Implement role-based route guards
+- Validate all user input on both client and server
+- Use Content Security Policy (CSP) headers
+
+### Performance Optimization
+
+- Use `@defer` for lazy-loading components and libraries
+- Implement virtual scrolling for large lists (Angular CDK)
+- Use `trackBy` functions in `@for` loops with unique identifiers
+- Optimize images with responsive loading and lazy loading
