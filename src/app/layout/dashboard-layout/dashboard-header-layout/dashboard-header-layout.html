@@ -1,0 +1,27 @@
+<header class="w-full border-b border-border bg-background sticky top-0 z-50">
+  <nav class="container flex h-16 items-center justify-between px-4 lg:px-8">
+    <app-company-logo size="base"/>
+
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <hlm-avatar>
+          @if (currentUser()?.avatarUrl) {
+            <img hlmAvatarImage [ngSrc]="currentUser()!.avatarUrl!" [alt]="currentUser()!.username" fill/>
+          } @else {
+            <span hlmAvatarFallback>{{ getUserInitials() }}</span>
+          }
+        </hlm-avatar>
+
+        <div class="hidden md:flex flex-col">
+          <span class="text-sm font-medium">{{ currentUser()?.username }}</span>
+          <span
+            [class]="getRoleBadgeClasses()"
+            class="text-xs px-2 py-0.5 rounded-full font-medium"
+          >
+            {{ getRoleTranslation() }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
