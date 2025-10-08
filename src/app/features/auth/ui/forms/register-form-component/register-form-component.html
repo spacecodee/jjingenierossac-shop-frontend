@@ -1,0 +1,66 @@
+<section class="w-full" hlmCard>
+  <div hlmCardHeader>
+    <h3 hlmCardTitle>Crear cuenta</h3>
+    <p hlmCardDescription>Ingresa tus datos para crear una nueva cuenta</p>
+
+    <div hlmCardAction>
+      <button hlmBtn variant="link" routerLink="/auth/login">Iniciar sesión</button>
+    </div>
+  </div>
+
+  <div hlmCardContent>
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="flex flex-col gap-4">
+        <div class="grid gap-2">
+          <label hlmLabel for="fullName">Nombre completo</label>
+          <input
+            type="text"
+            id="fullName"
+            placeholder="Juan Pérez"
+            formControlName="fullName"
+            hlmInput
+          />
+        </div>
+
+        <div class="grid gap-2">
+          <label hlmLabel for="register-email">Correo electrónico</label>
+          <input
+            type="email"
+            id="register-email"
+            placeholder="correo@ejemplo.com"
+            formControlName="email"
+            hlmInput
+          />
+        </div>
+
+        <div class="grid gap-2">
+          <label hlmLabel for="register-password">Contraseña</label>
+          <input
+            type="password"
+            id="register-password"
+            placeholder="Mínimo 6 caracteres"
+            formControlName="password"
+            hlmInput
+          />
+        </div>
+
+        <div class="grid gap-2">
+          <label hlmLabel for="confirmPassword">Confirmar contraseña</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            placeholder="Repite tu contraseña"
+            formControlName="confirmPassword"
+            hlmInput
+          />
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div hlmCardFooter>
+    <button hlmBtn type="submit" class="w-full" [disabled]="!isFormValid()" (click)="onSubmit()">
+      Registrarse
+    </button>
+  </div>
+</section>
