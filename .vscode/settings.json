@@ -66,6 +66,7 @@
   "workbench.statusBar.visible": true,
   "workbench.editor.showTabs": "multiple",
   "workbench.editor.tabSizing": "fit",
+  "workbench.editor.wrapTabs": true,
   "window.commandCenter": false,
   "editor.tabCompletion": "on",
   "editor.codeLens": true,
