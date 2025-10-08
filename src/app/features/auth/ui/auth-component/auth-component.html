@@ -1,0 +1,24 @@
+<section class="auth-container">
+  <article class="info-section">
+    <header class="info-header">
+      <h1 class="company-name">{{ companyName }}</h1>
+      <p class="company-description">{{ companyDescription }}</p>
+    </header>
+
+    <div class="image-container">
+      <div hlmAspectRatio="16/9" class="bg-zinc-800 rounded-lg overflow-hidden justify-center">
+        <img
+          ngSrc="https://picsum.photos/1920/1080"
+          alt="J&J Ingenieros SAC - Equipamiento Industrial"
+          priority
+          fill/>
+      </div>
+    </div>
+  </article>
+
+  <article class="form-section">
+    <div class="form-wrapper">
+      <router-outlet/>
+    </div>
+  </article>
+</section>
