@@ -5,10 +5,10 @@ export const routes: Routes = [
   {
     path: '**',
     pathMatch: 'full',
-    redirectTo: 'login',
+    redirectTo: 'auth',
   },
   {
-    path: 'login',
+    path: 'auth',
     component: AuthLayout,
     loadChildren: () => (import('./features/auth/auth.routes').then(m => m.routes)),
   }
