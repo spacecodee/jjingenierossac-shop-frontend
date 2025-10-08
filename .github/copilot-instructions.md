@@ -11,7 +11,7 @@ This is the frontend application for a sales management web system designed for 
 The system implements a reservation-based purchase model where customers can reserve products through the web application, but payment processing occurs outside the system through direct coordination between the company and the client.
 
 ### 2. Core Technical Rules (Mandatory)
-
+- **Language**: For code use **English only**, for UI use **Spanish only**.
 - **Package Manager**: You **MUST** use `pnpm` for all dependency management. Do not suggest `npm` or `yarn` commands.
 - **Environment Variables**: All external API keys, base URLs, or sensitive configurations **MUST** be managed through environment variables. Use Angular's `environment.ts` files. Do not hardcode secrets.
 - **Execution**: You **MUST NEVER** generate code that executes the project (e.g., `ng serve`, `pnpm start`). Your role is to write and modify code, not to run it.
@@ -45,13 +45,15 @@ The system implements a reservation-based purchase model where customers can res
 
 ## Angular Best Practices
 
-- Always use standalone components over NgModules
+- Always use standalone components, now NgModules is deprecated
 - Must NOT set `standalone: true` inside Angular decorators. It's the default.
 - Use signals for state management
 - Implement lazy loading for feature routes
 - Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
 - Use `NgOptimizedImage` for all static images.
   - `NgOptimizedImage` does not work for inline base64 images.
+    Keep components focused on presentation logic
+- Extract complex business logic into services
 
 ## Components
 
@@ -70,6 +72,8 @@ The system implements a reservation-based purchase model where customers can res
 - Use `computed()` for derived state
 - Keep state transformations pure and predictable
 - Do NOT use `mutate` on signals, use `update` or `set` instead
+- Use `effect()` only for side effects, never for state derivation
+- Prefer signals over RxJS for state management
 
 ## Templates
 
