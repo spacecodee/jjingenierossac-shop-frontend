@@ -34,7 +34,7 @@
 
     <div hlmCardFooter class="flex justify-center">
       @if (!isVerifying()) {
-        <button hlmBtn [disabled]="isVerifying()" (click)="redirectToLogin()">
+        <button hlmBtn class="cursor-pointer" [disabled]="isVerifying()" (click)="redirectToLogin()">
           Ir a Iniciar Sesión
         </button>
       }
