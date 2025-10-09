@@ -7,14 +7,26 @@ import {
   strongPasswordValidator,
 } from '@app/shared/validators/password.validators';
 import { AuthService } from '@core/services/auth/auth.service';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideEye, lucideEyeOff } from '@ng-icons/lucide';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 
 @Component({
   selector: 'app-register-form',
-  imports: [ReactiveFormsModule, RouterLink, HlmInputImports, HlmButtonImports, HlmLabelImports],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    HlmInputImports,
+    HlmButtonImports,
+    HlmLabelImports,
+    HlmIconImports,
+    NgIcon,
+  ],
+  providers: [provideIcons({ lucideEye, lucideEyeOff })],
   templateUrl: './register-form-component.html',
   styleUrl: './register-form-component.css',
 })
@@ -51,6 +63,9 @@ export class RegisterFormComponent {
 
   readonly passwordControl = this.registerForm.get('password');
   readonly confirmPasswordControl = this.registerForm.get('confirmPassword');
+
+  readonly showPassword = signal<boolean>(false);
+  readonly showConfirmPassword = signal<boolean>(false);
 
   readonly passwordsMatch = computed(() => {
     const password = this.passwordControl?.value;
@@ -96,13 +111,21 @@ export class RegisterFormComponent {
       };
     }
     return {
-      minLength: errors.hasMinLength || false,
-      upperCase: errors.hasUpperCase || false,
-      lowerCase: errors.hasLowerCase || false,
-      number: errors.hasNumber || false,
-      specialChar: errors.hasSpecialChar || false,
+      minLength: !errors.hasMinLength,
+      upperCase: !errors.hasUpperCase,
+      lowerCase: !errors.hasLowerCase,
+      number: !errors.hasNumber,
+      specialChar: !errors.hasSpecialChar,
     };
   });
+
+  togglePasswordVisibility(): void {
+    this.showPassword.update((value) => !value);
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword.update((value) => !value);
+  }
 
   onSubmit(): void {
     if (this.registerForm.invalid) {

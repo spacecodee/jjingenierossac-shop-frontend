@@ -50,14 +50,24 @@
 
         <div class="space-y-2">
           <label hlmLabel for="password">Contraseña *</label>
-          <input
-            type="password"
-            id="password"
-            formControlName="password"
-            placeholder="Ingresa tu contraseña"
-            hlmInput
-            [class.border-destructive]="getFieldError('password')"
-          />
+          <div class="relative">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              placeholder="Ingresa tu contraseña"
+              hlmInput
+              class="pr-10"
+              [class.border-destructive]="getFieldError('password')"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ng-icon hlm [name]="showPassword() ? 'lucideEyeOff' : 'lucideEye'" size="sm"/>
+            </button>
+          </div>
           @if (passwordControl?.value && passwordControl?.touched) {
             <div class="space-y-2">
               <div class="flex items-center gap-2">
@@ -117,15 +127,29 @@
 
         <div class="space-y-2">
           <label hlmLabel for="confirmPassword">Confirmar contraseña *</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            formControlName="confirmPassword"
-            placeholder="Confirma tu contraseña"
-            hlmInput
-            [class.border-destructive]="getFieldError('confirmPassword')"
-            [class.border-primary]="passwordsMatch() === true"
-          />
+          <div class="relative">
+            <input
+              [type]="showConfirmPassword() ? 'text' : 'password'"
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              placeholder="Confirma tu contraseña"
+              hlmInput
+              class="pr-10"
+              [class.border-destructive]="getFieldError('confirmPassword')"
+              [class.border-primary]="passwordsMatch() === true"
+            />
+            <button
+              type="button"
+              (click)="toggleConfirmPasswordVisibility()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ng-icon
+                hlm
+                [name]="showConfirmPassword() ? 'lucideEyeOff' : 'lucideEye'"
+                size="sm"
+              />
+            </button>
+          </div>
           @if (getFieldError('confirmPassword')) {
             <p class="text-xs text-destructive">{{ getFieldError('confirmPassword') }}</p>
           } @else if (passwordsMatch() === true) {

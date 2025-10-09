@@ -54,13 +54,23 @@
               ¿Olvidaste tu contraseña?
             </a>
           </div>
-          <input
-            type="password"
-            id="password"
-            formControlName="password"
-            placeholder="Ingresa tu contraseña"
-            hlmInput
-          />
+          <div class="relative">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              placeholder="Ingresa tu contraseña"
+              hlmInput
+              class="pr-10"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ng-icon hlm [name]="showPassword() ? 'lucideEyeOff' : 'lucideEye'" size="sm"/>
+            </button>
+          </div>
         </div>
       </fieldset>
 
