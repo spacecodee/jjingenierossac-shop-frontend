@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '@core/services/auth/auth.service';
 import { ThemeService } from '@core/services/theme/theme';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
@@ -13,13 +13,16 @@ import {
   lucideSun,
   lucideUsers,
 } from '@ng-icons/lucide';
+import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { MenuItemInterface } from '@shared/data/models/menu-item.interface';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { toast } from 'ngx-sonner';
 
 @Component({
   selector: 'app-dashboard-sidebar-layout',
-  imports: [NgIconComponent, HlmIcon, HlmSidebarImports, RouterLink, RouterLinkActive],
+  imports: [NgIconComponent, HlmIcon, HlmSidebarImports, HlmSpinner, RouterLink, RouterLinkActive],
   templateUrl: './dashboard-sidebar-layout.html',
   styleUrl: './dashboard-sidebar-layout.css',
   providers: [
@@ -38,8 +41,10 @@ import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 export class DashboardSidebarLayout {
   private readonly themeService = inject(ThemeService);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly isDark = computed(() => this.themeService.isDark());
+  readonly isLoggingOut = signal<boolean>(false);
 
   readonly menuItems = signal<MenuItemInterface[]>([
     {
@@ -74,6 +79,37 @@ export class DashboardSidebarLayout {
   }
 
   logout(): void {
-    this.authService.logout();
+    if (this.isLoggingOut()) return;
+
+    this.isLoggingOut.set(true);
+
+    this.authService.logout().subscribe({
+      next: (response) => {
+        const message = response.message || 'Sesión cerrada exitosamente';
+        toast.success('Sesión cerrada', {
+          description: message,
+        });
+        this.router.navigate(['/auth/account/login']).then((r) => !r && undefined);
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isLoggingOut.set(false);
+
+        if (error.status === 0) {
+          toast.info('Sin conexión', {
+            description: 'No hay conexión. El cierre de sesión se realizó localmente.',
+          });
+        } else if (error.status === 401) {
+          toast.info('Sesión finalizada', {
+            description: error.message || 'Tu sesión ha finalizado.',
+          });
+        } else {
+          toast.error('Error al cerrar sesión', {
+            description: error.message || 'Ocurrió un error. La sesión se cerró localmente.',
+          });
+        }
+
+        this.router.navigate(['/auth/account/login']).then((r) => !r && undefined);
+      },
+    });
   }
 }
