@@ -79,6 +79,9 @@
       ],
       "@spartan-ng/helm/skeleton": [
         "./libs/ui/ui-skeleton-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/sonner": [
+        "./libs/ui/ui-sonner-helm/src/index.ts"
       ]
     }
   },
