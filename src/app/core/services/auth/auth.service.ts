@@ -10,6 +10,7 @@ import { environment } from '@environments/environment';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiErrorDataResponse } from '@shared/data/models/api-error-data-response.interface';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
+import { ApiPlainResponse } from '@shared/data/models/api-plain-response.interface';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 
 @Injectable({
@@ -47,6 +48,18 @@ export class AuthService {
   ): Observable<ApiDataResponse<RegisterCustomerResponse>> {
     return this.http
       .post<ApiDataResponse<RegisterCustomerResponse>>(`${ this.apiUrl }/register`, request)
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(() => this.handleError(error));
+        })
+      );
+  }
+
+  verifyEmail(token: string): Observable<ApiPlainResponse> {
+    return this.http
+      .post<ApiPlainResponse>(`${ this.apiUrl }/verify-email`, null, {
+        params: { token },
+      })
       .pipe(
         catchError((error: HttpErrorResponse) => {
           return throwError(() => this.handleError(error));
