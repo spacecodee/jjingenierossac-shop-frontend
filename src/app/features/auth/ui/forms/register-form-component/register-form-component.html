@@ -18,19 +18,6 @@
       </p>
     </header>
 
-    @if (errorMessage()) {
-      <div
-        class="p-3 rounded-lg border border-destructive/50 bg-destructive/10 text-destructive text-sm"
-      >
-        {{ errorMessage() }}
-      </div>
-    }
-    @if (successMessage()) {
-      <div class="p-3 rounded-lg border border-primary/50 bg-primary/10 text-primary text-sm">
-        {{ successMessage() }}
-      </div>
-    }
-
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-4">
       <fieldset class="space-y-4" [disabled]="isLoading()">
         <div class="space-y-2">
@@ -222,6 +209,7 @@
 
       <button hlmBtn type="submit" class="w-full" [disabled]="!registerForm.valid || isLoading()">
         @if (isLoading()) {
+          <hlm-spinner class="size-4 mr-2"/>
           <span>Registrando...</span>
         } @else {
           <span>Registrarse</span>

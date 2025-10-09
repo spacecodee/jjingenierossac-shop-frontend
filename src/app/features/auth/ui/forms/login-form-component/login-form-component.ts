@@ -10,6 +10,8 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { toast } from 'ngx-sonner';
 
 @Component({
   selector: 'app-login-form',
@@ -21,6 +23,7 @@ import { HlmLabelImports } from '@spartan-ng/helm/label';
     HlmLabelImports,
     HlmIconImports,
     NgIcon,
+    HlmSpinner,
   ],
   providers: [provideIcons({ lucideEye, lucideEyeOff })],
   templateUrl: './login-form-component.html',
@@ -31,8 +34,6 @@ export class LoginFormComponent {
   private readonly router = inject(Router);
 
   readonly isLoading = signal<boolean>(false);
-  readonly errorMessage = signal<string | null>(null);
-  readonly successMessage = signal<string | null>(null);
   readonly showPassword = signal<boolean>(false);
 
   loginForm = new FormGroup({
@@ -44,8 +45,6 @@ export class LoginFormComponent {
     if (this.loginForm.invalid) return;
 
     this.isLoading.set(true);
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
 
     const credentials: LoginRequest = {
       username: this.loginForm.value.username!,
@@ -55,12 +54,17 @@ export class LoginFormComponent {
     this.authService.login(credentials).subscribe({
       next: (response) => {
         this.isLoading.set(false);
-        this.successMessage.set(response.message || 'Inicio de sesión exitoso');
+        toast.success('Inicio de sesión exitoso', {
+          description: response.message || 'Redirigiendo al dashboard...',
+        });
         this.router.navigate(['/dashboard']).then((r) => !r && undefined);
       },
       error: (error: ApiErrorResponse) => {
         this.isLoading.set(false);
-        this.errorMessage.set(error.message || 'Error al iniciar sesión');
+        toast.error('Error al iniciar sesión', {
+          description:
+            error.message || 'Por favor, verifica tus credenciales e intenta nuevamente.',
+        });
       },
     });
   }

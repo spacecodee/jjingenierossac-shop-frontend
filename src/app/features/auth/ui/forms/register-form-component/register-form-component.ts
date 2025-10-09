@@ -15,6 +15,8 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
+import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { toast } from 'ngx-sonner';
 
 @Component({
   selector: 'app-register-form',
@@ -26,6 +28,7 @@ import { HlmLabelImports } from '@spartan-ng/helm/label';
     HlmLabelImports,
     HlmIconImports,
     NgIcon,
+    HlmSpinner,
   ],
   providers: [provideIcons({ lucideEye, lucideEyeOff })],
   templateUrl: './register-form-component.html',
@@ -36,8 +39,6 @@ export class RegisterFormComponent {
   private readonly router = inject(Router);
 
   readonly isLoading = signal<boolean>(false);
-  readonly errorMessage = signal<string | null>(null);
-  readonly successMessage = signal<string | null>(null);
   readonly fieldErrors = signal<Record<string, string>>({});
 
   registerForm = new FormGroup(
@@ -139,8 +140,6 @@ export class RegisterFormComponent {
     }
 
     this.isLoading.set(true);
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
     this.fieldErrors.set({});
 
     const request: RegisterCustomerRequest = {
@@ -156,15 +155,18 @@ export class RegisterFormComponent {
     this.authService.register(request).subscribe({
       next: (response) => {
         this.isLoading.set(false);
-        this.successMessage.set(
-          response.data.message ||
-          'Registro exitoso. Por favor, verifica tu correo electrónico para activar tu cuenta.'
-        );
+        toast.success('Registro exitoso', {
+          description:
+            response.data.message ||
+            'Por favor, verifica tu correo electrónico para activar tu cuenta.',
+        });
         this.router.navigate(['/auth/account/login']).then((r) => !r && undefined);
       },
       error: (error: ApiErrorResponse) => {
         this.isLoading.set(false);
-        this.errorMessage.set(error.message || 'Error al registrar usuario');
+        toast.error('Error al registrar usuario', {
+          description: error.message || 'Por favor, verifica los datos e intenta nuevamente.',
+        });
         this.parseFieldErrors(error.backendMessage);
       },
     });
