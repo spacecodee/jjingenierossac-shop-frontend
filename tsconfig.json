@@ -82,6 +82,9 @@
       ],
       "@spartan-ng/helm/sonner": [
         "./libs/ui/ui-sonner-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/spinner": [
+        "./libs/ui/ui-spinner-helm/src/index.ts"
       ]
     }
   },
