@@ -25,7 +25,7 @@
           <input
             type="text"
             id="username"
-            placeholder="nombre_usuario"
+            placeholder="usuario_123"
             formControlName="username"
             hlmInput
             [class.border-destructive]="getFieldError('username')"
@@ -207,7 +207,12 @@
         </div>
       </fieldset>
 
-      <button hlmBtn type="submit" class="w-full cursor-pointer" [disabled]="!registerForm.valid || isLoading()">
+      <button
+        hlmBtn
+        type="submit"
+        class="w-full cursor-pointer"
+        [disabled]="!registerForm.valid || isLoading()"
+      >
         @if (isLoading()) {
           <hlm-spinner class="size-4 mr-2"/>
           <span>Registrando...</span>

@@ -10,6 +10,7 @@ import {
 import { AuthService } from '@core/services/auth/auth.service';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideEye, lucideEyeOff } from '@ng-icons/lucide';
+import { ApiErrorDataResponse } from '@shared/data/models/api-error-data-response.interface';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
@@ -47,7 +48,7 @@ export class RegisterFormComponent {
         Validators.required,
         Validators.minLength(4),
         Validators.maxLength(20),
-        Validators.pattern(/^[a-zA-Z0-9_.]+$/),
+        Validators.pattern(/^[a-z0-9_]+$/),
       ]),
       password: new FormControl('', [
         Validators.required,
@@ -164,27 +165,39 @@ export class RegisterFormComponent {
         });
         this.router.navigate(['/auth/account/login']).then((r) => !r && undefined);
       },
-      error: (error: ApiErrorResponse) => {
+      error: (error: ApiErrorResponse | ApiErrorDataResponse<Record<string, string>>) => {
         this.isLoading.set(false);
-        toast.error('Error al registrar usuario', {
-          description: error.message || 'Por favor, verifica los datos e intenta nuevamente.',
-        });
-        this.parseFieldErrors(error.backendMessage);
+
+        if (error.status === 422 && 'data' in error && error.data) {
+          toast.error('Errores de validación', {
+            description: error.message || 'Por favor, revisa los campos marcados en rojo.',
+          });
+          this.parseFieldErrors(error);
+        } else {
+          toast.error('Error al registrar usuario', {
+            description: error.message || 'Por favor, verifica los datos e intenta nuevamente.',
+          });
+        }
       },
     });
   }
 
-  private parseFieldErrors(backendMessage: string): void {
-    const errors: Record<string, string> = {};
+  private parseFieldErrors(
+    error: ApiErrorResponse | ApiErrorDataResponse<Record<string, string>>
+  ): void {
+    if (error.status === 422 && 'data' in error && error.data) {
+      this.fieldErrors.set(error.data);
 
-    if (backendMessage.toLowerCase().includes('username')) {
-      errors['username'] = 'El nombre de usuario ya está en uso. Por favor, elige otro.';
+      for (const fieldName of Object.keys(error.data)) {
+        const control = this.registerForm.get(fieldName);
+        if (control) {
+          control.markAsTouched();
+          control.updateValueAndValidity();
+        }
+      }
+    } else {
+      this.fieldErrors.set({});
     }
-    if (backendMessage.toLowerCase().includes('email')) {
-      errors['email'] = 'Este correo electrónico ya está registrado.';
-    }
-
-    this.fieldErrors.set(errors);
   }
 
   getFieldError(fieldName: string): string | null {
@@ -201,7 +214,7 @@ export class RegisterFormComponent {
     if (errors['maxlength']) return `Máximo ${ errors['maxlength'].requiredLength } caracteres`;
     if (errors['email']) return `Correo electrónico inválido`;
     if (errors['pattern']) {
-      if (fieldName === 'username') return `Solo letras, números, punto y guión bajo`;
+      if (fieldName === 'username') return `Solo letras minúsculas, números y guión bajo`;
       if (fieldName === 'phoneNumber') return `Formato inválido. Ejemplo: +51 999 999 999`;
     }
     if (errors['passwordMismatch']) return `Las contraseñas no coinciden`;

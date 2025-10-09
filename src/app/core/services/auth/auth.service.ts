@@ -8,6 +8,7 @@ import { RegisterCustomerResponse } from '@app/features/auth/data/models/registe
 import { StorageService } from '@core/services/storage/storage';
 import { environment } from '@environments/environment';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
+import { ApiErrorDataResponse } from '@shared/data/models/api-error-data-response.interface';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 
@@ -93,10 +94,15 @@ export class AuthService {
     }
   }
 
-  private handleError(error: HttpErrorResponse): ApiErrorResponse {
+  private handleError(
+    error: HttpErrorResponse
+  ): ApiErrorResponse | ApiErrorDataResponse<Record<string, string>> {
     if (error.error && typeof error.error === 'object') {
-      const apiError = error.error as ApiErrorResponse;
-      return {
+      const apiError = error.error as
+        | ApiErrorResponse
+        | ApiErrorDataResponse<Record<string, string>>;
+
+      const baseError = {
         timestamp: apiError.timestamp || new Date().toISOString(),
         backendMessage: apiError.backendMessage || 'Error del servidor',
         message: apiError.message || this.getDefaultErrorMessage(error.status),
@@ -104,6 +110,15 @@ export class AuthService {
         method: apiError.method || '',
         status: apiError.status || error.status,
       };
+
+      if ('data' in apiError && apiError.data) {
+        return {
+          ...baseError,
+          data: apiError.data,
+        } as ApiErrorDataResponse<Record<string, string>>;
+      }
+
+      return baseError;
     }
 
     return {
