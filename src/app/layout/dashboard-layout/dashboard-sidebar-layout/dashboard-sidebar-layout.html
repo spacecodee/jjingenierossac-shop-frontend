@@ -49,10 +49,17 @@
         <button
           hlmSidebarMenuButton
           class="w-full px-3 py-2 gap-3 rounded-lg transition-colors text-destructive hover:bg-destructive/10"
+          [disabled]="isLoggingOut()"
           (click)="logout()"
         >
-          <ng-icon hlm name="lucideLogOut" class="h-4 w-4"/>
-          <span class="text-sm font-medium">Cerrar Sesión</span>
+          @if (isLoggingOut()) {
+            <hlm-spinner size="sm" class="h-4 w-4"/>
+          } @else {
+            <ng-icon hlm name="lucideLogOut" class="h-4 w-4"/>
+          }
+          <span class="text-sm font-medium">
+            {{ isLoggingOut() ? 'Cerrando sesión...' : 'Cerrar Sesión' }}
+          </span>
         </button>
       </li>
     </ul>

@@ -1,6 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { LoginRequest } from '@app/features/auth/data/models/login-request.interface';
 import { LoginResponse } from '@app/features/auth/data/models/login-response.interface';
 import { RegisterCustomerRequest } from '@app/features/auth/data/models/register-customer-request.interface';
@@ -18,7 +17,6 @@ import { catchError, Observable, tap, throwError } from 'rxjs';
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly router = inject(Router);
   private readonly storageService = inject(StorageService);
 
   private readonly apiUrl = `${ environment.apiUrl }/auth`;
@@ -67,11 +65,20 @@ export class AuthService {
       );
   }
 
-  logout(): void {
-    this.clearAuthData();
-    this.isAuthenticatedSignal.set(false);
-    this.currentTokenSignal.set(null);
-    this.router.navigate(['/auth/account/login']).then((r) => !r && undefined);
+  logout(): Observable<ApiPlainResponse> {
+    return this.http.post<ApiPlainResponse>(`${ this.apiUrl }/logout`, null).pipe(
+      tap(() => {
+        this.clearAuthData();
+        this.isAuthenticatedSignal.set(false);
+        this.currentTokenSignal.set(null);
+      }),
+      catchError((error: HttpErrorResponse) => {
+        this.clearAuthData();
+        this.isAuthenticatedSignal.set(false);
+        this.currentTokenSignal.set(null);
+        return throwError(() => this.handleError(error));
+      })
+    );
   }
 
   private setAuthData(loginResponse: LoginResponse): void {
