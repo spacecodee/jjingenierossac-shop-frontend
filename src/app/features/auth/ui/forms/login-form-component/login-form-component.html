@@ -18,19 +18,6 @@
       </p>
     </header>
 
-    @if (errorMessage()) {
-      <div
-        class="p-3 rounded-lg border border-destructive/50 bg-destructive/10 text-destructive text-sm"
-      >
-        {{ errorMessage() }}
-      </div>
-    }
-    @if (successMessage()) {
-      <div class="p-3 rounded-lg border border-primary/50 bg-primary/10 text-primary text-sm">
-        {{ successMessage() }}
-      </div>
-    }
-
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
       <fieldset class="space-y-4" [disabled]="isLoading()">
         <div class="space-y-2">
@@ -54,18 +41,29 @@
               ¿Olvidaste tu contraseña?
             </a>
           </div>
-          <input
-            type="password"
-            id="password"
-            formControlName="password"
-            placeholder="Ingresa tu contraseña"
-            hlmInput
-          />
+          <div class="relative">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              placeholder="Ingresa tu contraseña"
+              hlmInput
+              class="pr-10"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ng-icon hlm [name]="showPassword() ? 'lucideEyeOff' : 'lucideEye'" size="sm"/>
+            </button>
+          </div>
         </div>
       </fieldset>
 
-      <button hlmBtn type="submit" class="w-full" [disabled]="!loginForm.valid || isLoading()">
+      <button hlmBtn type="submit" class="w-full cursor-pointer" [disabled]="!loginForm.valid || isLoading()">
         @if (isLoading()) {
+          <hlm-spinner class="size-4 mr-2"/>
           <span>Iniciando sesión...</span>
         } @else {
           <span>Iniciar sesión</span>

@@ -1,6 +1,11 @@
-<article class="w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-sm">
-  <header class="w-full flex justify-end mb-8">
-    <button hlmBtn variant="link" routerLink="/auth/account/login" class="text-sm font-medium cursor-pointer">
+<article class="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm">
+  <header class="w-full flex justify-end mb-6">
+    <button
+      hlmBtn
+      variant="link"
+      routerLink="/auth/account/login"
+      class="text-sm font-medium cursor-pointer"
+    >
       Iniciar sesión
     </button>
   </header>
@@ -8,26 +13,218 @@
   <section class="space-y-6">
     <header class="text-center space-y-2">
       <h1 class="text-2xl font-semibold tracking-tight">Crear una cuenta</h1>
-      <p class="text-sm text-muted-foreground">Ingresa tu nombre de usuario para crear tu cuenta</p>
+      <p class="text-sm text-muted-foreground">
+        Completa el formulario para registrarte como cliente
+      </p>
     </header>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-4">
-      <fieldset class="space-y-4">
+      <fieldset class="space-y-4" [disabled]="isLoading()">
         <div class="space-y-2">
-          <label hlmLabel for="register-username">Nombre de usuario</label>
+          <label hlmLabel for="username">Nombre de usuario *</label>
           <input
             type="text"
-            id="register-username"
-            placeholder="nombre_usuario"
+            id="username"
+            placeholder="usuario_123"
             formControlName="username"
             hlmInput
+            [class.border-destructive]="getFieldError('username')"
           />
+          @if (getFieldError('username')) {
+            <p class="text-xs text-destructive">{{ getFieldError('username') }}</p>
+          }
+        </div>
+
+        <div class="space-y-2">
+          <label hlmLabel for="password">Contraseña *</label>
+          <div class="relative">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              placeholder="Ingresa tu contraseña"
+              hlmInput
+              class="pr-10"
+              [class.border-destructive]="getFieldError('password')"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ng-icon hlm [name]="showPassword() ? 'lucideEyeOff' : 'lucideEye'" size="sm"/>
+            </button>
+          </div>
+          @if (passwordControl?.value && passwordControl?.touched) {
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <div class="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    class="h-full transition-all duration-300"
+                    [class.bg-destructive]="passwordStrength().level === 'weak'"
+                    [class.bg-yellow-500]="passwordStrength().level === 'medium'"
+                    [class.bg-primary]="passwordStrength().level === 'strong'"
+                    [style.width.%]="passwordStrength().percentage"
+                  ></div>
+                </div>
+                <span
+                  class="text-xs font-medium"
+                  [class.text-destructive]="passwordStrength().level === 'weak'"
+                  [class.text-yellow-600]="passwordStrength().level === 'medium'"
+                  [class.text-primary]="passwordStrength().level === 'strong'"
+                >
+                {{ passwordStrength().label }}
+              </span>
+              </div>
+              <ul class="text-xs space-y-1">
+                <li
+                  [class.text-muted-foreground]="!passwordRequirements().minLength"
+                  [class.text-primary]="passwordRequirements().minLength"
+                >
+                  {{ passwordRequirements().minLength ? '✓' : '○' }} Mínimo 8 caracteres
+                </li>
+                <li
+                  [class.text-muted-foreground]="!passwordRequirements().upperCase"
+                  [class.text-primary]="passwordRequirements().upperCase"
+                >
+                  {{ passwordRequirements().upperCase ? '✓' : '○' }} Una letra mayúscula
+                </li>
+                <li
+                  [class.text-muted-foreground]="!passwordRequirements().lowerCase"
+                  [class.text-primary]="passwordRequirements().lowerCase"
+                >
+                  {{ passwordRequirements().lowerCase ? '✓' : '○' }} Una letra minúscula
+                </li>
+                <li
+                  [class.text-muted-foreground]="!passwordRequirements().number"
+                  [class.text-primary]="passwordRequirements().number"
+                >
+                  {{ passwordRequirements().number ? '✓' : '○' }} Un número
+                </li>
+                <li
+                  [class.text-muted-foreground]="!passwordRequirements().specialChar"
+                  [class.text-primary]="passwordRequirements().specialChar"
+                >
+                  {{ passwordRequirements().specialChar ? '✓' : '○' }} Un carácter especial
+                </li>
+              </ul>
+            </div>
+          }
+        </div>
+
+        <div class="space-y-2">
+          <label hlmLabel for="confirmPassword">Confirmar contraseña *</label>
+          <div class="relative">
+            <input
+              [type]="showConfirmPassword() ? 'text' : 'password'"
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              placeholder="Confirma tu contraseña"
+              hlmInput
+              class="pr-10"
+              [class.border-destructive]="getFieldError('confirmPassword')"
+              [class.border-primary]="passwordsMatch() === true"
+            />
+            <button
+              type="button"
+              (click)="toggleConfirmPasswordVisibility()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ng-icon
+                hlm
+                [name]="showConfirmPassword() ? 'lucideEyeOff' : 'lucideEye'"
+                size="sm"
+              />
+            </button>
+          </div>
+          @if (getFieldError('confirmPassword')) {
+            <p class="text-xs text-destructive">{{ getFieldError('confirmPassword') }}</p>
+          } @else if (passwordsMatch() === true) {
+            <p class="text-xs text-primary">✓ Las contraseñas coinciden</p>
+          }
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <label hlmLabel for="firstName">Nombre *</label>
+            <input
+              type="text"
+              id="firstName"
+              placeholder="Juan"
+              formControlName="firstName"
+              hlmInput
+              [class.border-destructive]="getFieldError('firstName')"
+            />
+            @if (getFieldError('firstName')) {
+              <p class="text-xs text-destructive">{{ getFieldError('firstName') }}</p>
+            }
+          </div>
+
+          <div class="space-y-2">
+            <label hlmLabel for="lastName">Apellidos *</label>
+            <input
+              type="text"
+              id="lastName"
+              placeholder="Pérez García"
+              formControlName="lastName"
+              hlmInput
+              [class.border-destructive]="getFieldError('lastName')"
+            />
+            @if (getFieldError('lastName')) {
+              <p class="text-xs text-destructive">{{ getFieldError('lastName') }}</p>
+            }
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label hlmLabel for="email">Correo electrónico *</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="correo@ejemplo.com"
+            formControlName="email"
+            hlmInput
+            [class.border-destructive]="getFieldError('email')"
+          />
+          @if (getFieldError('email')) {
+            <p class="text-xs text-destructive">{{ getFieldError('email') }}</p>
+          }
+        </div>
+
+        <div class="space-y-2">
+          <label hlmLabel for="phoneNumber">Número de teléfono (opcional)</label>
+          <input
+            type="tel"
+            id="phoneNumber"
+            placeholder="+51 999 999 999"
+            formControlName="phoneNumber"
+            hlmInput
+            [class.border-destructive]="getFieldError('phoneNumber')"
+          />
+          @if (getFieldError('phoneNumber')) {
+            <p class="text-xs text-destructive">{{ getFieldError('phoneNumber') }}</p>
+          }
         </div>
       </fieldset>
 
-      <button hlmBtn type="submit" class="w-full" [disabled]="!registerForm.valid">
-        Registrarse
+      <button
+        hlmBtn
+        type="submit"
+        class="w-full cursor-pointer"
+        [disabled]="!registerForm.valid || isLoading()"
+      >
+        @if (isLoading()) {
+          <hlm-spinner class="size-4 mr-2"/>
+          <span>Registrando...</span>
+        } @else {
+          <span>Registrarse</span>
+        }
       </button>
+
+      <p class="text-xs text-center text-muted-foreground">
+        Al registrarte, aceptas nuestros
+        <a href="#" class="underline hover:text-primary">Términos y Condiciones</a>
+      </p>
     </form>
   </section>
 </article>

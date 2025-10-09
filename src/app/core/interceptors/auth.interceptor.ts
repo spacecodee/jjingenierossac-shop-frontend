@@ -6,14 +6,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const storageService = inject(StorageService);
   const token = storageService.getItem<string>('auth_token');
 
+  const headers: Record<string, string> = {
+    'X-Locale': 'es',
+  };
+
   if (token && !req.url.includes('/auth/login')) {
-    const clonedRequest = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${ token }`,
-      },
-    });
-    return next(clonedRequest);
+    headers['Authorization'] = `Bearer ${ token }`;
   }
 
-  return next(req);
+  const clonedRequest = req.clone({
+    setHeaders: headers,
+  });
+
+  return next(clonedRequest);
 };

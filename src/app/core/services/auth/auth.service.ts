@@ -3,10 +3,14 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { LoginRequest } from '@app/features/auth/data/models/login-request.interface';
 import { LoginResponse } from '@app/features/auth/data/models/login-response.interface';
+import { RegisterCustomerRequest } from '@app/features/auth/data/models/register-customer-request.interface';
+import { RegisterCustomerResponse } from '@app/features/auth/data/models/register-customer-response.interface';
 import { StorageService } from '@core/services/storage/storage';
 import { environment } from '@environments/environment';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
+import { ApiErrorDataResponse } from '@shared/data/models/api-error-data-response.interface';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
+import { ApiPlainResponse } from '@shared/data/models/api-plain-response.interface';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 
 @Injectable({
@@ -39,11 +43,35 @@ export class AuthService {
     );
   }
 
+  register(
+    request: RegisterCustomerRequest
+  ): Observable<ApiDataResponse<RegisterCustomerResponse>> {
+    return this.http
+      .post<ApiDataResponse<RegisterCustomerResponse>>(`${ this.apiUrl }/register`, request)
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(() => this.handleError(error));
+        })
+      );
+  }
+
+  verifyEmail(token: string): Observable<ApiPlainResponse> {
+    return this.http
+      .post<ApiPlainResponse>(`${ this.apiUrl }/verify-email`, null, {
+        params: { token },
+      })
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(() => this.handleError(error));
+        })
+      );
+  }
+
   logout(): void {
     this.clearAuthData();
     this.isAuthenticatedSignal.set(false);
     this.currentTokenSignal.set(null);
-    this.router.navigate(['/auth/account/login']).then(r => !r && undefined);
+    this.router.navigate(['/auth/account/login']).then((r) => !r && undefined);
   }
 
   private setAuthData(loginResponse: LoginResponse): void {
@@ -79,10 +107,15 @@ export class AuthService {
     }
   }
 
-  private handleError(error: HttpErrorResponse): ApiErrorResponse {
+  private handleError(
+    error: HttpErrorResponse
+  ): ApiErrorResponse | ApiErrorDataResponse<Record<string, string>> {
     if (error.error && typeof error.error === 'object') {
-      const apiError = error.error as ApiErrorResponse;
-      return {
+      const apiError = error.error as
+        | ApiErrorResponse
+        | ApiErrorDataResponse<Record<string, string>>;
+
+      const baseError = {
         timestamp: apiError.timestamp || new Date().toISOString(),
         backendMessage: apiError.backendMessage || 'Error del servidor',
         message: apiError.message || this.getDefaultErrorMessage(error.status),
@@ -90,6 +123,15 @@ export class AuthService {
         method: apiError.method || '',
         status: apiError.status || error.status,
       };
+
+      if ('data' in apiError && apiError.data) {
+        return {
+          ...baseError,
+          data: apiError.data,
+        } as ApiErrorDataResponse<Record<string, string>>;
+      }
+
+      return baseError;
     }
 
     return {
@@ -106,6 +148,8 @@ export class AuthService {
     switch (status) {
       case 401:
         return 'Credenciales inválidas. Por favor, verifica tu usuario y contraseña.';
+      case 409:
+        return 'El nombre de usuario o correo electrónico ya está registrado.';
       case 422:
         return 'Error de validación. Verifica que todos los campos estén correctos.';
       case 423:

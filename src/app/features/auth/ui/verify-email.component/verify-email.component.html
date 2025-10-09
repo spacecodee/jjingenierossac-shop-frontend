@@ -1,0 +1,43 @@
+<div class="min-h-screen flex items-center justify-center p-4">
+  <section hlmCard class="w-full max-w-md">
+    <div hlmCardHeader class="text-center">
+      <h3 hlmCardTitle class="text-2xl">Verificación de Correo</h3>
+      <p hlmCardDescription>
+        @if (isVerifying()) {
+          Verificando tu correo electrónico...
+        } @else if (isSuccess()) {
+          ¡Tu
+            correo ha sido verificado!
+        } @else {
+          Error en la verificación
+        }
+      </p>
+    </div>
+
+    <div hlmCardContent class="flex flex-col items-center space-y-4">
+      @if (isVerifying()) {
+        <hlm-spinner size="lg"/>
+        <p class="text-muted-foreground">Por favor espera mientras verificamos tu correo...</p>
+      } @else if (isSuccess()) {
+        <ng-icon name="lucideCircleCheck" size="64" class="text-green-600"/>
+        <p class="text-center">
+          Tu correo electrónico ha sido verificado exitosamente. Ya puedes iniciar sesión en tu
+          cuenta.
+        </p>
+      } @else {
+        <ng-icon name="lucideCircleX" size="64" class="text-red-600"/>
+        <p class="text-center text-red-600">
+          {{ errorMessage() }}
+        </p>
+      }
+    </div>
+
+    <div hlmCardFooter class="flex justify-center">
+      @if (!isVerifying()) {
+        <button hlmBtn class="cursor-pointer" [disabled]="isVerifying()" (click)="redirectToLogin()">
+          Ir a Iniciar Sesión
+        </button>
+      }
+    </div>
+  </section>
+</div>

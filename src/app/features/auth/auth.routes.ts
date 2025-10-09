@@ -41,4 +41,12 @@ export const authRoutes: Routes = [
         (m) => m.ForgotPasswordComponent
       ),
   },
+  {
+    path: 'verify-email',
+    title: 'Verificar Correo - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('./ui/verify-email.component/verify-email.component').then(
+        (m) => m.VerifyEmailComponent
+      ),
+  },
 ];
