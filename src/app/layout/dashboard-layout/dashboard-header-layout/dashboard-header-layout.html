@@ -1,25 +1,30 @@
-<header class="w-full border-b border-border sticky top-0 z-50">
-  <nav class="container flex h-16 items-center justify-between px-4 lg:px-8">
-    <div class="flex items-center gap-4">
+<header class="w-full border-b border-border bg-background/95 backdrop-blur-sm sticky top-0 z-50">
+  <nav class="flex h-14 items-center justify-between px-4 lg:px-6">
+    <div class="flex items-center gap-3">
       <button hlmSidebarTrigger></button>
       <app-company-logo size="sm"/>
     </div>
 
-    <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2">
-        <hlm-avatar>
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 px-3 py-1.5 rounded-lg border border-border bg-card">
+        <hlm-avatar class="h-8 w-8">
           @if (currentUser()?.avatarUrl) {
-            <img hlmAvatarImage [ngSrc]="currentUser()!.avatarUrl!" [alt]="currentUser()!.username" fill/>
+            <img
+              hlmAvatarImage
+              [ngSrc]="currentUser()!.avatarUrl!"
+              [alt]="currentUser()!.username"
+              fill
+            />
           } @else {
-            <span hlmAvatarFallback>{{ getUserInitials() }}</span>
+            <span hlmAvatarFallback class="text-xs">{{ getUserInitials() }}</span>
           }
         </hlm-avatar>
 
-        <div class="hidden md:flex flex-col">
-          <span class="text-sm font-medium">{{ currentUser()?.username }}</span>
+        <div class="hidden sm:flex flex-col gap-0.5">
+          <span class="text-xs font-medium leading-none">{{ currentUser()?.username }}</span>
           <span
             [class]="getRoleBadgeClasses()"
-            class="text-xs px-2 py-0.5 rounded-full font-medium"
+            class="text-[10px] px-1.5 py-0.5 rounded-md font-medium leading-none"
           >
             {{ getRoleTranslation() }}
           </span>
