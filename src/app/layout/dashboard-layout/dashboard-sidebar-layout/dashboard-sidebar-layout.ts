@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { ThemeService } from '@app/core/services/theme/theme';
-import { MenuItemInterface } from '@shared/data/models/menu-item.interface';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '@core/services/auth/auth.service';
+import { ThemeService } from '@core/services/theme/theme';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
   lucideHouse,
@@ -13,19 +13,13 @@ import {
   lucideSun,
   lucideUsers,
 } from '@ng-icons/lucide';
+import { MenuItemInterface } from '@shared/data/models/menu-item.interface';
 import { HlmIcon } from '@spartan-ng/helm/icon';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 
 @Component({
   selector: 'app-dashboard-sidebar-layout',
-  imports: [
-    NgIconComponent,
-    HlmIcon,
-    HlmSidebarImports,
-    RouterLink,
-    RouterLinkActive,
-
-  ],
+  imports: [NgIconComponent, HlmIcon, HlmSidebarImports, RouterLink, RouterLinkActive],
   templateUrl: './dashboard-sidebar-layout.html',
   styleUrl: './dashboard-sidebar-layout.css',
   providers: [
@@ -43,7 +37,7 @@ import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 })
 export class DashboardSidebarLayout {
   private readonly themeService = inject(ThemeService);
-  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   readonly isDark = computed(() => this.themeService.isDark());
 
@@ -80,9 +74,6 @@ export class DashboardSidebarLayout {
   }
 
   logout(): void {
-    console.log('Logout clicked');
-    this.router
-      .navigate(['/auth/account/login'])
-      .then((r) => !r && console.error('Navigation to login failed'));
+    this.authService.logout();
   }
 }

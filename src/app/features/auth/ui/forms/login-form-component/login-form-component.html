@@ -1,6 +1,11 @@
 <article class="w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-sm">
   <header class="w-full flex justify-end mb-8">
-    <button hlmBtn variant="link" routerLink="/auth/account/register" class="text-sm font-medium cursor-pointer">
+    <button
+      hlmBtn
+      variant="link"
+      routerLink="/auth/account/register"
+      class="text-sm font-medium cursor-pointer"
+    >
       Registro
     </button>
   </header>
@@ -13,8 +18,21 @@
       </p>
     </header>
 
+    @if (errorMessage()) {
+      <div
+        class="p-3 rounded-lg border border-destructive/50 bg-destructive/10 text-destructive text-sm"
+      >
+        {{ errorMessage() }}
+      </div>
+    }
+    @if (successMessage()) {
+      <div class="p-3 rounded-lg border border-primary/50 bg-primary/10 text-primary text-sm">
+        {{ successMessage() }}
+      </div>
+    }
+
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
-      <fieldset class="space-y-4">
+      <fieldset class="space-y-4" [disabled]="isLoading()">
         <div class="space-y-2">
           <label hlmLabel for="username">Nombre de usuario</label>
           <input
@@ -46,8 +64,12 @@
         </div>
       </fieldset>
 
-      <button hlmBtn type="submit" class="w-full" [disabled]="!loginForm.valid">
-        Iniciar sesión
+      <button hlmBtn type="submit" class="w-full" [disabled]="!loginForm.valid || isLoading()">
+        @if (isLoading()) {
+          <span>Iniciando sesión...</span>
+        } @else {
+          <span>Iniciar sesión</span>
+        }
       </button>
     </form>
   </section>
