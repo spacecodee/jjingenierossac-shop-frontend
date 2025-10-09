@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { RegisterCustomerRequest } from '@app/features/auth/data/models/register-customer-request.interface';
@@ -67,9 +68,14 @@ export class RegisterFormComponent {
   readonly showPassword = signal<boolean>(false);
   readonly showConfirmPassword = signal<boolean>(false);
 
+  readonly passwordValue = toSignal(this.passwordControl!.valueChanges, { initialValue: '' });
+  readonly confirmPasswordValue = toSignal(this.confirmPasswordControl!.valueChanges, {
+    initialValue: '',
+  });
+
   readonly passwordsMatch = computed(() => {
-    const password = this.passwordControl?.value;
-    const confirmPassword = this.confirmPasswordControl?.value;
+    const password = this.passwordValue();
+    const confirmPassword = this.confirmPasswordValue();
 
     if (!password || !confirmPassword) return null;
     if (!this.confirmPasswordControl?.touched) return null;
@@ -78,19 +84,16 @@ export class RegisterFormComponent {
   });
 
   readonly passwordStrength = computed(() => {
-    const password = this.passwordControl?.value || '';
+    const password = this.passwordValue();
     if (!password) return { level: 'none', label: '', percentage: 0 };
 
-    const errors = this.passwordControl?.errors?.['strongPassword'];
-    if (!errors) return { level: 'strong', label: 'Fuerte', percentage: 100 };
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password);
 
-    const checks = [
-      errors.hasMinLength,
-      errors.hasUpperCase,
-      errors.hasLowerCase,
-      errors.hasNumber,
-      errors.hasSpecialChar,
-    ];
+    const checks = [hasMinLength, hasUpperCase, hasLowerCase, hasNumber, hasSpecialChar];
     const passed = checks.filter(Boolean).length;
     const percentage = (passed / 5) * 100;
 
@@ -100,22 +103,24 @@ export class RegisterFormComponent {
   });
 
   readonly passwordRequirements = computed(() => {
-    const errors = this.passwordControl?.errors?.['strongPassword'];
-    if (!errors) {
+    const password = this.passwordValue();
+
+    if (!password) {
       return {
-        minLength: true,
-        upperCase: true,
-        lowerCase: true,
-        number: true,
-        specialChar: true,
+        minLength: false,
+        upperCase: false,
+        lowerCase: false,
+        number: false,
+        specialChar: false,
       };
     }
+
     return {
-      minLength: !errors.hasMinLength,
-      upperCase: !errors.hasUpperCase,
-      lowerCase: !errors.hasLowerCase,
-      number: !errors.hasNumber,
-      specialChar: !errors.hasSpecialChar,
+      minLength: password.length >= 8,
+      upperCase: /[A-Z]/.test(password),
+      lowerCase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      specialChar: /[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password),
     };
   });
 
