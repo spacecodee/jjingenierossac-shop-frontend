@@ -58,7 +58,9 @@ export class RegisterFormComponent {
       firstName: new FormControl('', [Validators.required, Validators.minLength(2)]),
       lastName: new FormControl('', [Validators.required, Validators.minLength(2)]),
       email: new FormControl('', [Validators.required, Validators.email]),
-      phoneNumber: new FormControl('', [Validators.pattern(/^(\+\d{1,3}[- ]?)?\d{9,15}$/)]),
+      phoneNumber: new FormControl('', [
+        Validators.pattern(/^(\+?\d{1,3})?[\s-]?(\d[\s-]?){9,14}\d$/),
+      ]),
     },
     { validators: passwordMatchValidator('password', 'confirmPassword') }
   );
