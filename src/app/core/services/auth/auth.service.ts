@@ -1,9 +1,11 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
+import { ForgotPasswordRequest } from '@app/features/auth/data/models/forgot-password-request.interface';
 import { LoginRequest } from '@app/features/auth/data/models/login-request.interface';
 import { LoginResponse } from '@app/features/auth/data/models/login-response.interface';
 import { RegisterCustomerRequest } from '@app/features/auth/data/models/register-customer-request.interface';
 import { RegisterCustomerResponse } from '@app/features/auth/data/models/register-customer-response.interface';
+import { ResetPasswordRequest } from '@app/features/auth/data/models/reset-password-request.interface';
 import { StorageService } from '@core/services/storage/storage';
 import { environment } from '@environments/environment';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
@@ -24,7 +26,6 @@ export class AuthService {
   private readonly currentTokenSignal = signal<string | null>(this.getStoredToken());
 
   readonly isAuthenticated = this.isAuthenticatedSignal.asReadonly();
-  readonly currentToken = this.currentTokenSignal.asReadonly();
 
   login(credentials: LoginRequest): Observable<ApiDataResponse<LoginResponse>> {
     return this.http.post<ApiDataResponse<LoginResponse>>(`${ this.apiUrl }/login`, credentials).pipe(
@@ -76,6 +77,22 @@ export class AuthService {
         this.clearAuthData();
         this.isAuthenticatedSignal.set(false);
         this.currentTokenSignal.set(null);
+        return throwError(() => this.handleError(error));
+      })
+    );
+  }
+
+  forgotPassword(request: ForgotPasswordRequest): Observable<ApiPlainResponse> {
+    return this.http.post<ApiPlainResponse>(`${ this.apiUrl }/forgot-password`, request).pipe(
+      catchError((error: HttpErrorResponse) => {
+        return throwError(() => this.handleError(error));
+      })
+    );
+  }
+
+  resetPassword(request: ResetPasswordRequest): Observable<ApiPlainResponse> {
+    return this.http.post<ApiPlainResponse>(`${ this.apiUrl }/reset-password`, request).pipe(
+      catchError((error: HttpErrorResponse) => {
         return throwError(() => this.handleError(error));
       })
     );
