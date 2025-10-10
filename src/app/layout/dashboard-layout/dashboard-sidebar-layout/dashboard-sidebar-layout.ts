@@ -11,6 +11,7 @@ import {
   lucideSettings,
   lucideShoppingCart,
   lucideSun,
+  lucideTag,
   lucideUsers,
 } from '@ng-icons/lucide';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
@@ -30,6 +31,7 @@ import { toast } from 'ngx-sonner';
       lucideHouse,
       lucideShoppingCart,
       lucidePackage,
+      lucideTag,
       lucideUsers,
       lucideSettings,
       lucideMoon,
@@ -61,6 +63,11 @@ export class DashboardSidebarLayout {
       label: 'Productos',
       route: '/dashboard/products',
       icon: 'lucidePackage',
+    },
+    {
+      label: 'Categorías de Servicio',
+      route: '/dashboard/service-categories',
+      icon: 'lucideTag',
     },
     {
       label: 'Clientes',

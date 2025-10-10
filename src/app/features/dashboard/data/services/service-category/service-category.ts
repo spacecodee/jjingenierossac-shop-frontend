@@ -1,0 +1,110 @@
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import {
+  SearchServiceCategoriesParams
+} from '@app/features/dashboard/data/models/search-service-categories-params.interface';
+import { ServiceCategoryResponse } from '@app/features/dashboard/data/models/service-category-response.interface';
+import { environment } from '@environments/environment';
+import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
+import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
+import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
+import { catchError, Observable, throwError } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ServiceCategoryService {
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${ environment.apiUrl }/service-category`;
+
+  searchServiceCategories(
+    params: SearchServiceCategoriesParams = {}
+  ): Observable<ApiDataResponse<ApiPaginatedResponse<ServiceCategoryResponse>>> {
+    let httpParams = new HttpParams();
+
+    if (params.name !== undefined && params.name !== null) {
+      httpParams = httpParams.set('name', params.name);
+    }
+    if (params.isActive !== undefined && params.isActive !== null) {
+      httpParams = httpParams.set('isActive', params.isActive.toString());
+    }
+    if (params.createdAtAfter) {
+      httpParams = httpParams.set('createdAtAfter', params.createdAtAfter);
+    }
+    if (params.createdAtBefore) {
+      httpParams = httpParams.set('createdAtBefore', params.createdAtBefore);
+    }
+    if (params.updatedAtAfter) {
+      httpParams = httpParams.set('updatedAtAfter', params.updatedAtAfter);
+    }
+    if (params.updatedAtBefore) {
+      httpParams = httpParams.set('updatedAtBefore', params.updatedAtBefore);
+    }
+    if (params.page !== undefined) {
+      httpParams = httpParams.set('page', params.page.toString());
+    }
+    if (params.size !== undefined) {
+      httpParams = httpParams.set('size', params.size.toString());
+    }
+    if (params.sortBy) {
+      httpParams = httpParams.set('sortBy', params.sortBy);
+    }
+    if (params.sortDirection) {
+      httpParams = httpParams.set('sortDirection', params.sortDirection);
+    }
+
+    return this.http
+      .get<ApiDataResponse<ApiPaginatedResponse<ServiceCategoryResponse>>>(
+        `${ this.apiUrl }/search`,
+        { params: httpParams }
+      )
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(() => this.handleError(error));
+        })
+      );
+  }
+
+  private handleError(error: HttpErrorResponse): ApiErrorResponse {
+    if (error.error && typeof error.error === 'object') {
+      const apiError = error.error as ApiErrorResponse;
+
+      return {
+        timestamp: apiError.timestamp || new Date().toISOString(),
+        backendMessage: apiError.backendMessage || 'Error del servidor',
+        message: apiError.message || this.getDefaultErrorMessage(error.status),
+        path: apiError.path || '',
+        method: apiError.method || '',
+        status: apiError.status || error.status,
+      };
+    }
+
+    return {
+      timestamp: new Date().toISOString(),
+      backendMessage: 'Error de conexión',
+      message: this.getDefaultErrorMessage(error.status),
+      path: '',
+      method: '',
+      status: error.status,
+    };
+  }
+
+  private getDefaultErrorMessage(status: number): string {
+    switch (status) {
+      case 0:
+        return 'No se pudo conectar al servidor';
+      case 401:
+        return 'No autorizado';
+      case 403:
+        return 'Acceso denegado';
+      case 404:
+        return 'Recurso no encontrado';
+      case 422:
+        return 'Error de validación';
+      case 500:
+        return 'Error interno del servidor';
+      default:
+        return 'Error desconocido';
+    }
+  }
+}
