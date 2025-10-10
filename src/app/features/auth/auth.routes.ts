@@ -49,4 +49,12 @@ export const authRoutes: Routes = [
         (m) => m.VerifyEmailComponent
       ),
   },
+  {
+    path: 'reset-password',
+    title: 'Restablecer Contraseña - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('./ui/reset-password-component/reset-password-component').then(
+        (m) => m.ResetPasswordComponent
+      ),
+  },
 ];

@@ -8,6 +8,7 @@ export const dashboardRoutes: Routes = [
   },
   {
     path: 'overview',
+    title: 'Panel de Control - J&J Ingenieros SAC',
     loadComponent: () =>
       import(
         '@app/features/dashboard/ui/dashboard-overview-component/dashboard-overview-component'
