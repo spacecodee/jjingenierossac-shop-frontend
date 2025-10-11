@@ -115,6 +115,9 @@
       ],
       "@spartan-ng/helm/radio-group": [
         "./libs/ui/ui-radio-group-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/alert-dialog": [
+        "./libs/ui/ui-alert-dialog-helm/src/index.ts"
       ]
     }
   },
