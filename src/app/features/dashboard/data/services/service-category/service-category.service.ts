@@ -8,6 +8,9 @@ import {
   SearchServiceCategoriesParams
 } from '@features/dashboard/data/models/search-service-categories-params.interface';
 import { ServiceCategoryResponse } from '@features/dashboard/data/models/service-category-response.interface';
+import {
+  ServiceCategorySelectResponse
+} from '@features/dashboard/data/models/service-category-select-response.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
@@ -84,6 +87,26 @@ export class ServiceCategoryService {
         return throwError(() => this.handleError(error));
       })
     );
+  }
+
+  getServiceCategoriesForSelect(
+    name?: string
+  ): Observable<ApiDataResponse<ServiceCategorySelectResponse[]>> {
+    let httpParams = new HttpParams();
+
+    if (name !== undefined && name !== null && name.trim() !== '') {
+      httpParams = httpParams.set('name', name.trim());
+    }
+
+    return this.http
+      .get<ApiDataResponse<ServiceCategorySelectResponse[]>>(`${ this.apiUrl }/for-select`, {
+        params: httpParams,
+      })
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(() => this.handleError(error));
+        })
+      );
   }
 
   private handleError(error: HttpErrorResponse): ApiErrorResponse {
