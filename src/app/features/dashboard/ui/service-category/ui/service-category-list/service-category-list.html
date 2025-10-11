@@ -14,7 +14,7 @@
           size="sm"
           (click)="onRefresh()"
           [disabled]="isRefreshing()"
-          class="flex items-center gap-2"
+          class="flex items-center gap-2 cursor-pointer"
         >
           @if (isRefreshing()) {
             <hlm-spinner size="sm"/>
@@ -114,20 +114,20 @@
                 [(ngModel)]="activeFilter"
                 (ngModelChange)="onFilterActiveChange($event)"
               >
-                <label class="items-center gap-3" hlmLabel>
-                  <hlm-radio value="all">
+                <label class="items-center gap-3" hlmLabel for="all-radio-filter">
+                  <hlm-radio value="all" id="all-radio-filter">
                     <hlm-radio-indicator indicator/>
                   </hlm-radio>
                   Todos
                 </label>
-                <label class="items-center gap-3" hlmLabel>
-                  <hlm-radio value="active">
+                <label class="items-center gap-3" hlmLabel for="active-radio-filter">
+                  <hlm-radio value="active" id="active-radio-filter">
                     <hlm-radio-indicator indicator/>
                   </hlm-radio>
                   Activos
                 </label>
-                <label class="items-center gap-3" hlmLabel>
-                  <hlm-radio value="inactive">
+                <label class="items-center gap-3" hlmLabel for="inactive-radio-filter">
+                  <hlm-radio value="inactive" id="inactive-radio-filter">
                     <hlm-radio-indicator indicator/>
                   </hlm-radio>
                   Inactivos
@@ -189,7 +189,7 @@
 
       <hlm-separator class="my-4"/>
 
-      <div class="min-h-[400px]">
+      <div>
         @if (isLoading()) {
           <div class="flex flex-col gap-4 py-4">
             @for (item of [1, 2, 3, 4, 5]; track item) {
@@ -297,7 +297,7 @@
         }
       </div>
 
-      @if (!isLoading() && displayedCategories().length > 0) {
+      @if (!isLoading() && totalPages() > 0) {
         <hlm-separator class="my-4"/>
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
           <div class="text-sm text-muted-foreground">
@@ -319,6 +319,7 @@
                   <hlm-select-value/>
                 </hlm-select-trigger>
                 <hlm-select-content>
+                  <hlm-option value="5">5</hlm-option>
                   <hlm-option value="10">10</hlm-option>
                   <hlm-option value="20">20</hlm-option>
                   <hlm-option value="30">30</hlm-option>
@@ -331,13 +332,12 @@
               <ul hlmPaginationContent>
                 <li hlmPaginationItem>
                   <hlm-pagination-previous
-                    link="#"
-                    [class.pointer-events-none]="isFirst()"
-                    [class.opacity-50]="isFirst()"
-                    (click)="!isFirst() && goToPage(currentPage() - 1); $event.preventDefault()"
-                    (keydown.enter)="
-                    !isFirst() && goToPage(currentPage() - 1); $event.preventDefault()
-                  "
+                    [link]="currentPage() > 0 ? '.' : undefined"
+                    [queryParams]="{ page: currentPage() - 1 }"
+                    queryParamsHandling="merge"
+                    [class.pointer-events-none]="currentPage() === 0"
+                    [class.opacity-50]="currentPage() === 0"
+                    [class.cursor-not-allowed]="currentPage() === 0"
                   />
                 </li>
                 @for (page of pageNumbers(); track $index) {
@@ -349,9 +349,10 @@
                     <li hlmPaginationItem>
                       <a
                         hlmPaginationLink
-                        link="#"
-                        [isActive]="page === currentPage()"
-                        (click)="goToPage(+page); $event.preventDefault()"
+                        [link]="currentPage() !== +page ? '.' : undefined"
+                        [queryParams]="{ page: +page }"
+                        queryParamsHandling="merge"
+                        [isActive]="currentPage() === +page"
                       >
                         {{ +page + 1 }}
                       </a>
@@ -360,13 +361,12 @@
                 }
                 <li hlmPaginationItem>
                   <hlm-pagination-next
-                    link="#"
-                    [class.pointer-events-none]="isLast()"
-                    [class.opacity-50]="isLast()"
-                    (click)="!isLast() && goToPage(currentPage() + 1); $event.preventDefault()"
-                    (keydown.enter)="
-                    !isLast() && goToPage(currentPage() + 1); $event.preventDefault()
-                  "
+                    [link]="currentPage() < totalPages() - 1 ? '.' : undefined"
+                    [queryParams]="{ page: currentPage() + 1 }"
+                    queryParamsHandling="merge"
+                    [class.pointer-events-none]="currentPage() >= totalPages() - 1"
+                    [class.opacity-50]="currentPage() >= totalPages() - 1"
+                    [class.cursor-not-allowed]="currentPage() >= totalPages() - 1"
                   />
                 </li>
               </ul>

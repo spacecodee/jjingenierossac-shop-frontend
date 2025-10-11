@@ -1,7 +1,18 @@
 import { DatePipe, registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
-import { Component, computed, inject, LOCALE_ID, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  LOCALE_ID,
+  numberAttribute,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   SearchServiceCategoriesParams
 } from '@features/dashboard/data/models/search-service-categories-params.interface';
@@ -37,7 +48,8 @@ import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { toast } from 'ngx-sonner';
-import { debounceTime, Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 type SortField = 'name' | 'createdAt' | 'updatedAt' | 'isActive';
 type ActiveFilterType = 'all' | 'active' | 'inactive';
@@ -95,8 +107,11 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   }
 
   private readonly serviceCategoryService = inject(ServiceCategoryService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
+  private queryParamsSubscription?: Subscription;
 
   readonly Math = Math;
 
@@ -104,7 +119,16 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   readonly isLoading = signal<boolean>(true);
   readonly isRefreshing = signal<boolean>(false);
 
-  readonly currentPage = signal<number>(0);
+  private readonly _pageQuery = toSignal(
+    this.route.queryParamMap.pipe(
+      map((params) => {
+        const pageQuery = params.get('page');
+        return pageQuery ? numberAttribute(pageQuery, 0) : undefined;
+      })
+    )
+  );
+
+  readonly currentPage = computed(() => this._pageQuery() ?? 0);
   readonly pageSize = signal<number>(10);
   readonly totalPages = signal<number>(0);
   readonly totalElements = signal<number>(0);
@@ -154,59 +178,50 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   readonly pageNumbers = computed(() => {
     const current = this.currentPage();
     const total = this.totalPages();
-    const pages: (number | string)[] = [];
 
     if (total <= 7) {
-      for (let i = 0; i < total; i++) {
-        pages.push(i);
-      }
-      return pages;
+      return Array.from({ length: total }, (_, i) => i);
     }
 
     if (current <= 3) {
-      for (let i = 0; i < 5; i++) {
-        pages.push(i);
-      }
-      pages.push('ellipsis');
-      pages.push(total - 1);
-      return pages;
+      return [...Array.from({ length: 5 }, (_, i) => i), 'ellipsis', total - 1];
     }
 
     if (current >= total - 4) {
-      pages.push(0);
-      pages.push('ellipsis');
-      for (let i = total - 5; i < total; i++) {
-        pages.push(i);
-      }
-      return pages;
+      return [0, 'ellipsis', ...Array.from({ length: 5 }, (_, i) => total - 5 + i)];
     }
 
-    pages.push(0);
-    pages.push('ellipsis');
-    for (let i = current - 1; i <= current + 1; i++) {
-      pages.push(i);
-    }
-    pages.push('ellipsis');
-    pages.push(total - 1);
-
-    return pages;
+    return [
+      0,
+      'ellipsis',
+      ...Array.from({ length: 3 }, (_, i) => current - 1 + i),
+      'ellipsis',
+      total - 1,
+    ];
   });
 
   ngOnInit(): void {
     this.searchSubscription = this.searchSubject.pipe(debounceTime(500)).subscribe((searchTerm) => {
       if (searchTerm.length >= 3 || searchTerm.length === 0) {
         this.searchName.set(searchTerm);
-        this.currentPage.set(0);
-        this.isLoading.set(true);
-        this.loadCategories();
+        this.goToPage(0);
       }
     });
 
-    this.loadCategories();
+    this.queryParamsSubscription = this.route.queryParamMap
+      .pipe(
+        map((params) => params.get('page')),
+        distinctUntilChanged()
+      )
+      .subscribe(() => {
+        this.isLoading.set(true);
+        this.loadCategories();
+      });
   }
 
   ngOnDestroy(): void {
     this.searchSubscription?.unsubscribe();
+    this.queryParamsSubscription?.unsubscribe();
   }
 
   loadCategories(): void {
@@ -287,9 +302,7 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   onClearSearch(): void {
     this.searchInputValue.set('');
     this.searchName.set('');
-    this.currentPage.set(0);
-    this.isLoading.set(true);
-    this.loadCategories();
+    this.goToPage(0);
   }
 
   onRefresh(): void {
@@ -305,9 +318,7 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
     this.createdBefore.set(undefined);
     this.updatedAfter.set(undefined);
     this.updatedBefore.set(undefined);
-    this.currentPage.set(0);
-    this.isLoading.set(true);
-    this.loadCategories();
+    this.goToPage(0);
   }
 
   toggleFilters(): void {
@@ -320,37 +331,27 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
 
   onFilterActiveChange(filter: ActiveFilterType): void {
     this._activeFilter.set(filter);
-    this.currentPage.set(0);
-    this.isLoading.set(true);
-    this.loadCategories();
+    this.goToPage(0);
   }
 
   onCreatedAfterChange(date: Date): void {
     this.createdAfter.set(date);
-    this.currentPage.set(0);
-    this.isLoading.set(true);
-    this.loadCategories();
+    this.goToPage(0);
   }
 
   onCreatedBeforeChange(date: Date): void {
     this.createdBefore.set(date);
-    this.currentPage.set(0);
-    this.isLoading.set(true);
-    this.loadCategories();
+    this.goToPage(0);
   }
 
   onUpdatedAfterChange(date: Date): void {
     this.updatedAfter.set(date);
-    this.currentPage.set(0);
-    this.isLoading.set(true);
-    this.loadCategories();
+    this.goToPage(0);
   }
 
   onUpdatedBeforeChange(date: Date): void {
     this.updatedBefore.set(date);
-    this.currentPage.set(0);
-    this.isLoading.set(true);
-    this.loadCategories();
+    this.goToPage(0);
   }
 
   onSort(field: SortField): void {
@@ -365,18 +366,25 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   }
 
   goToPage(page: number): void {
-    if (page >= 0 && page < this.totalPages() && page !== this.currentPage()) {
-      this.currentPage.set(page);
-      this.isLoading.set(true);
-      this.loadCategories();
+    if (page >= 0 && page !== this.currentPage()) {
+      this.router
+        .navigate([], {
+          relativeTo: this.route,
+          queryParams: { page },
+          queryParamsHandling: 'merge',
+        })
+        .then((r) => !r && undefined);
     }
   }
 
   onPageSizeChange(size: number): void {
     this.pageSize.set(size);
-    this.currentPage.set(0);
     this.isLoading.set(true);
-    this.loadCategories();
-  }
 
+    if (this.currentPage() === 0) {
+      this.loadCategories();
+    } else {
+      this.goToPage(0);
+    }
+  }
 }
