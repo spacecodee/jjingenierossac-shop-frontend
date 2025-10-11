@@ -11,6 +11,9 @@ import { ServiceCategoryResponse } from '@features/dashboard/data/models/service
 import {
   ServiceCategorySelectResponse
 } from '@features/dashboard/data/models/service-category-select-response.interface';
+import {
+  UpdateServiceCategoryRequest
+} from '@features/dashboard/data/models/update-service-category-request.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
@@ -102,6 +105,19 @@ export class ServiceCategoryService {
       .get<ApiDataResponse<ServiceCategorySelectResponse[]>>(`${ this.apiUrl }/for-select`, {
         params: httpParams,
       })
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(() => this.handleError(error));
+        })
+      );
+  }
+
+  updateServiceCategory(
+    id: number,
+    request: UpdateServiceCategoryRequest
+  ): Observable<ApiDataResponse<ServiceCategoryResponse>> {
+    return this.http
+      .put<ApiDataResponse<ServiceCategoryResponse>>(`${ this.apiUrl }/${ id }`, request)
       .pipe(
         catchError((error: HttpErrorResponse) => {
           return throwError(() => this.handleError(error));

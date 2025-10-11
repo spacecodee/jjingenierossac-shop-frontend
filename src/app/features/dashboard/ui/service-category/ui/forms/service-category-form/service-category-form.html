@@ -12,8 +12,17 @@
     <section hlmCard>
       <header hlmCardHeader>
         <div class="flex items-center justify-between">
-          <div>
-            <h3 hlmCardTitle>{{ pageTitle() }}</h3>
+          <div class="flex-1">
+            <div class="flex items-center gap-3">
+              <h3 hlmCardTitle>{{ pageTitle() }}</h3>
+              @if (isEditMode() && hasChanges() && !isInactive()) {
+                <span
+                  class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-200"
+                >
+              Cambios sin guardar
+            </span>
+              }
+            </div>
             <p hlmCardDescription>
               {{ pageDescription() }}
             </p>
@@ -110,7 +119,12 @@
             <button
               hlmBtn
               type="submit"
-              [disabled]="categoryForm.invalid || isSubmitting() || isInactive()"
+              [disabled]="
+              categoryForm.invalid ||
+              isSubmitting() ||
+              isInactive() ||
+              (isEditMode() && !hasChanges())
+            "
               class="flex items-center gap-2 cursor-pointer"
             >
               @if (isSubmitting()) {

@@ -5,6 +5,9 @@ import {
   CreateServiceCategoryRequest
 } from '@features/dashboard/data/models/create-service-category-request.interface';
 import { ServiceCategoryResponse } from '@features/dashboard/data/models/service-category-response.interface';
+import {
+  UpdateServiceCategoryRequest
+} from '@features/dashboard/data/models/update-service-category-request.interface';
 import { ServiceCategoryService } from '@features/dashboard/data/services/service-category/service-category.service';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideArrowLeft, lucideSave, lucideTriangleAlert } from '@ng-icons/lucide';
@@ -54,16 +57,25 @@ export class ServiceCategoryForm implements OnInit {
   readonly categoryId = signal<number | null>(null);
   readonly isEditMode = computed(() => this.categoryId() !== null);
   readonly isInactive = signal<boolean>(false);
-  readonly categoryForm!: FormGroup;
+  readonly categoryForm: FormGroup;
 
-  readonly nameCharCount = computed(() => {
-    const value = this.categoryForm?.get('name')?.value || '';
-    return value.length;
-  });
+  readonly originalName = signal<string>('');
+  readonly originalDescription = signal<string>('');
 
-  readonly descriptionCharCount = computed(() => {
-    const value = this.categoryForm?.get('description')?.value || '';
-    return value.length;
+  readonly nameCharCount = signal<number>(0);
+  readonly descriptionCharCount = signal<number>(0);
+  private readonly formChanged = signal<number>(0);
+
+  readonly hasChanges = computed(() => {
+    if (!this.isEditMode()) {
+      return true;
+    }
+
+    this.formChanged();
+    const currentName = this.categoryForm.get('name')?.value?.trim() || '';
+    const currentDescription = this.categoryForm.get('description')?.value?.trim() || '';
+
+    return currentName !== this.originalName() || currentDescription !== this.originalDescription();
   });
 
   readonly pageTitle = computed(() =>
@@ -81,17 +93,19 @@ export class ServiceCategoryForm implements OnInit {
       name: ['', [Validators.required, Validators.maxLength(100)]],
       description: [''],
     });
+
+    this.categoryForm.get('name')?.valueChanges.subscribe((value) => {
+      this.nameCharCount.set((value || '').length);
+      this.formChanged.update((v) => v + 1);
+    });
+
+    this.categoryForm.get('description')?.valueChanges.subscribe((value) => {
+      this.descriptionCharCount.set((value || '').length);
+      this.formChanged.update((v) => v + 1);
+    });
   }
 
   ngOnInit(): void {
-    this.categoryForm.get('name')?.valueChanges.subscribe(() => {
-      this.nameCharCount();
-    });
-
-    this.categoryForm.get('description')?.valueChanges.subscribe(() => {
-      this.descriptionCharCount();
-    });
-
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.categoryId.set(+id);
@@ -106,10 +120,16 @@ export class ServiceCategoryForm implements OnInit {
       next: (response) => {
         const category: ServiceCategoryResponse = response.data;
 
+        this.originalName.set(category.name);
+        this.originalDescription.set(category.description || '');
+
         this.categoryForm.patchValue({
           name: category.name,
           description: category.description,
         });
+
+        this.nameCharCount.set(category.name.length);
+        this.descriptionCharCount.set((category.description || '').length);
 
         if (category.isActive) {
           toast.success('Categoría cargada', {
@@ -164,14 +184,29 @@ export class ServiceCategoryForm implements OnInit {
       return;
     }
 
+    if (this.isEditMode() && !this.hasChanges()) {
+      toast.info('Sin cambios', {
+        description: 'No se han realizado cambios en la categoría',
+      });
+      return;
+    }
+
     this.isSubmitting.set(true);
 
     const formValue = this.categoryForm.value;
-    const request: CreateServiceCategoryRequest = {
+    const request: UpdateServiceCategoryRequest = {
       name: formValue.name.trim(),
       description: formValue.description?.trim() || undefined,
     };
 
+    if (this.isEditMode()) {
+      this.updateCategory(request);
+    } else {
+      this.createCategory(request);
+    }
+  }
+
+  private createCategory(request: CreateServiceCategoryRequest): void {
     this.serviceCategoryService.createServiceCategory(request).subscribe({
       next: (response) => {
         toast.success('Categoría creada exitosamente', {
@@ -194,6 +229,40 @@ export class ServiceCategoryForm implements OnInit {
         }
 
         toast.error('Error al crear categoría', {
+          description: error.message || errorMessage,
+        });
+      },
+    });
+  }
+
+  private updateCategory(request: UpdateServiceCategoryRequest): void {
+    const id = this.categoryId();
+    if (!id) return;
+
+    this.serviceCategoryService.updateServiceCategory(id, request).subscribe({
+      next: (response) => {
+        toast.success('Categoría actualizada exitosamente', {
+          description: response.message,
+        });
+        this.router.navigate(['/dashboard/service-categories']).then((r) => !r && undefined);
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isSubmitting.set(false);
+
+        let errorMessage = 'No se pudo actualizar la categoría';
+
+        if (error.status === 409) {
+          errorMessage = 'Ya existe otra categoría con este nombre';
+          this.categoryForm.get('name')?.setErrors({ duplicate: true });
+        } else if (error.status === 422) {
+          errorMessage = 'Datos inválidos. Verifica los campos';
+        } else if (error.status === 403) {
+          errorMessage = 'No tienes permisos para actualizar categorías';
+        } else if (error.status === 404) {
+          errorMessage = 'La categoría no existe o fue eliminada';
+        }
+
+        toast.error('Error al actualizar categoría', {
           description: error.message || errorMessage,
         });
       },
