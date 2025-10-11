@@ -8,21 +8,32 @@
             Gestiona las categorías de servicios del sistema
           </p>
         </div>
-        <button
-          hlmBtn
-          variant="outline"
-          size="sm"
-          (click)="onRefresh()"
-          [disabled]="isRefreshing()"
-          class="flex items-center gap-2 cursor-pointer"
-        >
-          @if (isRefreshing()) {
-            <hlm-spinner size="sm"/>
-          } @else {
-            <ng-icon hlm size="sm" name="lucideRefreshCw"/>
-          }
-          <span>Actualizar</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            hlmBtn
+            size="sm"
+            routerLink="/dashboard/service-categories/create"
+            class="flex items-center gap-2 cursor-pointer"
+          >
+            <ng-icon hlm size="sm" name="lucidePlus"/>
+            <span>Crear</span>
+          </button>
+          <button
+            hlmBtn
+            variant="outline"
+            size="sm"
+            (click)="onRefresh()"
+            [disabled]="isRefreshing()"
+            class="flex items-center gap-2 cursor-pointer"
+          >
+            @if (isRefreshing()) {
+              <hlm-spinner size="sm"/>
+            } @else {
+              <ng-icon hlm size="sm" name="lucideRefreshCw"/>
+            }
+            <span>Actualizar</span>
+          </button>
+        </div>
       </div>
     </header>
 

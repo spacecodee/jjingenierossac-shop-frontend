@@ -18,8 +18,16 @@ export const dashboardRoutes: Routes = [
     path: 'service-categories',
     title: 'Categorías de Servicios - J&J Ingenieros SAC',
     loadComponent: () =>
-      import('@features/dashboard/ui/service-category/ui/service-category-list/service-category-list').then(
-        (m) => m.ServiceCategoryList
-      ),
+      import(
+        '@features/dashboard/ui/service-category/ui/service-category-list/service-category-list'
+        ).then((m) => m.ServiceCategoryList),
+  },
+  {
+    path: 'service-categories/create',
+    title: 'Crear Categoría de Servicio - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import(
+        '@features/dashboard/ui/service-category/ui/service-category-create/service-category-create'
+        ).then((m) => m.ServiceCategoryCreate),
   },
 ];
