@@ -1,25 +1,26 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   CreateServiceCategoryRequest
 } from '@features/dashboard/data/models/create-service-category-request.interface';
+import { ServiceCategoryResponse } from '@features/dashboard/data/models/service-category-response.interface';
 import { ServiceCategoryService } from '@features/dashboard/data/services/service-category/service-category.service';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowLeft, lucideSave } from '@ng-icons/lucide';
+import { lucideArrowLeft, lucideSave, lucideTriangleAlert } from '@ng-icons/lucide';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmFormFieldImports } from '@spartan-ng/helm/form-field';
+import { HlmIconImports } from '@spartan-ng/helm/icon';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmSeparator } from '@spartan-ng/helm/separator';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { toast } from 'ngx-sonner';
-import { HlmIconImports } from '@spartan-ng/helm/icon';
 
 @Component({
-  selector: 'app-service-category-create',
+  selector: 'app-service-category-form',
   imports: [
     ReactiveFormsModule,
     ...HlmCardImports,
@@ -30,23 +31,29 @@ import { HlmIconImports } from '@spartan-ng/helm/icon';
     HlmSeparator,
     HlmSpinner,
     NgIcon,
-    HlmIconImports,
+    ...HlmIconImports,
   ],
   providers: [
     provideIcons({
       lucideArrowLeft,
       lucideSave,
+      lucideTriangleAlert,
     }),
   ],
-  templateUrl: './service-category-create.html',
-  styleUrl: './service-category-create.css',
+  templateUrl: './service-category-form.html',
+  styleUrl: './service-category-form.css',
 })
-export class ServiceCategoryCreate implements OnInit {
+export class ServiceCategoryForm implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly serviceCategoryService = inject(ServiceCategoryService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly isSubmitting = signal<boolean>(false);
+  readonly isLoading = signal<boolean>(false);
+  readonly categoryId = signal<number | null>(null);
+  readonly isEditMode = computed(() => this.categoryId() !== null);
+  readonly isInactive = signal<boolean>(false);
   readonly categoryForm!: FormGroup;
 
   readonly nameCharCount = computed(() => {
@@ -58,6 +65,16 @@ export class ServiceCategoryCreate implements OnInit {
     const value = this.categoryForm?.get('description')?.value || '';
     return value.length;
   });
+
+  readonly pageTitle = computed(() =>
+    this.isEditMode() ? 'Editar Categoría de Servicio' : 'Crear Categoría de Servicio'
+  );
+
+  readonly pageDescription = computed(() =>
+    this.isEditMode()
+      ? 'Modifica el nombre y descripción de la categoría de servicio'
+      : 'Ingresa el nombre y descripción de la nueva categoría de servicio'
+  );
 
   constructor() {
     this.categoryForm = this.fb.group({
@@ -73,6 +90,68 @@ export class ServiceCategoryCreate implements OnInit {
 
     this.categoryForm.get('description')?.valueChanges.subscribe(() => {
       this.descriptionCharCount();
+    });
+
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.categoryId.set(+id);
+      this.loadCategory(+id);
+    }
+  }
+
+  private loadCategory(id: number): void {
+    this.isLoading.set(true);
+
+    this.serviceCategoryService.findServiceCategoryById(id).subscribe({
+      next: (response) => {
+        const category: ServiceCategoryResponse = response.data;
+
+        this.categoryForm.patchValue({
+          name: category.name,
+          description: category.description,
+        });
+
+        if (category.isActive) {
+          toast.success('Categoría cargada', {
+            description:
+              response.message || 'Los datos de la categoría se han cargado correctamente',
+          });
+        } else {
+          this.isInactive.set(true);
+          this.categoryForm.disable();
+          toast.warning('Categoría desactivada', {
+            description:
+              'No es posible editar una categoría desactivada. Actívela para poder editarla.',
+          });
+        }
+
+        this.isLoading.set(false);
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isLoading.set(false);
+
+        let errorMessage = 'No se pudo cargar la categoría';
+
+        if (error.status === 404) {
+          errorMessage = 'Categoría no encontrada';
+        } else if (error.status === 403) {
+          errorMessage = 'No tienes permisos suficientes para realizar esta acción';
+        } else if (error.status === 401) {
+          toast.error('Error al cargar categoría', {
+            description: 'Sesión expirada. Por favor, inicia sesión nuevamente',
+          });
+          this.router.navigate(['/auth/login']).then((r) => !r && undefined);
+          return;
+        } else if (error.status === 400) {
+          errorMessage = 'ID de categoría inválido';
+        }
+
+        toast.error('Error al cargar categoría', {
+          description: error.message || errorMessage,
+        });
+
+        this.router.navigate(['/dashboard/service-categories']).then((r) => !r && undefined);
+      },
     });
   }
 
@@ -98,7 +177,7 @@ export class ServiceCategoryCreate implements OnInit {
         toast.success('Categoría creada exitosamente', {
           description: response.message,
         });
-        this.router.navigate(['/dashboard/service-categories']).then(r => !r && undefined);
+        this.router.navigate(['/dashboard/service-categories']).then((r) => !r && undefined);
       },
       error: (error: ApiErrorResponse) => {
         this.isSubmitting.set(false);
@@ -122,7 +201,7 @@ export class ServiceCategoryCreate implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/dashboard/service-categories']).then(r => !r && undefined);
+    this.router.navigate(['/dashboard/service-categories']).then((r) => !r && undefined);
   }
 
   getNameError(): string | null {
