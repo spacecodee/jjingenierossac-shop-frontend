@@ -360,6 +360,8 @@
               <ul hlmPaginationContent>
                 <li hlmPaginationItem>
                   <hlm-pagination-previous
+                    text="Anterior"
+                    class="cursor-pointer"
                     [link]="currentPage() > 0 ? '.' : undefined"
                     [queryParams]="{ page: currentPage() - 1 }"
                     queryParamsHandling="merge"
@@ -389,6 +391,8 @@
                 }
                 <li hlmPaginationItem>
                   <hlm-pagination-next
+                    text="Siguiente"
+                    class="cursor-pointer"
                     [link]="currentPage() < totalPages() - 1 ? '.' : undefined"
                     [queryParams]="{ page: currentPage() + 1 }"
                     queryParamsHandling="merge"
