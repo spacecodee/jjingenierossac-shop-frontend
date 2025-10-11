@@ -1,6 +1,9 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import {
+  CreateServiceCategoryRequest
+} from '@app/features/dashboard/data/models/create-service-category-request.interface';
+import {
   SearchServiceCategoriesParams
 } from '@app/features/dashboard/data/models/search-service-categories-params.interface';
 import { ServiceCategoryResponse } from '@app/features/dashboard/data/models/service-category-response.interface';
@@ -63,6 +66,16 @@ export class ServiceCategoryService {
           return throwError(() => this.handleError(error));
         })
       );
+  }
+
+  createServiceCategory(
+    request: CreateServiceCategoryRequest
+  ): Observable<ApiDataResponse<ServiceCategoryResponse>> {
+    return this.http.post<ApiDataResponse<ServiceCategoryResponse>>(this.apiUrl, request).pipe(
+      catchError((error: HttpErrorResponse) => {
+        return throwError(() => this.handleError(error));
+      })
+    );
   }
 
   private handleError(error: HttpErrorResponse): ApiErrorResponse {

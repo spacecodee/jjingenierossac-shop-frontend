@@ -12,12 +12,12 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   SearchServiceCategoriesParams
 } from '@features/dashboard/data/models/search-service-categories-params.interface';
 import { ServiceCategoryResponse } from '@features/dashboard/data/models/service-category-response.interface';
-import { ServiceCategoryService } from '@features/dashboard/data/services/service-category/service-category';
+import { ServiceCategoryService } from '@features/dashboard/data/services/service-category/service-category.service';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideCalendar,
@@ -25,6 +25,7 @@ import {
   lucideChevronRight,
   lucideChevronsLeft,
   lucideChevronsRight,
+  lucidePlus,
   lucideRefreshCw,
   lucideSearch,
   lucideSlidersHorizontal,
@@ -75,6 +76,7 @@ type ActiveFilterType = 'all' | 'active' | 'inactive';
     FormsModule,
     DatePipe,
     HlmIconImports,
+    RouterLink,
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'es-PE' },
@@ -83,6 +85,7 @@ type ActiveFilterType = 'all' | 'active' | 'inactive';
       lucideX,
       lucideSlidersHorizontal,
       lucideCalendar,
+      lucidePlus,
       lucideRefreshCw,
       lucideChevronLeft,
       lucideChevronRight,
