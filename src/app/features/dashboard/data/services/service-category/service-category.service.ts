@@ -1,13 +1,13 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { environment } from '@environments/environment';
 import {
   CreateServiceCategoryRequest
-} from '@app/features/dashboard/data/models/create-service-category-request.interface';
+} from '@features/dashboard/data/models/create-service-category-request.interface';
 import {
   SearchServiceCategoriesParams
-} from '@app/features/dashboard/data/models/search-service-categories-params.interface';
-import { ServiceCategoryResponse } from '@app/features/dashboard/data/models/service-category-response.interface';
-import { environment } from '@environments/environment';
+} from '@features/dashboard/data/models/search-service-categories-params.interface';
+import { ServiceCategoryResponse } from '@features/dashboard/data/models/service-category-response.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
@@ -72,6 +72,14 @@ export class ServiceCategoryService {
     request: CreateServiceCategoryRequest
   ): Observable<ApiDataResponse<ServiceCategoryResponse>> {
     return this.http.post<ApiDataResponse<ServiceCategoryResponse>>(this.apiUrl, request).pipe(
+      catchError((error: HttpErrorResponse) => {
+        return throwError(() => this.handleError(error));
+      })
+    );
+  }
+
+  findServiceCategoryById(id: number): Observable<ApiDataResponse<ServiceCategoryResponse>> {
+    return this.http.get<ApiDataResponse<ServiceCategoryResponse>>(`${ this.apiUrl }/${ id }`).pipe(
       catchError((error: HttpErrorResponse) => {
         return throwError(() => this.handleError(error));
       })

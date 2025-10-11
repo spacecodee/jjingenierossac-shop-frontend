@@ -25,6 +25,7 @@ import {
   lucideChevronRight,
   lucideChevronsLeft,
   lucideChevronsRight,
+  lucidePencil,
   lucidePlus,
   lucideRefreshCw,
   lucideSearch,
@@ -91,6 +92,7 @@ type ActiveFilterType = 'all' | 'active' | 'inactive';
       lucideChevronRight,
       lucideChevronsLeft,
       lucideChevronsRight,
+      lucidePencil,
     }),
     provideHlmDatePickerConfig({
       formatDate: (date: Date) => {

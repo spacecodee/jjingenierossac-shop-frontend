@@ -274,6 +274,7 @@
                   }
                   </div>
                 </th>
+                <th hlmTh class="text-center">Acciones</th>
               </tr>
               </thead>
               <tbody hlmTBody>
@@ -299,6 +300,22 @@
                     </td>
                     <td hlmTd>
                       {{ category.updatedAt | date : 'dd/MM/yyyy HH:mm' }}
+                    </td>
+                    <td hlmTd class="text-center">
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="sm"
+                        [routerLink]="[
+                      '/dashboard/service-categories',
+                      category.serviceCategoryId,
+                      'edit'
+                    ]"
+                        class="flex items-center gap-2 cursor-pointer"
+                      >
+                        <ng-icon hlm size="sm" name="lucidePencil"/>
+                        <span>Editar</span>
+                      </button>
                     </td>
                   </tr>
                 }

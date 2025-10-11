@@ -27,7 +27,15 @@ export const dashboardRoutes: Routes = [
     title: 'Crear Categoría de Servicio - J&J Ingenieros SAC',
     loadComponent: () =>
       import(
-        '@features/dashboard/ui/service-category/ui/service-category-create/service-category-create'
-        ).then((m) => m.ServiceCategoryCreate),
+        '@features/dashboard/ui/service-category/ui/forms/service-category-form/service-category-form'
+        ).then((m) => m.ServiceCategoryForm),
+  },
+  {
+    path: 'service-categories/:id/edit',
+    title: 'Editar Categoría de Servicio - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import(
+        '@features/dashboard/ui/service-category/ui/forms/service-category-form/service-category-form'
+        ).then((m) => m.ServiceCategoryForm),
   },
 ];
