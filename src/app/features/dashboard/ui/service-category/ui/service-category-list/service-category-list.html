@@ -248,6 +248,7 @@
                   }
                   </div>
                 </th>
+                <th hlmTh class="text-center">Activar</th>
                 <th
                   hlmTh
                   (click)="onSort('createdAt')"
@@ -294,6 +295,18 @@
                       } @else {
                         <span hlmBadge variant="outline"> Inactivo </span>
                       }
+                    </td>
+                    <td hlmTd class="text-center">
+                      <hlm-switch
+                        [checked]="
+                      categoryIdBeingToggled() === category.serviceCategoryId
+                        ? true
+                        : category.isActive
+                    "
+                        (checkedChange)="onSwitchChange(category, $event)"
+                        [disabled]="category.isActive"
+                        [aria-label]="category.isActive ? 'Categoría activa' : 'Activar categoría'"
+                      />
                     </td>
                     <td hlmTd>
                       {{ category.createdAt | date : 'dd/MM/yyyy HH:mm' }}
@@ -408,4 +421,38 @@
       }
     </div>
   </section>
+
+  <hlm-alert-dialog>
+    <button id="activate-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
+    <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+      <hlm-alert-dialog-header>
+        <h3 hlmAlertDialogTitle>Confirmar Activación</h3>
+        <p hlmAlertDialogDescription>
+          ¿Está seguro de que desea activar esta categoría? @if (categoryToActivate()) {
+          <span class="block mt-2 font-medium">{{ categoryToActivate()!.name }}</span>
+        }
+        </p>
+      </hlm-alert-dialog-header>
+      <hlm-alert-dialog-footer>
+        <button
+          hlmAlertDialogCancel
+          class="cursor-pointer"
+          (click)="onCancelActivation(); ctx.close()"
+          [disabled]="isActivating()"
+        >
+          Cancelar
+        </button>
+        <button
+          hlmAlertDialogAction
+          (click)="onConfirmActivation(ctx.close)"
+          [disabled]="isActivating()"
+          class="cursor-pointer"
+        >
+          @if (isActivating()) {
+            <hlm-spinner size="sm" class="mr-2"/>
+          } Activar
+        </button>
+      </hlm-alert-dialog-footer>
+    </hlm-alert-dialog-content>
+  </hlm-alert-dialog>
 </main>

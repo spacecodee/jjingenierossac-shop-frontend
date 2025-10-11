@@ -34,7 +34,9 @@ import {
 } from '@ng-icons/lucide';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { SortDirection } from '@shared/data/types/sort-direction.type';
+import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -48,6 +50,7 @@ import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSeparator } from '@spartan-ng/helm/separator';
 import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { toast } from 'ngx-sonner';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
@@ -61,12 +64,15 @@ type ActiveFilterType = 'all' | 'active' | 'inactive';
   imports: [
     ...HlmCardImports,
     ...HlmButtonImports,
+    ...BrnAlertDialogImports,
     ...BrnSelectImports,
     ...HlmSelectImports,
     ...HlmTableImports,
     ...HlmBadgeImports,
     ...HlmRadioGroupImports,
     ...HlmDatePickerImports,
+    ...HlmSwitchImports,
+    ...HlmAlertDialogImports,
     HlmInput,
     HlmLabel,
     NgIcon,
@@ -123,6 +129,10 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   readonly categories = signal<ServiceCategoryResponse[]>([]);
   readonly isLoading = signal<boolean>(true);
   readonly isRefreshing = signal<boolean>(false);
+
+  readonly categoryToActivate = signal<ServiceCategoryResponse | null>(null);
+  readonly isActivating = signal<boolean>(false);
+  readonly categoryIdBeingToggled = signal<number | null>(null);
 
   private readonly _pageQuery = toSignal(
     this.route.queryParamMap.pipe(
@@ -391,5 +401,57 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
     } else {
       this.goToPage(0);
     }
+  }
+
+  onSwitchChange(category: ServiceCategoryResponse, checked: boolean): void {
+    if (checked && !category.isActive) {
+      this.categoryToActivate.set(category);
+      this.categoryIdBeingToggled.set(category.serviceCategoryId);
+      const trigger = document.getElementById('activate-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onCancelActivation(): void {
+    this.categoryToActivate.set(null);
+    this.categoryIdBeingToggled.set(null);
+  }
+
+  onConfirmActivation(closeDialog: () => void): void {
+    const category = this.categoryToActivate();
+    if (!category) {
+      return;
+    }
+
+    this.isActivating.set(true);
+
+    this.serviceCategoryService.activateServiceCategory(category.serviceCategoryId).subscribe({
+      next: (response) => {
+        this.categories.update((categories) =>
+          categories.map((c) =>
+            c.serviceCategoryId === category.serviceCategoryId ? { ...c, isActive: true } : c
+          )
+        );
+
+        toast.success('Categoría activada', {
+          description: response.message || 'La categoría ha sido activada exitosamente',
+        });
+
+        this.isActivating.set(false);
+        this.categoryToActivate.set(null);
+        this.categoryIdBeingToggled.set(null);
+        closeDialog();
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isActivating.set(false);
+        this.categoryToActivate.set(null);
+        this.categoryIdBeingToggled.set(null);
+        closeDialog();
+
+        toast.error('Error al activar categoría', {
+          description: error.message,
+        });
+      },
+    });
   }
 }

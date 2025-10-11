@@ -17,6 +17,7 @@ import {
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
+import { ApiPlainResponse } from '@shared/data/models/api-plain-response.interface';
 import { catchError, Observable, throwError } from 'rxjs';
 
 @Injectable({
@@ -123,6 +124,14 @@ export class ServiceCategoryService {
           return throwError(() => this.handleError(error));
         })
       );
+  }
+
+  activateServiceCategory(id: number): Observable<ApiPlainResponse> {
+    return this.http.put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/activate`, {}).pipe(
+      catchError((error: HttpErrorResponse) => {
+        return throwError(() => this.handleError(error));
+      })
+    );
   }
 
   private handleError(error: HttpErrorResponse): ApiErrorResponse {
