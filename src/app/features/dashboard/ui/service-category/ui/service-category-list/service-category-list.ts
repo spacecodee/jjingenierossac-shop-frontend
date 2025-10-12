@@ -1,6 +1,15 @@
 import { DatePipe, registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
-import { Component, computed, inject, LOCALE_ID, numberAttribute, OnDestroy, OnInit, signal, } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  LOCALE_ID,
+  numberAttribute,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -29,6 +38,7 @@ import {
   lucideRefreshCw,
   lucideSearch,
   lucideSlidersHorizontal,
+  lucideTrash2,
   lucideX,
 } from '@ng-icons/lucide';
 import { BatchActionBar } from '@shared/components/batch-action-bar/batch-action-bar';
@@ -36,6 +46,7 @@ import { ApiErrorResponse } from '@shared/data/models/api-error-response.interfa
 import { SortDirection } from '@shared/data/types/sort-direction.type';
 import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
+import { BrnTooltipImports } from '@spartan-ng/brain/tooltip';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -53,6 +64,7 @@ import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmTableImports } from '@spartan-ng/helm/table';
+import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { toast } from 'ngx-sonner';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -67,6 +79,7 @@ type ActiveFilterType = 'all' | 'active' | 'inactive';
     ...HlmButtonImports,
     ...BrnAlertDialogImports,
     ...BrnSelectImports,
+    ...BrnTooltipImports,
     ...HlmSelectImports,
     ...HlmTableImports,
     ...HlmBadgeImports,
@@ -76,6 +89,7 @@ type ActiveFilterType = 'all' | 'active' | 'inactive';
     ...HlmAlertDialogImports,
     ...HlmPaginationImports,
     ...HlmCheckboxImports,
+    ...HlmTooltipImports,
     ...HlmIconImports,
     ...HlmInputImports,
     HlmLabel,
@@ -103,6 +117,7 @@ type ActiveFilterType = 'all' | 'active' | 'inactive';
       lucideChevronsRight,
       lucidePencil,
       lucideCheck,
+      lucideTrash2,
     }),
     provideHlmDatePickerConfig({
       formatDate: (date: Date) => {
@@ -137,7 +152,10 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   readonly categoryToToggle = signal<ServiceCategoryResponse | null>(null);
   readonly isTogglingCategory = signal<boolean>(false);
   readonly categoryIdBeingToggled = signal<number | null>(null);
-  readonly toggleAction = signal<'activate' | 'deactivate' | null>(null);
+  readonly toggleAction = signal<'activate' | 'deactivate' | 'delete' | null>(null);
+
+  readonly categoryToDelete = signal<ServiceCategoryResponse | null>(null);
+  readonly isDeletingCategory = signal<boolean>(false);
 
   readonly selectedCategories = signal<Set<number>>(new Set());
   readonly isSelectAllChecked = signal<boolean>(false);
@@ -469,6 +487,39 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
       return;
     }
 
+    if (action === 'delete') {
+      this.isDeletingCategory.set(true);
+
+      this.serviceCategoryService.deleteServiceCategory(category.serviceCategoryId).subscribe({
+        next: (response) => {
+          this.categories.update((categories) =>
+            categories.filter((c) => c.serviceCategoryId !== category.serviceCategoryId)
+          );
+
+          toast.success('Categoría eliminada', {
+            description: response.message,
+          });
+
+          this.isDeletingCategory.set(false);
+          this.categoryToDelete.set(null);
+          this.toggleAction.set(null);
+          closeDialog();
+        },
+        error: (error: ApiErrorResponse) => {
+          this.isDeletingCategory.set(false);
+          this.categoryToDelete.set(null);
+          this.toggleAction.set(null);
+          closeDialog();
+
+          toast.error('Error al eliminar categoría', {
+            description: error.message,
+          });
+        },
+      });
+
+      return;
+    }
+
     this.isTogglingCategory.set(true);
 
     const serviceCall =
@@ -511,6 +562,16 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
         });
       },
     });
+  }
+
+  onDeleteAttempt(category: ServiceCategoryResponse): void {
+    if (!category.isActive) {
+      this.categoryToDelete.set(category);
+      this.categoryToToggle.set(category);
+      this.toggleAction.set('delete');
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
   }
 
   onCheckboxChange(categoryId: number, checked: boolean): void {

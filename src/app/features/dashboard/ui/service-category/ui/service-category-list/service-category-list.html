@@ -1,4 +1,4 @@
-<main class="flex flex-col gap-6 p-4 md:p-6">
+<main class="flex flex-col p-4">
   @if (hasSelectedCategories()) {
     <app-batch-action-bar
       [selectedCount]="selectedCount()"
@@ -353,20 +353,49 @@
                       {{ category.updatedAt | date : 'dd/MM/yyyy HH:mm' }}
                     </td>
                     <td hlmTd class="text-center">
-                      <button
-                        hlmBtn
-                        variant="ghost"
-                        size="sm"
-                        [routerLink]="[
-                      '/dashboard/service-categories',
-                      category.serviceCategoryId,
-                      'edit'
-                    ]"
-                        class="flex items-center gap-2 cursor-pointer"
-                      >
-                        <ng-icon hlm size="sm" name="lucidePencil"/>
-                        <span>Editar</span>
-                      </button>
+                      <div class="flex items-center justify-center gap-2">
+                        <button
+                          hlmBtn
+                          variant="ghost"
+                          size="sm"
+                          [routerLink]="[
+                        '/dashboard/service-categories',
+                        category.serviceCategoryId,
+                        'edit'
+                      ]"
+                          class="flex items-center gap-2 cursor-pointer"
+                        >
+                          <ng-icon hlm size="sm" name="lucidePencil"/>
+                          <span>Editar</span>
+                        </button>
+
+                        <hlm-tooltip>
+                          <button
+                            hlmBtn
+                            variant="ghost"
+                            size="sm"
+                            hlmTooltipTrigger
+                            [disabled]="category.isActive"
+                            (click)="onDeleteAttempt(category)"
+                            class="flex items-center gap-2 cursor-pointer"
+                            [class.cursor-not-allowed]="category.isActive"
+                            [class.opacity-50]="category.isActive"
+                            [attr.aria-label]="
+                          category.isActive
+                            ? 'No se puede eliminar una categoría activa'
+                            : 'Eliminar categoría'
+                        "
+                          >
+                            <ng-icon hlm size="sm" name="lucideTrash2"/>
+                            <span>Eliminar</span>
+                          </button>
+                          @if (category.isActive) {
+                            <span *brnTooltipContent class="text-xs">
+                        Debe desactivar la categoría antes de eliminarla
+                      </span>
+                          }
+                        </hlm-tooltip>
+                      </div>
                     </td>
                   </tr>
                 }
@@ -465,14 +494,26 @@
     <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
       <hlm-alert-dialog-header>
         <h3 hlmAlertDialogTitle>
-          {{ toggleAction() === 'activate' ? 'Confirmar Activación' : 'Confirmar Desactivación' }}
+          @if (toggleAction() === 'activate') {
+            Confirmar Activación
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Confirmar Desactivación
+          } @else if (toggleAction() === 'delete') {
+            Confirmar Eliminación
+          }
         </h3>
         <p hlmAlertDialogDescription>
-          {{
-            toggleAction() === 'activate'
-              ? '¿Está seguro de que desea activar esta categoría?'
-              : '¿Está seguro de que desea desactivar esta categoría?'
-          }}
+          @if (toggleAction() === 'activate') {
+            ¿Está seguro de que desea activar esta categoría?
+          } @else if (toggleAction() === 'deactivate') {
+            ¿Está seguro de que desea desactivar esta
+              categoría?
+          } @else if (toggleAction() === 'delete') {
+            <span class="text-red-600 dark:text-red-500 font-semibold">
+            ¿Está seguro de que desea eliminar esta categoría de forma permanente?
+          </span>
+          }
           @if (categoryToToggle()) {
             <span class="block mt-2 font-medium">{{ categoryToToggle()!.name }}</span>
           }
@@ -482,6 +523,12 @@
             nuevos servicios. Podrá reactivarla posteriormente si lo necesita.
           </span>
           }
+          @if (toggleAction() === 'delete') {
+            <span class="block mt-3 text-sm text-red-600 dark:text-red-500">
+            Esta acción no se puede deshacer. La categoría será eliminada permanentemente del
+            sistema. Asegúrese de que no haya servicios asociados a esta categoría.
+          </span>
+          }
         </p>
       </hlm-alert-dialog-header>
       <hlm-alert-dialog-footer>
@@ -489,21 +536,32 @@
           hlmAlertDialogCancel
           class="cursor-pointer"
           (click)="onCancelToggle(); ctx.close()"
-          [disabled]="isTogglingCategory()"
+          [disabled]="isTogglingCategory() || isDeletingCategory()"
         >
           Cancelar
         </button>
         <button
           hlmAlertDialogAction
-          [variant]="toggleAction() === 'deactivate' ? 'destructive' : 'default'"
+          [variant]="
+            toggleAction() === 'delete' || toggleAction() === 'deactivate'
+              ? 'destructive'
+              : 'default'
+          "
           (click)="onConfirmToggle(ctx.close)"
-          [disabled]="isTogglingCategory()"
+          [disabled]="isTogglingCategory() || isDeletingCategory()"
           class="cursor-pointer"
         >
-          @if (isTogglingCategory()) {
+          @if (isTogglingCategory() || isDeletingCategory()) {
             <hlm-spinner size="sm" class="mr-2"/>
           }
-          {{ toggleAction() === 'activate' ? 'Activar' : 'Desactivar' }}
+          @if (toggleAction() === 'activate') {
+            Activar
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Desactivar
+          } @else if (toggleAction() === 'delete') {
+            Eliminar
+          }
         </button>
       </hlm-alert-dialog-footer>
     </hlm-alert-dialog-content>

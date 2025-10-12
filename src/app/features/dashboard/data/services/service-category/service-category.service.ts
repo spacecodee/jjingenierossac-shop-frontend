@@ -173,6 +173,14 @@ export class ServiceCategoryService {
       );
   }
 
+  deleteServiceCategory(id: number): Observable<ApiPlainResponse> {
+    return this.http.delete<ApiPlainResponse>(`${ this.apiUrl }/${ id }`).pipe(
+      catchError((error: HttpErrorResponse) => {
+        return throwError(() => this.handleError(error));
+      })
+    );
+  }
+
   private handleError(error: HttpErrorResponse): ApiErrorResponse {
     if (error.error && typeof error.error === 'object') {
       const apiError = error.error as ApiErrorResponse;
