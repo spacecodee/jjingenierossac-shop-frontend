@@ -130,9 +130,10 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   readonly isLoading = signal<boolean>(true);
   readonly isRefreshing = signal<boolean>(false);
 
-  readonly categoryToActivate = signal<ServiceCategoryResponse | null>(null);
-  readonly isActivating = signal<boolean>(false);
+  readonly categoryToToggle = signal<ServiceCategoryResponse | null>(null);
+  readonly isTogglingCategory = signal<boolean>(false);
   readonly categoryIdBeingToggled = signal<number | null>(null);
+  readonly toggleAction = signal<'activate' | 'deactivate' | null>(null);
 
   private readonly _pageQuery = toSignal(
     this.route.queryParamMap.pipe(
@@ -157,25 +158,25 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
 
   readonly showFilters = signal<boolean>(false);
   readonly showDateFilters = signal<boolean>(false);
-  private readonly _activeFilter = signal<ActiveFilterType>('all');
+  readonly activeFilter = signal<ActiveFilterType>('all');
 
   readonly createdAfter = signal<Date | undefined>(undefined);
   readonly createdBefore = signal<Date | undefined>(undefined);
   readonly updatedAfter = signal<Date | undefined>(undefined);
   readonly updatedBefore = signal<Date | undefined>(undefined);
 
-  get activeFilter(): ActiveFilterType {
-    return this._activeFilter();
+  get activeFilterValue(): ActiveFilterType {
+    return this.activeFilter();
   }
 
-  set activeFilter(value: ActiveFilterType) {
-    this._activeFilter.set(value);
+  set activeFilterValue(value: ActiveFilterType) {
+    this.activeFilter.set(value);
   }
 
   readonly hasFiltersApplied = computed(() => {
     return (
       this.searchName() !== '' ||
-      this._activeFilter() !== 'all' ||
+      this.activeFilter() !== 'all' ||
       this.createdAfter() !== undefined ||
       this.createdBefore() !== undefined ||
       this.updatedAfter() !== undefined ||
@@ -251,9 +252,9 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
       params.name = this.searchName();
     }
 
-    if (this._activeFilter() === 'active') {
+    if (this.activeFilter() === 'active') {
       params.isActive = true;
-    } else if (this._activeFilter() === 'inactive') {
+    } else if (this.activeFilter() === 'inactive') {
       params.isActive = false;
     }
 
@@ -328,12 +329,14 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   onClearFilters(): void {
     this.searchInputValue.set('');
     this.searchName.set('');
-    this._activeFilter.set('all');
+    this.activeFilter.set('all');
     this.createdAfter.set(undefined);
     this.createdBefore.set(undefined);
     this.updatedAfter.set(undefined);
     this.updatedBefore.set(undefined);
-    this.goToPage(0);
+    this.isLoading.set(true);
+
+    this.reloadFromPageZero();
   }
 
   toggleFilters(): void {
@@ -345,28 +348,38 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   }
 
   onFilterActiveChange(filter: ActiveFilterType): void {
-    this._activeFilter.set(filter);
-    this.goToPage(0);
+    this.activeFilter.set(filter);
+    this.isLoading.set(true);
+
+    this.reloadFromPageZero();
   }
 
   onCreatedAfterChange(date: Date): void {
     this.createdAfter.set(date);
-    this.goToPage(0);
+    this.isLoading.set(true);
+
+    this.reloadFromPageZero();
   }
 
   onCreatedBeforeChange(date: Date): void {
     this.createdBefore.set(date);
-    this.goToPage(0);
+    this.isLoading.set(true);
+
+    this.reloadFromPageZero();
   }
 
   onUpdatedAfterChange(date: Date): void {
     this.updatedAfter.set(date);
-    this.goToPage(0);
+    this.isLoading.set(true);
+
+    this.reloadFromPageZero();
   }
 
   onUpdatedBeforeChange(date: Date): void {
     this.updatedBefore.set(date);
-    this.goToPage(0);
+    this.isLoading.set(true);
+
+    this.reloadFromPageZero();
   }
 
   onSort(field: SortField): void {
@@ -392,10 +405,7 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
     }
   }
 
-  onPageSizeChange(size: number): void {
-    this.pageSize.set(size);
-    this.isLoading.set(true);
-
+  private reloadFromPageZero(): void {
     if (this.currentPage() === 0) {
       this.loadCategories();
     } else {
@@ -403,52 +413,85 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
     }
   }
 
-  onSwitchChange(category: ServiceCategoryResponse, checked: boolean): void {
-    if (checked && !category.isActive) {
-      this.categoryToActivate.set(category);
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.isLoading.set(true);
+
+    this.reloadFromPageZero();
+  }
+
+  onActivateAttempt(category: ServiceCategoryResponse): void {
+    if (!category.isActive) {
+      this.categoryToToggle.set(category);
+      this.toggleAction.set('activate');
       this.categoryIdBeingToggled.set(category.serviceCategoryId);
-      const trigger = document.getElementById('activate-dialog-trigger') as HTMLButtonElement;
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
       trigger?.click();
     }
   }
 
-  onCancelActivation(): void {
-    this.categoryToActivate.set(null);
+  onDeactivateAttempt(category: ServiceCategoryResponse): void {
+    if (category.isActive) {
+      this.categoryToToggle.set(category);
+      this.toggleAction.set('deactivate');
+      this.categoryIdBeingToggled.set(category.serviceCategoryId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onCancelToggle(): void {
+    this.categoryToToggle.set(null);
+    this.toggleAction.set(null);
     this.categoryIdBeingToggled.set(null);
   }
 
-  onConfirmActivation(closeDialog: () => void): void {
-    const category = this.categoryToActivate();
-    if (!category) {
+  onConfirmToggle(closeDialog: () => void): void {
+    const category = this.categoryToToggle();
+    const action = this.toggleAction();
+
+    if (!category || !action) {
       return;
     }
 
-    this.isActivating.set(true);
+    this.isTogglingCategory.set(true);
 
-    this.serviceCategoryService.activateServiceCategory(category.serviceCategoryId).subscribe({
+    const serviceCall =
+      action === 'activate'
+        ? this.serviceCategoryService.activateServiceCategory(category.serviceCategoryId)
+        : this.serviceCategoryService.deactivateServiceCategory(category.serviceCategoryId);
+
+    const newState = action === 'activate';
+    const successMessage = action === 'activate' ? 'Categoría activada' : 'Categoría desactivada';
+    const errorMessage =
+      action === 'activate' ? 'Error al activar categoría' : 'Error al desactivar categoría';
+
+    serviceCall.subscribe({
       next: (response) => {
         this.categories.update((categories) =>
           categories.map((c) =>
-            c.serviceCategoryId === category.serviceCategoryId ? { ...c, isActive: true } : c
+            c.serviceCategoryId === category.serviceCategoryId ? { ...c, isActive: newState } : c
           )
         );
 
-        toast.success('Categoría activada', {
-          description: response.message || 'La categoría ha sido activada exitosamente',
+        toast.success(successMessage, {
+          description: response.message,
         });
 
-        this.isActivating.set(false);
-        this.categoryToActivate.set(null);
+        this.isTogglingCategory.set(false);
+        this.categoryToToggle.set(null);
+        this.toggleAction.set(null);
         this.categoryIdBeingToggled.set(null);
         closeDialog();
       },
       error: (error: ApiErrorResponse) => {
-        this.isActivating.set(false);
-        this.categoryToActivate.set(null);
+        this.isTogglingCategory.set(false);
+        this.categoryToToggle.set(null);
+        this.toggleAction.set(null);
         this.categoryIdBeingToggled.set(null);
         closeDialog();
 
-        toast.error('Error al activar categoría', {
+        toast.error(errorMessage, {
           description: error.message,
         });
       },

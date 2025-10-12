@@ -134,6 +134,14 @@ export class ServiceCategoryService {
     );
   }
 
+  deactivateServiceCategory(id: number): Observable<ApiPlainResponse> {
+    return this.http.put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/deactivate`, {}).pipe(
+      catchError((error: HttpErrorResponse) => {
+        return throwError(() => this.handleError(error));
+      })
+    );
+  }
+
   private handleError(error: HttpErrorResponse): ApiErrorResponse {
     if (error.error && typeof error.error === 'object') {
       const apiError = error.error as ApiErrorResponse;
