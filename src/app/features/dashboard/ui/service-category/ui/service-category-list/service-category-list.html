@@ -121,24 +121,24 @@
             <div class="flex flex-col gap-3">
               <span class="text-sm font-medium">Estado</span>
               <hlm-radio-group
-                class="flex"
-                [(ngModel)]="activeFilter"
+                class="flex flex-row gap-4"
+                [(ngModel)]="activeFilterValue"
                 (ngModelChange)="onFilterActiveChange($event)"
               >
-                <label class="items-center gap-3" hlmLabel for="all-radio-filter">
-                  <hlm-radio value="all" id="all-radio-filter">
+                <label class="flex items-center gap-3" hlmLabel for="all">
+                  <hlm-radio value="all" id="all">
                     <hlm-radio-indicator indicator/>
                   </hlm-radio>
                   Todos
                 </label>
-                <label class="items-center gap-3" hlmLabel for="active-radio-filter">
-                  <hlm-radio value="active" id="active-radio-filter">
+                <label class="flex items-center gap-3" hlmLabel for="active">
+                  <hlm-radio value="active" id="active">
                     <hlm-radio-indicator indicator/>
                   </hlm-radio>
                   Activos
                 </label>
-                <label class="items-center gap-3" hlmLabel for="inactive-radio-filter">
-                  <hlm-radio value="inactive" id="inactive-radio-filter">
+                <label class="flex items-center gap-3" hlmLabel for="inactive">
+                  <hlm-radio value="inactive" id="inactive">
                     <hlm-radio-indicator indicator/>
                   </hlm-radio>
                   Inactivos
@@ -297,16 +297,22 @@
                       }
                     </td>
                     <td hlmTd class="text-center">
-                      <hlm-switch
-                        [checked]="
-                      categoryIdBeingToggled() === category.serviceCategoryId
-                        ? true
-                        : category.isActive
-                    "
-                        (checkedChange)="onSwitchChange(category, $event)"
-                        [disabled]="category.isActive"
-                        [aria-label]="category.isActive ? 'Categoría activa' : 'Activar categoría'"
-                      />
+                      <div class="flex items-center justify-center">
+                        <hlm-switch
+                          [checked]="
+                        categoryIdBeingToggled() === category.serviceCategoryId
+                          ? !category.isActive
+                          : category.isActive
+                      "
+                          (checkedChange)="
+                        $event ? onActivateAttempt(category) : onDeactivateAttempt(category)
+                      "
+                          [disabled]="false"
+                          [aria-label]="
+                        category.isActive ? 'Desactivar categoría' : 'Activar categoría'
+                      "
+                        />
+                      </div>
                     </td>
                     <td hlmTd>
                       {{ category.createdAt | date : 'dd/MM/yyyy HH:mm' }}
@@ -423,34 +429,49 @@
   </section>
 
   <hlm-alert-dialog>
-    <button id="activate-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
+    <button id="toggle-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
     <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
       <hlm-alert-dialog-header>
-        <h3 hlmAlertDialogTitle>Confirmar Activación</h3>
+        <h3 hlmAlertDialogTitle>
+          {{ toggleAction() === 'activate' ? 'Confirmar Activación' : 'Confirmar Desactivación' }}
+        </h3>
         <p hlmAlertDialogDescription>
-          ¿Está seguro de que desea activar esta categoría? @if (categoryToActivate()) {
-          <span class="block mt-2 font-medium">{{ categoryToActivate()!.name }}</span>
-        }
+          {{
+            toggleAction() === 'activate'
+              ? '¿Está seguro de que desea activar esta categoría?'
+              : '¿Está seguro de que desea desactivar esta categoría?'
+          }}
+          @if (categoryToToggle()) {
+            <span class="block mt-2 font-medium">{{ categoryToToggle()!.name }}</span>
+          }
+          @if (toggleAction() === 'deactivate') {
+            <span class="block mt-3 text-sm text-muted-foreground">
+            La categoría dejará de aparecer en los listados de selección y no podrá ser asignada a
+            nuevos servicios. Podrá reactivarla posteriormente si lo necesita.
+          </span>
+          }
         </p>
       </hlm-alert-dialog-header>
       <hlm-alert-dialog-footer>
         <button
           hlmAlertDialogCancel
           class="cursor-pointer"
-          (click)="onCancelActivation(); ctx.close()"
-          [disabled]="isActivating()"
+          (click)="onCancelToggle(); ctx.close()"
+          [disabled]="isTogglingCategory()"
         >
           Cancelar
         </button>
         <button
           hlmAlertDialogAction
-          (click)="onConfirmActivation(ctx.close)"
-          [disabled]="isActivating()"
+          [variant]="toggleAction() === 'deactivate' ? 'destructive' : 'default'"
+          (click)="onConfirmToggle(ctx.close)"
+          [disabled]="isTogglingCategory()"
           class="cursor-pointer"
         >
-          @if (isActivating()) {
+          @if (isTogglingCategory()) {
             <hlm-spinner size="sm" class="mr-2"/>
-          } Activar
+          }
+          {{ toggleAction() === 'activate' ? 'Activar' : 'Desactivar' }}
         </button>
       </hlm-alert-dialog-footer>
     </hlm-alert-dialog-content>
