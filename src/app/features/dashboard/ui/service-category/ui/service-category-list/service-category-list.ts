@@ -1,18 +1,16 @@
 import { DatePipe, registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
-import {
-  Component,
-  computed,
-  inject,
-  LOCALE_ID,
-  numberAttribute,
-  OnDestroy,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { Component, computed, inject, LOCALE_ID, numberAttribute, OnDestroy, OnInit, signal, } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import {
+  BatchActivateServiceCategoriesRequest
+} from '@features/dashboard/data/models/batch-activate-service-categories-request.interface';
+import {
+  BatchDeactivateServiceCategoriesRequest
+} from '@features/dashboard/data/models/batch-deactivate-service-categories-request.interface';
+import { BatchOperationItemResponse } from '@features/dashboard/data/models/batch-operation-item-response.interface';
 import {
   SearchServiceCategoriesParams
 } from '@features/dashboard/data/models/search-service-categories-params.interface';
@@ -21,6 +19,7 @@ import { ServiceCategoryService } from '@features/dashboard/data/services/servic
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideCalendar,
+  lucideCheck,
   lucideChevronLeft,
   lucideChevronRight,
   lucideChevronsLeft,
@@ -32,6 +31,7 @@ import {
   lucideSlidersHorizontal,
   lucideX,
 } from '@ng-icons/lucide';
+import { BatchActionBar } from '@shared/components/batch-action-bar/batch-action-bar';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { SortDirection } from '@shared/data/types/sort-direction.type';
 import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
@@ -40,9 +40,10 @@ import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmDatePickerImports, provideHlmDatePickerConfig } from '@spartan-ng/helm/date-picker';
 import { HlmIconImports } from '@spartan-ng/helm/icon';
-import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
 import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
@@ -73,17 +74,19 @@ type ActiveFilterType = 'all' | 'active' | 'inactive';
     ...HlmDatePickerImports,
     ...HlmSwitchImports,
     ...HlmAlertDialogImports,
-    HlmInput,
+    ...HlmPaginationImports,
+    ...HlmCheckboxImports,
+    ...HlmIconImports,
+    ...HlmInputImports,
     HlmLabel,
     NgIcon,
     HlmSpinner,
     HlmSeparator,
     HlmSkeleton,
-    ...HlmPaginationImports,
     FormsModule,
     DatePipe,
-    HlmIconImports,
     RouterLink,
+    BatchActionBar,
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'es-PE' },
@@ -99,6 +102,7 @@ type ActiveFilterType = 'all' | 'active' | 'inactive';
       lucideChevronsLeft,
       lucideChevronsRight,
       lucidePencil,
+      lucideCheck,
     }),
     provideHlmDatePickerConfig({
       formatDate: (date: Date) => {
@@ -134,6 +138,17 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   readonly isTogglingCategory = signal<boolean>(false);
   readonly categoryIdBeingToggled = signal<number | null>(null);
   readonly toggleAction = signal<'activate' | 'deactivate' | null>(null);
+
+  readonly selectedCategories = signal<Set<number>>(new Set());
+  readonly isSelectAllChecked = signal<boolean>(false);
+  readonly isBatchOperationInProgress = signal<boolean>(false);
+  readonly batchToggleAction = signal<'activate' | 'deactivate' | null>(null);
+  readonly batchOperationResults = signal<BatchOperationItemResponse[]>([]);
+  readonly showBatchResultsDialog = signal<boolean>(false);
+
+  readonly selectedCount = computed(() => this.selectedCategories().size);
+  readonly hasSelectedCategories = computed(() => this.selectedCategories().size > 0);
+  readonly maxBatchSize = 50;
 
   private readonly _pageQuery = toSignal(
     this.route.queryParamMap.pipe(
@@ -496,5 +511,171 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
         });
       },
     });
+  }
+
+  onCheckboxChange(categoryId: number, checked: boolean): void {
+    const selected = new Set(this.selectedCategories());
+
+    if (checked) {
+      if (selected.size >= this.maxBatchSize) {
+        toast.warning('Límite alcanzado', {
+          description: `Máximo ${ this.maxBatchSize } categorías por operación`,
+        });
+        return;
+      }
+      selected.add(categoryId);
+    } else {
+      selected.delete(categoryId);
+    }
+
+    this.selectedCategories.set(selected);
+    this.updateSelectAllState();
+  }
+
+  isSelected(categoryId: number): boolean {
+    return this.selectedCategories().has(categoryId);
+  }
+
+  onSelectAllChange(checked: boolean): void {
+    const selected = new Set<number>();
+
+    if (checked) {
+      const categoriesToSelect = this.displayedCategories().slice(0, this.maxBatchSize);
+      for (const category of categoriesToSelect) {
+        selected.add(category.serviceCategoryId);
+      }
+
+      if (this.displayedCategories().length > this.maxBatchSize) {
+        toast.warning('Límite alcanzado', {
+          description: `Solo se seleccionaron las primeras ${ this.maxBatchSize } categorías`,
+        });
+      }
+    }
+
+    this.selectedCategories.set(selected);
+    this.updateSelectAllState();
+  }
+
+  private updateSelectAllState(): void {
+    const displayedIds = this.displayedCategories().map((c) => c.serviceCategoryId);
+    const selectedIds = this.selectedCategories();
+    const allDisplayedSelected = displayedIds.every((id) => selectedIds.has(id));
+    this.isSelectAllChecked.set(allDisplayedSelected && displayedIds.length > 0);
+  }
+
+  onBatchActivateAttempt(): void {
+    if (this.selectedCategories().size === 0) {
+      return;
+    }
+
+    this.batchToggleAction.set('activate');
+    const trigger = document.getElementById('batch-dialog-trigger') as HTMLButtonElement;
+    trigger?.click();
+  }
+
+  onBatchDeactivateAttempt(): void {
+    if (this.selectedCategories().size === 0) {
+      return;
+    }
+
+    this.batchToggleAction.set('deactivate');
+    const trigger = document.getElementById('batch-dialog-trigger') as HTMLButtonElement;
+    trigger?.click();
+  }
+
+  onCancelBatchSelection(): void {
+    this.selectedCategories.set(new Set());
+    this.isSelectAllChecked.set(false);
+  }
+
+  onCancelBatchToggle(): void {
+    this.batchToggleAction.set(null);
+  }
+
+  onConfirmBatchToggle(closeDialog: () => void): void {
+    const action = this.batchToggleAction();
+    const selectedIds = this.selectedCategories();
+
+    if (!action || selectedIds.size === 0) {
+      return;
+    }
+
+    this.isBatchOperationInProgress.set(true);
+
+    const request: BatchActivateServiceCategoriesRequest | BatchDeactivateServiceCategoriesRequest =
+      { ids: Array.from(selectedIds) };
+
+    const serviceCall =
+      action === 'activate'
+        ? this.serviceCategoryService.batchActivateServiceCategories(request)
+        : this.serviceCategoryService.batchDeactivateServiceCategories(request);
+
+    const newState = action === 'activate';
+
+    serviceCall.subscribe({
+      next: (response) => {
+        const results = response.data.results;
+        this.batchOperationResults.set(results);
+
+        const successfulIds = new Set(
+          results.filter((r) => r.status === 'success').map((r) => r.id)
+        );
+
+        this.categories.update((categories) =>
+          categories.map((c) =>
+            successfulIds.has(c.serviceCategoryId) ? { ...c, isActive: newState } : c
+          )
+        );
+
+        this.isBatchOperationInProgress.set(false);
+        this.batchToggleAction.set(null);
+        closeDialog();
+
+        if (response.data.successful > 0 && response.data.failed === 0) {
+          toast.success('Operación completada', {
+            description: response.message,
+          });
+          this.onCancelBatchSelection();
+        } else {
+          this.showBatchResultsDialog.set(true);
+          const resultsTrigger = document.getElementById(
+            'batch-results-dialog-trigger'
+          ) as HTMLButtonElement;
+          resultsTrigger?.click();
+        }
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isBatchOperationInProgress.set(false);
+        this.batchToggleAction.set(null);
+        closeDialog();
+
+        toast.error('Error en operación batch', {
+          description: error.message,
+        });
+      },
+    });
+  }
+
+  getSelectedCategories(): ServiceCategoryResponse[] {
+    const selectedIds = this.selectedCategories();
+    return this.categories().filter((c) => selectedIds.has(c.serviceCategoryId));
+  }
+
+  getSuccessfulResultsCount(): number {
+    return this.batchOperationResults().filter((r) => r.status === 'success').length;
+  }
+
+  getFailedResultsCount(): number {
+    return this.batchOperationResults().filter((r) => r.status === 'failed').length;
+  }
+
+  getFailedResults(): BatchOperationItemResponse[] {
+    return this.batchOperationResults().filter((r) => r.status === 'failed');
+  }
+
+  onCloseBatchResultsDialog(): void {
+    this.showBatchResultsDialog.set(false);
+    this.batchOperationResults.set([]);
+    this.onCancelBatchSelection();
   }
 }

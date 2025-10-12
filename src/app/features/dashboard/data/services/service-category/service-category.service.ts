@@ -2,6 +2,13 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
 import {
+  BatchActivateServiceCategoriesRequest
+} from '@features/dashboard/data/models/batch-activate-service-categories-request.interface';
+import {
+  BatchDeactivateServiceCategoriesRequest
+} from '@features/dashboard/data/models/batch-deactivate-service-categories-request.interface';
+import { BatchOperationResponse } from '@features/dashboard/data/models/batch-operation-response.interface';
+import {
   CreateServiceCategoryRequest
 } from '@features/dashboard/data/models/create-service-category-request.interface';
 import {
@@ -140,6 +147,30 @@ export class ServiceCategoryService {
         return throwError(() => this.handleError(error));
       })
     );
+  }
+
+  batchActivateServiceCategories(
+    request: BatchActivateServiceCategoriesRequest
+  ): Observable<ApiDataResponse<BatchOperationResponse>> {
+    return this.http
+      .put<ApiDataResponse<BatchOperationResponse>>(`${ this.apiUrl }/batch/activate`, request)
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(() => this.handleError(error));
+        })
+      );
+  }
+
+  batchDeactivateServiceCategories(
+    request: BatchDeactivateServiceCategoriesRequest
+  ): Observable<ApiDataResponse<BatchOperationResponse>> {
+    return this.http
+      .put<ApiDataResponse<BatchOperationResponse>>(`${ this.apiUrl }/batch/deactivate`, request)
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(() => this.handleError(error));
+        })
+      );
   }
 
   private handleError(error: HttpErrorResponse): ApiErrorResponse {
