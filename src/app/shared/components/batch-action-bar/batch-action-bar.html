@@ -1,0 +1,41 @@
+<aside
+  class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground shadow-lg rounded-lg w-[calc(100%-2rem)] max-w-4xl"
+>
+  <div class="px-4 py-3 md:px-6 md:py-4">
+    <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+      <span class="font-medium text-sm md:text-base text-center sm:text-left">
+        {{ selectedCount() }} {{ entityName() }} seleccionada(s)
+      </span>
+      <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+        <button
+          hlmBtn
+          size="sm"
+          variant="secondary"
+          (click)="activate.emit()"
+          class="cursor-pointer w-full sm:w-auto text-xs md:text-sm"
+        >
+          {{ activateLabel() }}
+        </button>
+        <button
+          hlmBtn
+          size="sm"
+          variant="destructive"
+          (click)="deactivate.emit()"
+          class="cursor-pointer w-full sm:w-auto text-xs md:text-sm"
+        >
+          {{ deactivateLabel() }}
+        </button>
+        <button
+          hlmBtn
+          size="sm"
+          variant="ghost"
+          (click)="cancelled.emit()"
+          class="cursor-pointer text-primary-foreground hover:text-primary-foreground w-full sm:w-auto text-xs md:text-sm"
+        >
+          <ng-icon hlm size="sm" name="lucideX"/>
+          <span>{{ cancelLabel() }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</aside>

@@ -118,6 +118,9 @@
       ],
       "@spartan-ng/helm/alert-dialog": [
         "./libs/ui/ui-alert-dialog-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/checkbox": [
+        "./libs/ui/ui-checkbox-helm/src/index.ts"
       ]
     }
   },
