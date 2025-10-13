@@ -1,12 +1,4 @@
-import {
-  Component,
-  computed,
-  inject,
-  numberAttribute,
-  OnDestroy,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { Component, computed, inject, numberAttribute, OnDestroy, OnInit, signal, } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -30,6 +22,7 @@ import { ApiErrorResponse } from '@shared/data/models/api-error-response.interfa
 import { PaginationHelperService } from '@shared/services/pagination-helper.service';
 import { SearchListHelperService } from '@shared/services/search-list-helper.service';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
+import { HlmAutocomplete } from '@spartan-ng/helm/autocomplete';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -51,6 +44,7 @@ import { map } from 'rxjs/operators';
     ...HlmButtonImports,
     ...BrnSelectImports,
     ...HlmSelectImports,
+    HlmAutocomplete,
     ...HlmBadgeImports,
     ...HlmPaginationImports,
     ...HlmIconImports,
@@ -74,7 +68,6 @@ import { map } from 'rxjs/operators';
     }),
   ],
   templateUrl: './public-service-list.html',
-  styleUrl: './public-service-list.css',
 })
 export class PublicServiceList implements OnInit, OnDestroy {
   private readonly publicServiceApi = inject(PublicServiceApiService);
@@ -84,7 +77,9 @@ export class PublicServiceList implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly searchSubject = new Subject<string>();
+  private readonly publicCategorySearchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
+  private publicCategorySearchSubscription?: Subscription;
   private queryParamsSubscription?: Subscription;
 
   readonly Math = Math;
@@ -95,6 +90,8 @@ export class PublicServiceList implements OnInit, OnDestroy {
 
   readonly serviceCategories = signal<ServiceCategoryOption[]>([]);
   readonly isLoadingCategories = signal<boolean>(false);
+  publicServiceCategorySearch = signal<string>('');
+  readonly publicServiceCategoryNames = computed(() => this.serviceCategories().map((c) => c.name));
 
   private readonly _pageQuery = toSignal(
     this.route.queryParamMap.pipe(
@@ -143,6 +140,14 @@ export class PublicServiceList implements OnInit, OnDestroy {
       }
     });
 
+    this.publicCategorySearchSubscription = this.publicCategorySearchSubject
+      .pipe(debounceTime(500))
+      .subscribe((searchTerm) => {
+        if (searchTerm.length >= 3 || searchTerm.length === 0) {
+          this.loadPublicServiceCategories(searchTerm);
+        }
+      });
+
     this.queryParamsSubscription = this.route.queryParamMap
       .pipe(
         map((params) => params.get('page')),
@@ -156,12 +161,13 @@ export class PublicServiceList implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.searchSubscription?.unsubscribe();
+    this.publicCategorySearchSubscription?.unsubscribe();
     this.queryParamsSubscription?.unsubscribe();
   }
 
-  loadPublicServiceCategories(): void {
+  loadPublicServiceCategories(name?: string): void {
     this.isLoadingCategories.set(true);
-    this.serviceCategoryService.getServiceCategoriesForSelect().subscribe({
+    this.serviceCategoryService.getServiceCategoriesForSelect(name).subscribe({
       next: (response) => {
         this.serviceCategories.set(response.data);
         this.isLoadingCategories.set(false);
@@ -241,6 +247,7 @@ export class PublicServiceList implements OnInit, OnDestroy {
     this.searchInputValue.set('');
     this.searchName.set('');
     this.selectedServiceCategoryId.set(null);
+    this.publicServiceCategorySearch.set('');
     this.isLoading.set(true);
     this.reloadFromPageZero();
   }
@@ -249,14 +256,27 @@ export class PublicServiceList implements OnInit, OnDestroy {
     this.showFilters.update((value) => !value);
   }
 
-  onServiceCategoryChange(value: string | (string | null)[] | null | undefined): void {
-    if (typeof value === 'string') {
-      this.selectedServiceCategoryId.set(+value);
+  onPublicServiceCategorySelect(categoryPublicName: string | null): void {
+    if (categoryPublicName) {
+      const category = this.serviceCategories().find((c) => c.name === categoryPublicName);
+      if (category) {
+        this.selectedServiceCategoryId.set(category.serviceCategoryId);
+        this.isLoading.set(true);
+        this.reloadFromPageZero();
+      }
     } else {
-      this.selectedServiceCategoryId.set(null);
+      const previousValue = this.selectedServiceCategoryId();
+      if (previousValue !== null) {
+        this.selectedServiceCategoryId.set(null);
+        this.isLoading.set(true);
+        this.reloadFromPageZero();
+      }
     }
-    this.isLoading.set(true);
-    this.reloadFromPageZero();
+  }
+
+  onPublicServiceCategorySearchChange(searchTerm: string): void {
+    this.publicServiceCategorySearch.set(searchTerm);
+    this.publicCategorySearchSubject.next(searchTerm);
   }
 
   goToPage(page: number): void {

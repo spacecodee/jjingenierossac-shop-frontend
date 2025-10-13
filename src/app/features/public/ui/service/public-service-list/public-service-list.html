@@ -14,6 +14,7 @@
           hlmBtn
           variant="outline"
           size="icon"
+          class="cursor-pointer"
           (click)="onRefresh()"
           [disabled]="isRefreshing()"
         >
@@ -27,6 +28,7 @@
         <button
           hlmBtn
           variant="outline"
+          class="cursor-pointer"
           (click)="toggleFilters()"
           [class.bg-accent]="showFilters()"
           [class.text-accent-foreground]="showFilters()"
@@ -76,26 +78,14 @@
           >
             <div class="flex flex-1 flex-col gap-2">
               <div hlmLabel class="text-sm font-medium">Categoría de Servicio</div>
-              <brn-select
-                [placeholder]="
-                isLoadingCategories() ? 'Cargando categorías...' : 'Todas las categorías'
-              "
-                [value]="selectedServiceCategoryId()?.toString() ?? ''"
-                (valueChange)="onServiceCategoryChange($event)"
+              <hlm-autocomplete
+                [filteredOptions]="publicServiceCategoryNames()"
+                [search]="publicServiceCategorySearch()"
+                (searchChange)="onPublicServiceCategorySearchChange($event)"
+                (valueChange)="onPublicServiceCategorySelect($event)"
+                searchPlaceholderText="Buscar categoría (mín. 3 caracteres)..."
                 [disabled]="isLoadingCategories()"
-              >
-                <hlm-select-trigger class="w-full">
-                  <hlm-select-value/>
-                </hlm-select-trigger>
-                <hlm-select-content>
-                  <hlm-option value="">Todas las categorías</hlm-option>
-                  @for (category of serviceCategories(); track category.serviceCategoryId) {
-                    <hlm-option [value]="category.serviceCategoryId.toString()">
-                      {{ category.name }}
-                    </hlm-option>
-                  }
-                </hlm-select-content>
-              </brn-select>
+              />
             </div>
 
             @if (hasFiltersApplied()) {
@@ -149,7 +139,7 @@
               }
             </p>
             @if (hasFiltersApplied()) {
-              <button hlmBtn variant="outline" (click)="onClearFilters()" class="mt-2">
+              <button hlmBtn variant="outline" (click)="onClearFilters()" class="mt-2 cursor-pointer">
                 Limpiar filtros
               </button>
             }
