@@ -1,12 +1,19 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
+import { Observable, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class HttpErrorHandlerService {
-  handleError(error: HttpErrorResponse): ApiErrorResponse {
+
+  handleError(error: HttpErrorResponse): Observable<never> {
+    const apiError = this.transformError(error);
+    return throwError(() => apiError);
+  }
+
+  private transformError(error: HttpErrorResponse): ApiErrorResponse {
     if (error.error && typeof error.error === 'object') {
       const apiError = error.error as ApiErrorResponse;
 

@@ -116,9 +116,9 @@
       </div>
 
       @if (showFilters()) {
-        <div class="space-y-4 pt-4 border-t">
-          <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-3">
+        <div class="pt-4 border-t">
+          <div class="flex flex-col lg:flex-row gap-6 lg:items-end">
+            <div class="flex flex-col gap-3 flex-1">
               <span class="text-sm font-medium">Estado</span>
               <hlm-radio-group
                 class="flex flex-row gap-4"
@@ -146,26 +146,15 @@
               </hlm-radio-group>
             </div>
 
-            <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-3 flex-1">
               <span class="text-sm font-medium">Categoría de Servicio</span>
-              <brn-select
-                class="inline-block"
-                placeholder="Todas las categorías"
-                [value]="selectedServiceCategoryId()?.toString() ?? null"
-                (valueChange)="onServiceCategoryChange($event)"
-              >
-                <hlm-select-trigger class="w-full sm:w-64">
-                  <hlm-select-value/>
-                </hlm-select-trigger>
-                <hlm-select-content>
-                  <hlm-option [value]="null">Todas las categorías</hlm-option>
-                  @for (category of serviceCategories(); track category.serviceCategoryId) {
-                    <hlm-option [value]="category.serviceCategoryId.toString()">
-                      {{ category.name }}
-                    </hlm-option>
-                  }
-                </hlm-select-content>
-              </brn-select>
+              <hlm-autocomplete
+                [filteredOptions]="serviceCategoryNames()"
+                [search]="serviceCategorySearch()"
+                (searchChange)="onServiceCategorySearchChange($event)"
+                (valueChange)="onServiceCategorySelect($event)"
+                searchPlaceholderText="Buscar categoría (mín. 3 caracteres)..."
+              />
             </div>
           </div>
         </div>

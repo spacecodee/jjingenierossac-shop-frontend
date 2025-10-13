@@ -1,0 +1,91 @@
+<footer class="border-t bg-muted/50">
+  <div class="container mx-auto px-4 py-8">
+    <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+      <div class="space-y-3">
+        <h3 class="text-base font-semibold">J&J Ingenieros SAC</h3>
+        <p class="text-sm text-muted-foreground">
+          Soluciones profesionales en equipos eléctricos, maquinaria industrial y servicios técnicos
+          especializados en Tumbes, Perú.
+        </p>
+      </div>
+
+      <div class="space-y-3">
+        <h3 class="text-base font-semibold">Enlaces Rápidos</h3>
+        <nav class="flex flex-col space-y-2">
+          <a
+            routerLink="/"
+            class="text-sm text-muted-foreground transition-colors hover:text-primary"
+            >Inicio</a
+          >
+          <a
+            routerLink="/services"
+            class="text-sm text-muted-foreground transition-colors hover:text-primary"
+            >Servicios</a
+          >
+          <a
+            routerLink="/about"
+            class="text-sm text-muted-foreground transition-colors hover:text-primary"
+            >Nosotros</a
+          >
+          <a
+            routerLink="/contact"
+            class="text-sm text-muted-foreground transition-colors hover:text-primary"
+            >Contacto</a
+          >
+        </nav>
+      </div>
+
+      <div class="space-y-3">
+        <h3 class="text-base font-semibold">Contacto</h3>
+        <div class="flex flex-col space-y-2">
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
+            <ng-icon hlm size="sm" name="lucidePhone" />
+            <span>+51 123 456 789</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
+            <ng-icon hlm size="sm" name="lucideMail" />
+            <span>contacto&#64;jjingenieros.com</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <h3 class="text-base font-semibold">Síguenos</h3>
+        <div class="flex gap-3">
+          <a
+            href="https://facebook.com"
+            target="_blank"
+            rel="noopener"
+            class="flex size-9 items-center justify-center rounded-md border bg-background transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <ng-icon hlm size="sm" name="lucideFacebook" />
+          </a>
+          <a
+            href="https://instagram.com"
+            target="_blank"
+            rel="noopener"
+            class="flex size-9 items-center justify-center rounded-md border bg-background transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <ng-icon hlm size="sm" name="lucideInstagram" />
+          </a>
+          <a
+            href="https://linkedin.com"
+            target="_blank"
+            rel="noopener"
+            class="flex size-9 items-center justify-center rounded-md border bg-background transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <ng-icon hlm size="sm" name="lucideLinkedin" />
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <hlm-separator class="my-6" />
+
+    <div class="text-center">
+      <p class="text-sm text-muted-foreground">
+        &copy; {{ currentYear }} J&J Ingenieros SAC. Todos los derechos reservados.
+      </p>
+    </div>
+  </div>
+</footer>
