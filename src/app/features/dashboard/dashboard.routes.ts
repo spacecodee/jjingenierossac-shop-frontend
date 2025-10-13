@@ -38,4 +38,12 @@ export const dashboardRoutes: Routes = [
         '@features/dashboard/ui/service-category/ui/forms/service-category-form/service-category-form'
         ).then((m) => m.ServiceCategoryForm),
   },
+  {
+    path: 'services',
+    title: 'Servicios - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/service/ui/service-list/service-list').then(
+        (m) => m.ServiceList
+      ),
+  },
 ];
