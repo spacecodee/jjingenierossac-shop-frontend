@@ -1,6 +1,6 @@
-import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
+import { PublicServiceDetailResponse } from '@features/public/data/models/public-service-detail-response.interface';
 import { PublicServiceResponse } from '@features/public/data/models/public-service-response';
 import { SearchPublicServicesParams } from '@features/public/data/models/search-public-services-params';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
@@ -8,6 +8,7 @@ import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response
 import { HttpErrorHandlerService } from '@shared/services/http-error-handler.service';
 import { HttpParamsBuilderService } from '@shared/services/http-params-builder.service';
 import { catchError, Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -27,6 +28,12 @@ export class PublicServiceApiService {
       .get<ApiDataResponse<ApiPaginatedResponse<PublicServiceResponse>>>(this.apiUrl, {
         params: httpParams,
       })
+      .pipe(catchError(this.errorHandler.handleError));
+  }
+
+  getPublicServiceById(id: number): Observable<ApiDataResponse<PublicServiceDetailResponse>> {
+    return this.http
+      .get<ApiDataResponse<PublicServiceDetailResponse>>(`${ this.apiUrl }/${ id }`)
       .pipe(catchError(this.errorHandler.handleError));
   }
 }

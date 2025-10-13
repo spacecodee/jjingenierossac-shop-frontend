@@ -1,0 +1,143 @@
+<div class="min-h-screen bg-background py-8">
+  <div class="container mx-auto px-4 max-w-4xl">
+    <div class="mb-6">
+      <button
+        hlmBtn
+        variant="ghost"
+        size="sm"
+        (click)="onBackToCatalog()"
+        class="flex items-center gap-2 cursor-pointer"
+      >
+        <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+        <span>Volver al catálogo</span>
+      </button>
+    </div>
+
+    @if (isLoading()) {
+      <div hlmCard class="w-full">
+        <div hlmCardHeader>
+          <hlm-skeleton class="h-8 w-3/4 mb-2"/>
+          <hlm-skeleton class="h-4 w-1/4"/>
+        </div>
+        <div hlmCardContent class="space-y-4">
+          <hlm-skeleton class="h-4 w-full"/>
+          <hlm-skeleton class="h-4 w-full"/>
+          <hlm-skeleton class="h-4 w-3/4"/>
+          <div class="pt-4 space-y-2">
+            <hlm-skeleton class="h-20 w-full"/>
+            <hlm-skeleton class="h-20 w-full"/>
+          </div>
+        </div>
+        <div hlmCardFooter>
+          <hlm-skeleton class="h-10 w-48"/>
+        </div>
+      </div>
+    } @else if (error()) {
+      <div hlmCard class="w-full border-destructive">
+        <div hlmCardHeader>
+          <h3 hlmCardTitle class="text-destructive flex items-center gap-2">
+            <ng-icon hlm size="base" name="lucideFileText"/>
+            <span>Servicio no disponible</span>
+          </h3>
+          <p hlmCardDescription class="text-destructive">
+            {{ error() }}
+          </p>
+        </div>
+        <div hlmCardContent class="space-y-4">
+          <p class="text-muted-foreground">
+            El servicio que buscas no está disponible o no existe. Por favor, verifica el enlace o
+            regresa al catálogo para explorar otros servicios.
+          </p>
+        </div>
+        <div hlmCardFooter class="flex gap-3">
+          <button hlmBtn variant="outline" (click)="onRetry()" class="flex items-center gap-2">
+            <ng-icon hlm size="sm" name="lucideRefreshCw"/>
+            <span>Reintentar</span>
+          </button>
+          <button hlmBtn (click)="onBackToCatalog()" class="flex items-center gap-2">
+            <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+            <span>Volver al catálogo</span>
+          </button>
+        </div>
+      </div>
+    } @else if (service()) {
+      <article hlmCard class="w-full">
+        <header hlmCardHeader class="space-y-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 space-y-2">
+              <h1 hlmCardTitle class="text-3xl font-bold tracking-tight">
+                {{ service()!.name }}
+              </h1>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="sm"
+                (click)="onViewCategory()"
+                class="flex items-center gap-2 px-0 hover:underline cursor-pointer"
+              >
+                <ng-icon hlm size="sm" name="lucideFolderOpen"/>
+                <span>{{ service()!.serviceCategory.name }}</span>
+              </button>
+            </div>
+            <span hlmBadge variant="secondary" class="shrink-0 text-sm">
+            <ng-icon hlm size="sm" name="lucideTag" class="mr-1"/>
+            Servicio Activo
+          </span>
+          </div>
+        </header>
+
+        <hlm-separator class="my-4"/>
+
+        <div hlmCardContent class="space-y-6">
+          <div class="space-y-3">
+            <div class="flex items-center gap-2 text-sm font-medium">
+              <ng-icon hlm size="sm" name="lucideCalendarClock" class="text-primary"/>
+              <span>Duración Estimada</span>
+            </div>
+            <p class="text-lg font-semibold text-muted-foreground pl-6">
+              {{ service()!.estimatedDuration }}
+            </p>
+          </div>
+
+          <hlm-separator/>
+
+          <div class="space-y-3">
+            <div class="flex items-center gap-2 text-sm font-medium">
+              <ng-icon hlm size="sm" name="lucideFileText" class="text-primary"/>
+              <span>Descripción del Servicio</span>
+            </div>
+            <div class="prose prose-sm max-w-none pl-6 space-y-2">
+              @for (paragraph of getFormattedDescription(); track $index) {
+                <p class="text-muted-foreground leading-relaxed">{{ paragraph }}</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <hlm-separator class="my-4"/>
+
+        <footer hlmCardFooter class="flex flex-col sm:flex-row gap-3">
+          <button
+            hlmBtn
+            size="lg"
+            (click)="onRequestQuote()"
+            class="flex-1 sm:flex-initial flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <ng-icon hlm size="sm" name="lucideFileText"/>
+            <span>Solicitar Cotización</span>
+          </button>
+          <button
+            hlmBtn
+            variant="outline"
+            size="lg"
+            (click)="onViewCategory()"
+            class="flex-1 sm:flex-initial flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <ng-icon hlm size="sm" name="lucideFolderOpen"/>
+            <span>Ver servicios similares</span>
+          </button>
+        </footer>
+      </article>
+    }
+  </div>
+</div>

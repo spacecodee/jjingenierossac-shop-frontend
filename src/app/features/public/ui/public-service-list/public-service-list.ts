@@ -1,7 +1,15 @@
-import { Component, computed, inject, numberAttribute, OnDestroy, OnInit, signal, } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  numberAttribute,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ServiceCategoryOption } from '@features/dashboard/data/models/service-category-option.interface';
 import { ServiceCategoryService } from '@features/dashboard/data/services/service-category/service-category.service';
 import { PublicServiceResponse } from '@features/public/data/models/public-service-response';
@@ -54,6 +62,7 @@ import { map } from 'rxjs/operators';
     HlmSpinner,
     HlmSkeleton,
     FormsModule,
+    RouterLink,
   ],
   providers: [
     provideIcons({
@@ -132,6 +141,14 @@ export class PublicServiceList implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadPublicServiceCategories();
+
+    this.route.queryParamMap
+      .pipe(map((params) => params.get('category')))
+      .subscribe((categoryId) => {
+        if (categoryId && !Number.isNaN(+categoryId) && +categoryId > 0) {
+          this.handleCategoryFromUrl(+categoryId);
+        }
+      });
 
     this.searchSubscription = this.searchSubject.pipe(debounceTime(600)).subscribe((searchTerm) => {
       if (searchTerm.length >= 3 || searchTerm.length === 0) {
@@ -249,6 +266,15 @@ export class PublicServiceList implements OnInit, OnDestroy {
     this.selectedServiceCategoryId.set(null);
     this.publicServiceCategorySearch.set('');
     this.isLoading.set(true);
+
+    this.router
+      .navigate([], {
+        relativeTo: this.route,
+        queryParams: { category: null },
+        queryParamsHandling: 'merge',
+      })
+      .then((r) => !r && undefined);
+
     this.reloadFromPageZero();
   }
 
@@ -261,6 +287,13 @@ export class PublicServiceList implements OnInit, OnDestroy {
       const category = this.serviceCategories().find((c) => c.name === categoryPublicName);
       if (category) {
         this.selectedServiceCategoryId.set(category.serviceCategoryId);
+        this.router
+          .navigate([], {
+            relativeTo: this.route,
+            queryParams: { category: category.serviceCategoryId },
+            queryParamsHandling: 'merge',
+          })
+          .then((r) => !r && undefined);
         this.isLoading.set(true);
         this.reloadFromPageZero();
       }
@@ -268,6 +301,13 @@ export class PublicServiceList implements OnInit, OnDestroy {
       const previousValue = this.selectedServiceCategoryId();
       if (previousValue !== null) {
         this.selectedServiceCategoryId.set(null);
+        this.router
+          .navigate([], {
+            relativeTo: this.route,
+            queryParams: { category: null },
+            queryParamsHandling: 'merge',
+          })
+          .then((r) => !r && undefined);
         this.isLoading.set(true);
         this.reloadFromPageZero();
       }
@@ -277,6 +317,36 @@ export class PublicServiceList implements OnInit, OnDestroy {
   onPublicServiceCategorySearchChange(searchTerm: string): void {
     this.publicServiceCategorySearch.set(searchTerm);
     this.publicCategorySearchSubject.next(searchTerm);
+  }
+
+  handleCategoryFromUrl(categoryId: number): void {
+    const category = this.serviceCategories().find((c) => c.serviceCategoryId === categoryId);
+    if (category) {
+      this.selectedServiceCategoryId.set(categoryId);
+      this.publicServiceCategorySearch.set(category.name);
+      this.showFilters.set(true);
+      this.isLoading.set(true);
+      this.loadServices();
+    } else {
+      this.serviceCategoryService.getServiceCategoriesForSelect().subscribe({
+        next: (response) => {
+          const foundCategory = response.data.find((c) => c.serviceCategoryId === categoryId);
+          if (foundCategory) {
+            this.serviceCategories.set(response.data);
+            this.selectedServiceCategoryId.set(categoryId);
+            this.publicServiceCategorySearch.set(foundCategory.name);
+            this.showFilters.set(true);
+            this.isLoading.set(true);
+            this.loadServices();
+          }
+        },
+        error: (error: ApiErrorResponse) => {
+          toast.error('Error al cargar la categoría', {
+            description: error.message || 'No se pudo cargar la categoría desde la URL',
+          });
+        },
+      });
+    }
   }
 
   goToPage(page: number): void {
