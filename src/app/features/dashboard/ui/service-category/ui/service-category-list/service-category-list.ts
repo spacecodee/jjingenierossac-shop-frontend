@@ -325,7 +325,7 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
 
     this.serviceCategoryService.searchServiceCategories(params).subscribe({
       next: (response) => {
-        this.categories.set(response.data.data);
+        this.categories.set(response.data.pageData);
         this.totalPages.set(response.data.pagination.totalPages);
         this.totalElements.set(response.data.pagination.totalElements);
         this.isFirst.set(response.data.pagination.first);
