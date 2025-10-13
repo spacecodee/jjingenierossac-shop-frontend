@@ -10,6 +10,6 @@ export const publicRoutes: Routes = [
     path: 'services',
     title: 'Servicios - J&J Ingenieros SAC',
     loadComponent: () =>
-      import('@features/public/ui/service/public-service-list/public-service-list').then((m) => m.PublicServiceList),
+      import('@features/public/ui/public-service-list/public-service-list').then((m) => m.PublicServiceList),
   },
 ];
