@@ -162,7 +162,10 @@
                   {{ service.description }}
                 </p>
               </div>
-              <div hlmCardFooter class="flex items-center justify-between gap-2">
+              <div
+                hlmCardFooter
+                class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+              >
                 <div class="flex items-center gap-2 text-sm text-muted-foreground">
                   <svg
                     class="size-4"
@@ -180,9 +183,25 @@
                   </svg>
                   <span class="text-xs">{{ service.estimatedDuration }}</span>
                 </div>
-                <button hlmBtn variant="default" size="sm" class="shrink-0 cursor-pointer">
-                  Solicitar Cotización
-                </button>
+                <div class="flex gap-2">
+                  <a
+                    hlmBtn
+                    variant="outline"
+                    size="sm"
+                    [routerLink]="['/public/services', service.serviceId]"
+                    class="flex-1 sm:flex-initial cursor-pointer"
+                  >
+                    Ver más
+                  </a>
+                  <button
+                    hlmBtn
+                    variant="default"
+                    size="sm"
+                    class="flex-1 sm:flex-initial cursor-pointer"
+                  >
+                    Cotizar
+                  </button>
+                </div>
               </div>
             </article>
           }
