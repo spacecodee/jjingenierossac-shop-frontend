@@ -13,6 +13,7 @@ import {
   lucideSun,
   lucideTag,
   lucideUsers,
+  lucideWrench,
 } from '@ng-icons/lucide';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { MenuItemInterface } from '@shared/data/models/menu-item.interface';
@@ -32,6 +33,7 @@ import { toast } from 'ngx-sonner';
       lucideShoppingCart,
       lucidePackage,
       lucideTag,
+      lucideWrench,
       lucideUsers,
       lucideSettings,
       lucideMoon,
@@ -68,6 +70,11 @@ export class DashboardSidebarLayout {
       label: 'Categorías de Servicio',
       route: '/dashboard/service-categories',
       icon: 'lucideTag',
+    },
+    {
+      label: 'Servicios',
+      route: '/dashboard/services',
+      icon: 'lucideWrench',
     },
     {
       label: 'Clientes',

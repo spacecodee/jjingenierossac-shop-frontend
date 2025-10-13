@@ -1,0 +1,272 @@
+<div class="py-8">
+  <div class="container mx-auto space-y-6 px-4">
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="space-y-1">
+        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Nuestros Servicios</h1>
+        <p class="text-muted-foreground">
+          Explora nuestra amplia gama de servicios profesionales en equipos eléctricos y maquinaria
+          industrial
+        </p>
+      </div>
+
+      <div class="flex gap-2">
+        <button
+          hlmBtn
+          variant="outline"
+          size="icon"
+          class="cursor-pointer"
+          (click)="onRefresh()"
+          [disabled]="isRefreshing()"
+        >
+          @if (isRefreshing()) {
+            <hlm-spinner size="sm"/>
+          } @else {
+            <ng-icon hlm size="sm" name="lucideRefreshCw"/>
+          }
+        </button>
+
+        <button
+          hlmBtn
+          variant="outline"
+          class="cursor-pointer"
+          (click)="toggleFilters()"
+          [class.bg-accent]="showFilters()"
+          [class.text-accent-foreground]="showFilters()"
+        >
+          <ng-icon hlm size="sm" name="lucideSlidersHorizontal"/>
+          <span>Filtros</span>
+          @if (hasFiltersApplied()) {
+            <span hlmBadge variant="secondary" class="ml-2">{{
+                (searchName() ? 1 : 0) + (selectedServiceCategoryId() !== null ? 1 : 0)
+              }}</span>
+          }
+        </button>
+      </div>
+    </header>
+
+    <div class="w-full">
+      <div class="relative flex items-center">
+        <ng-icon hlm size="sm" name="lucideSearch" class="absolute left-3 text-muted-foreground"/>
+        <input
+          hlmInput
+          type="text"
+          placeholder="Buscar servicios..."
+          [value]="searchInputValue()"
+          (input)="onSearchInput($any($event.target).value)"
+          class="w-full pl-10 pr-10"
+        />
+        @if (searchInputValue()) {
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon"
+            (click)="onClearSearch()"
+            class="absolute right-1"
+          >
+            <ng-icon hlm size="sm" name="lucideX"/>
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (showFilters()) {
+      <div class="w-full">
+        <div hlmCard class="w-full">
+          <div
+            hlmCardContent
+            class="flex flex-col gap-4 pt-6 sm:flex-row sm:items-end sm:justify-between"
+          >
+            <div class="flex flex-1 flex-col gap-2">
+              <div hlmLabel class="text-sm font-medium">Categoría de Servicio</div>
+              <hlm-autocomplete
+                [filteredOptions]="publicServiceCategoryNames()"
+                [search]="publicServiceCategorySearch()"
+                (searchChange)="onPublicServiceCategorySearchChange($event)"
+                (valueChange)="onPublicServiceCategorySelect($event)"
+                searchPlaceholderText="Buscar categoría (mín. 3 caracteres)..."
+                [disabled]="isLoadingCategories()"
+              />
+            </div>
+
+            @if (hasFiltersApplied()) {
+              <button hlmBtn variant="outline" size="sm" (click)="onClearFilters()" class="shrink-0">
+                <ng-icon hlm size="sm" name="lucideX"/>
+                <span>Limpiar filtros</span>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="min-h-[400px]">
+      @if (isLoading() && !isRefreshing()) {
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
+            <div hlmCard class="space-y-3 p-6">
+              <hlm-skeleton class="h-5 w-24"/>
+              <hlm-skeleton class="h-6 w-full"/>
+              <hlm-skeleton class="h-4 w-full"/>
+              <hlm-skeleton class="h-4 w-full"/>
+              <hlm-skeleton class="mt-auto h-4 w-32"/>
+            </div>
+          }
+        </div>
+      } @else if (displayedServices().length === 0) {
+        <div class="flex min-h-[400px] items-center justify-center">
+          <div class="flex flex-col items-center space-y-3 text-center">
+            <svg
+              class="size-16 text-muted-foreground"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+              />
+            </svg>
+            <h3 class="text-xl font-semibold">No se encontraron servicios</h3>
+            <p class="max-w-md text-muted-foreground">
+              @if (hasFiltersApplied()) {
+                Intenta ajustar los filtros de búsqueda para encontrar lo
+                  que necesitas.
+              } @else {
+                No hay servicios disponibles en este momento.
+              }
+            </p>
+            @if (hasFiltersApplied()) {
+              <button hlmBtn variant="outline" (click)="onClearFilters()" class="mt-2 cursor-pointer">
+                Limpiar filtros
+              </button>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          @for (service of displayedServices(); track service.serviceId) {
+            <article hlmCard class="flex flex-col transition-shadow hover:shadow-lg">
+              <div hlmCardHeader class="space-y-3">
+            <span hlmBadge variant="secondary" class="text-xs">
+              {{ service.serviceCategory.name }}
+            </span>
+                <h3 hlmCardTitle class="text-xl font-semibold leading-tight">
+                  {{ service.name }}
+                </h3>
+              </div>
+              <div hlmCardContent class="flex-1">
+                <p class="line-clamp-3 text-sm text-muted-foreground">
+                  {{ service.description }}
+                </p>
+              </div>
+              <div hlmCardFooter class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 text-sm text-muted-foreground">
+                  <svg
+                    class="size-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span class="text-xs">{{ service.estimatedDuration }}</span>
+                </div>
+                <button hlmBtn variant="default" size="sm" class="shrink-0 cursor-pointer">
+                  Solicitar Cotización
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </div>
+
+    @if (totalPages() > 1 && !isLoading()) {
+      <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+        <div class="text-sm text-muted-foreground">
+        <span class="whitespace-nowrap">
+          Mostrando {{ currentPage() * pageSize() + 1 }} -
+          {{ Math.min((currentPage() + 1) * pageSize(), totalElements()) }} de
+          {{ totalElements() }} servicios
+        </span>
+        </div>
+
+        <nav hlmPagination class="flex flex-1 justify-center">
+          <ul hlmPaginationContent>
+            <li hlmPaginationItem>
+              <hlm-pagination-previous
+                iconOnly="true"
+                class="cursor-pointer"
+                [link]="currentPage() > 0 ? '.' : undefined"
+                [queryParams]="{ page: currentPage() - 1 }"
+                queryParamsHandling="merge"
+                [class.pointer-events-none]="currentPage() === 0"
+                [class.opacity-50]="currentPage() === 0"
+                [class.cursor-not-allowed]="currentPage() === 0"
+              />
+            </li>
+
+            @for (page of pageNumbers(); track page) {
+              @if (page === 'ellipsis') {
+                <li hlmPaginationItem>
+                  <hlm-pagination-ellipsis/>
+                </li>
+              } @else {
+                <li hlmPaginationItem>
+                  <button
+                    hlmPaginationLink
+                    class="cursor-pointer"
+                    [link]="currentPage() !== +page ? '.' : undefined"
+                    [queryParams]="{ page: +page }"
+                    queryParamsHandling="merge"
+                    [isActive]="currentPage() === +page"
+                  >
+                    {{ $any(page) + 1 }}
+                  </button>
+                </li>
+              }
+            }
+
+            <li hlmPaginationItem>
+              <hlm-pagination-next
+                iconOnly="true"
+                class="cursor-pointer"
+                [link]="currentPage() < totalPages() - 1 ? '.' : undefined"
+                [queryParams]="{ page: currentPage() + 1 }"
+                queryParamsHandling="merge"
+                [class.pointer-events-none]="currentPage() >= totalPages() - 1"
+                [class.opacity-50]="currentPage() >= totalPages() - 1"
+                [class.cursor-not-allowed]="currentPage() >= totalPages() - 1"
+              ></hlm-pagination-next>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <div hlmLabel class="whitespace-nowrap text-sm">Por página:</div>
+          <brn-select
+            [value]="pageSize().toString()"
+            (valueChange)="$event && onPageSizeChange(+$event)"
+          >
+            <hlm-select-trigger class="w-20">
+              <hlm-select-value/>
+            </hlm-select-trigger>
+            <hlm-select-content>
+              <hlm-option value="12">12</hlm-option>
+              <hlm-option value="24">24</hlm-option>
+            </hlm-select-content>
+          </brn-select>
+        </div>
+      </div>
+    }
+  </div>
+</div>

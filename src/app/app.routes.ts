@@ -4,8 +4,14 @@ import { authGuard } from '@core/guards/auth.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'auth/account/login',
+    redirectTo: 'public',
     pathMatch: 'full',
+  },
+  {
+    path: 'public',
+    loadComponent: () =>
+      import('./layout/public-layout/public-layout').then((m) => m.PublicLayout),
+    loadChildren: () => import('./features/public/public.routes').then((m) => m.publicRoutes),
   },
   {
     path: 'auth',
@@ -22,6 +28,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'auth/account/login',
+    redirectTo: 'public',
   },
 ];

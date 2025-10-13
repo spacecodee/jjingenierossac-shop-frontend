@@ -25,6 +25,7 @@ import {
 } from '@features/dashboard/data/models/search-service-categories-params.interface';
 import { ServiceCategoryResponse } from '@features/dashboard/data/models/service-category-response.interface';
 import { ServiceCategoryService } from '@features/dashboard/data/services/service-category/service-category.service';
+import { ServiceCategorySortField } from '@features/dashboard/data/types/service-category-sort-field.type';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideCalendar,
@@ -43,7 +44,11 @@ import {
 } from '@ng-icons/lucide';
 import { BatchActionBar } from '@shared/components/batch-action-bar/batch-action-bar';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
+import { ActiveFilterType } from '@shared/data/types/active-filter.type';
 import { SortDirection } from '@shared/data/types/sort-direction.type';
+import { DateFormatterService } from '@shared/services/date-formatter.service';
+import { PaginationHelperService } from '@shared/services/pagination-helper.service';
+import { SearchListHelperService } from '@shared/services/search-list-helper.service';
 import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
 import { BrnTooltipImports } from '@spartan-ng/brain/tooltip';
@@ -68,9 +73,6 @@ import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { toast } from 'ngx-sonner';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
-
-type SortField = 'name' | 'createdAt' | 'updatedAt' | 'isActive';
-type ActiveFilterType = 'all' | 'active' | 'inactive';
 
 @Component({
   selector: 'app-service-category-list',
@@ -137,6 +139,9 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   }
 
   private readonly serviceCategoryService = inject(ServiceCategoryService);
+  private readonly paginationHelper = inject(PaginationHelperService);
+  private readonly dateFormatter = inject(DateFormatterService);
+  private readonly searchListHelper = inject(SearchListHelperService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly searchSubject = new Subject<string>();
@@ -186,7 +191,7 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
 
   readonly searchName = signal<string>('');
   readonly searchInputValue = signal<string>('');
-  readonly sortField = signal<SortField>('name');
+  readonly sortField = signal<ServiceCategorySortField>('name');
   readonly sortDirection = signal<SortDirection>('ASC');
 
   readonly showFilters = signal<boolean>(false);
@@ -225,35 +230,14 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   });
 
   readonly pageNumbers = computed(() => {
-    const current = this.currentPage();
-    const total = this.totalPages();
-
-    if (total <= 7) {
-      return Array.from({ length: total }, (_, i) => i);
-    }
-
-    if (current <= 3) {
-      return [...Array.from({ length: 5 }, (_, i) => i), 'ellipsis', total - 1];
-    }
-
-    if (current >= total - 4) {
-      return [0, 'ellipsis', ...Array.from({ length: 5 }, (_, i) => total - 5 + i)];
-    }
-
-    return [
-      0,
-      'ellipsis',
-      ...Array.from({ length: 3 }, (_, i) => current - 1 + i),
-      'ellipsis',
-      total - 1,
-    ];
+    return this.paginationHelper.generatePageNumbers(this.currentPage(), this.totalPages());
   });
 
   ngOnInit(): void {
     this.searchSubscription = this.searchSubject.pipe(debounceTime(500)).subscribe((searchTerm) => {
       if (searchTerm.length >= 3 || searchTerm.length === 0) {
         this.searchName.set(searchTerm);
-        this.goToPage(0);
+        this.reloadFromPageZero();
       }
     });
 
@@ -285,60 +269,42 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
       params.name = this.searchName();
     }
 
-    if (this.activeFilter() === 'active') {
-      params.isActive = true;
-    } else if (this.activeFilter() === 'inactive') {
-      params.isActive = false;
-    }
+    this.searchListHelper.applyActiveFilter(params, this.activeFilter);
 
-    if (this.createdAfter()) {
-      const date = this.createdAfter()!;
-      params.createdAtAfter = `${ date.getFullYear() }-${ String(date.getMonth() + 1).padStart(
-        2,
-        '0'
-      ) }-${ String(date.getDate()).padStart(2, '0') }`;
-    }
+    const dateParams = this.dateFormatter.formatDateRangeParams({
+      createdAfter: this.createdAfter(),
+      createdBefore: this.createdBefore(),
+      updatedAfter: this.updatedAfter(),
+      updatedBefore: this.updatedBefore(),
+    });
 
-    if (this.createdBefore()) {
-      const date = this.createdBefore()!;
-      params.createdAtBefore = `${ date.getFullYear() }-${ String(date.getMonth() + 1).padStart(
-        2,
-        '0'
-      ) }-${ String(date.getDate()).padStart(2, '0') }`;
-    }
-
-    if (this.updatedAfter()) {
-      const date = this.updatedAfter()!;
-      params.updatedAtAfter = `${ date.getFullYear() }-${ String(date.getMonth() + 1).padStart(
-        2,
-        '0'
-      ) }-${ String(date.getDate()).padStart(2, '0') }`;
-    }
-
-    if (this.updatedBefore()) {
-      const date = this.updatedBefore()!;
-      params.updatedAtBefore = `${ date.getFullYear() }-${ String(date.getMonth() + 1).padStart(
-        2,
-        '0'
-      ) }-${ String(date.getDate()).padStart(2, '0') }`;
-    }
+    Object.assign(params, dateParams);
 
     this.serviceCategoryService.searchServiceCategories(params).subscribe({
       next: (response) => {
-        this.categories.set(response.data.pageData);
-        this.totalPages.set(response.data.pagination.totalPages);
-        this.totalElements.set(response.data.pagination.totalElements);
-        this.isFirst.set(response.data.pagination.first);
-        this.isLast.set(response.data.pagination.last);
-        this.isLoading.set(false);
-        this.isRefreshing.set(false);
+        this.searchListHelper.handlePaginatedResponse(response.data, this.categories, {
+          totalPages: this.totalPages,
+          totalElements: this.totalElements,
+          isFirst: this.isFirst,
+          isLast: this.isLast,
+          isLoading: this.isLoading,
+          isRefreshing: this.isRefreshing,
+        });
       },
       error: (error: ApiErrorResponse) => {
-        this.isLoading.set(false);
-        this.isRefreshing.set(false);
-        toast.error('Error al cargar categorías', {
-          description: error.message || 'No se pudieron cargar las categorías de servicio',
-        });
+        this.searchListHelper.handleSearchError(
+          error,
+          {
+            totalPages: this.totalPages,
+            totalElements: this.totalElements,
+            isFirst: this.isFirst,
+            isLast: this.isLast,
+            isLoading: this.isLoading,
+            isRefreshing: this.isRefreshing,
+          },
+          'Error al cargar categorías',
+          'No se pudieron cargar las categorías de servicio'
+        );
       },
     });
   }
@@ -351,7 +317,8 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
   onClearSearch(): void {
     this.searchInputValue.set('');
     this.searchName.set('');
-    this.goToPage(0);
+    this.isLoading.set(true);
+    this.reloadFromPageZero();
   }
 
   onRefresh(): void {
@@ -415,7 +382,7 @@ export class ServiceCategoryList implements OnInit, OnDestroy {
     this.reloadFromPageZero();
   }
 
-  onSort(field: SortField): void {
+  onSort(field: ServiceCategorySortField): void {
     if (this.sortField() === field) {
       this.sortDirection.set(this.sortDirection() === 'ASC' ? 'DESC' : 'ASC');
     } else {
