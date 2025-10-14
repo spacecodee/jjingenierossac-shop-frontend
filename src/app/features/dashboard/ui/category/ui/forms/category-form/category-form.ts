@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryResponse } from '@features/dashboard/data/models/category-response.interface';
 import { CreateCategoryRequest } from '@features/dashboard/data/models/create-category-request.interface';
+import { UpdateCategoryRequest } from '@features/dashboard/data/models/update-category-request.interface';
 import { CategoryService } from '@features/dashboard/data/services/category/category.service';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideArrowLeft, lucideSave, lucideTriangleAlert } from '@ng-icons/lucide';
@@ -189,16 +190,13 @@ export class CategoryForm implements OnInit {
     this.isSubmitting.set(true);
 
     const formValue = this.categoryForm.value;
-    const request: CreateCategoryRequest = {
+    const request: UpdateCategoryRequest = {
       name: formValue.name.trim(),
       description: formValue.description?.trim() || undefined,
     };
 
     if (this.isEditMode()) {
-      toast.error('Función no disponible', {
-        description: 'La edición de categorías no está implementada aún',
-      });
-      this.isSubmitting.set(false);
+      this.updateCategory(request);
     } else {
       this.createCategory(request);
     }
@@ -221,6 +219,31 @@ export class CategoryForm implements OnInit {
 
         toast.error('Error al crear categoría', {
           description: error.message || 'No se pudo crear la categoría',
+        });
+      },
+    });
+  }
+
+  private updateCategory(request: UpdateCategoryRequest): void {
+    const id = this.categoryId();
+    if (!id) return;
+
+    this.categoryService.updateCategory(id, request).subscribe({
+      next: (response) => {
+        toast.success('Categoría actualizada exitosamente', {
+          description: response.message,
+        });
+        this.router.navigate(['/dashboard/categories']).then((r) => !r && undefined);
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isSubmitting.set(false);
+
+        if (error.status === 409) {
+          this.categoryForm.get('name')?.setErrors({ duplicate: true });
+        }
+
+        toast.error('Error al actualizar categoría', {
+          description: error.message || 'No se pudo actualizar la categoría',
         });
       },
     });

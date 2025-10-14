@@ -5,6 +5,7 @@ import { CategoryResponse } from '@features/dashboard/data/models/category-respo
 import { CategorySelectResponse } from '@features/dashboard/data/models/category-select-response.interface';
 import { CreateCategoryRequest } from '@features/dashboard/data/models/create-category-request.interface';
 import { SearchCategoriesParams } from '@features/dashboard/data/models/search-categories-params.interface';
+import { UpdateCategoryRequest } from '@features/dashboard/data/models/update-category-request.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
 import { ApiPlainResponse } from '@shared/data/models/api-plain-response.interface';
@@ -56,6 +57,15 @@ export class CategoryService {
       .get<ApiDataResponse<CategorySelectResponse[]>>(`${ this.apiUrl }/for-select`, {
         params: httpParams,
       })
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  updateCategory(
+    id: number,
+    request: UpdateCategoryRequest
+  ): Observable<ApiDataResponse<CategoryResponse>> {
+    return this.http
+      .put<ApiDataResponse<CategoryResponse>>(`${ this.apiUrl }/${ id }`, request)
       .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
