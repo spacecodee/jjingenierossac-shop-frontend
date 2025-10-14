@@ -1,13 +1,13 @@
-<div hlmSidebarWrapper class="flex min-h-screen w-full">
-  <app-dashboard-sidebar-layout />
+<div hlmSidebarWrapper class="flex h-screen w-full overflow-hidden">
+  <app-dashboard-sidebar-layout/>
 
-  <main hlmSidebarInset class="flex flex-1 flex-col">
-    <app-dashboard-header-layout />
+  <main hlmSidebarInset class="flex flex-1 flex-col overflow-hidden">
+    <app-dashboard-header-layout/>
 
-    <main class="flex-1 p-4 lg:p-6">
-      <router-outlet />
+    <main class="flex-1 overflow-y-auto p-4 lg:p-6">
+      <router-outlet/>
     </main>
 
-    <app-dashboard-footer-layout />
+    <app-dashboard-footer-layout/>
   </main>
 </div>
