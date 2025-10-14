@@ -7,6 +7,7 @@ import { ServiceResponse } from '@features/dashboard/data/models/service-respons
 import { UpdateServiceRequest } from '@features/dashboard/data/models/update-service-request.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
+import { ApiPlainResponse } from '@shared/data/models/api-plain-response.interface';
 import { HttpErrorHandlerService } from '@shared/services/http-error-handler.service';
 import { HttpParamsBuilderService } from '@shared/services/http-params-builder.service';
 import { catchError, Observable } from 'rxjs';
@@ -52,4 +53,23 @@ export class ServiceApiService {
       .put<ApiDataResponse<ServiceResponse>>(`${ this.apiUrl }/${ id }`, request)
       .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
+
+  activateService(id: number): Observable<ApiDataResponse<ServiceResponse>> {
+    return this.http
+      .put<ApiDataResponse<ServiceResponse>>(`${ this.apiUrl }/${ id }/activate`, {})
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  deactivateService(id: number): Observable<ApiDataResponse<ServiceResponse>> {
+    return this.http
+      .put<ApiDataResponse<ServiceResponse>>(`${ this.apiUrl }/${ id }/deactivate`, {})
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  deleteService(id: number): Observable<ApiPlainResponse> {
+    return this.http
+      .delete<ApiPlainResponse>(`${ this.apiUrl }/${ id }`)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
 }

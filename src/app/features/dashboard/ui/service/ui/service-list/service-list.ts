@@ -29,6 +29,7 @@ import {
   lucideRefreshCw,
   lucideSearch,
   lucideSlidersHorizontal,
+  lucideTrash2,
   lucideX,
 } from '@ng-icons/lucide';
 import {
@@ -40,7 +41,10 @@ import { SortDirection } from '@shared/data/types/sort-direction.type';
 import { DateFormatterService } from '@shared/services/date-formatter.service';
 import { PaginationHelperService } from '@shared/services/pagination-helper.service';
 import { SearchListHelperService } from '@shared/services/search-list-helper.service';
+import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
+import { BrnTooltipImports } from '@spartan-ng/brain/tooltip';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -54,7 +58,10 @@ import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSeparator } from '@spartan-ng/helm/separator';
 import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmTableImports } from '@spartan-ng/helm/table';
+import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { toast } from 'ngx-sonner';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -65,6 +72,7 @@ import { map } from 'rxjs/operators';
     ...HlmButtonImports,
     ...BrnSelectImports,
     ...HlmSelectImports,
+    ...BrnTooltipImports,
     ServiceCategoryAutocomplete,
     ...HlmTableImports,
     ...HlmBadgeImports,
@@ -73,6 +81,10 @@ import { map } from 'rxjs/operators';
     ...HlmPaginationImports,
     ...HlmIconImports,
     ...HlmInputImports,
+    ...BrnAlertDialogImports,
+    ...HlmAlertDialogImports,
+    ...HlmSwitchImports,
+    ...HlmTooltipImports,
     HlmLabel,
     NgIcon,
     HlmSpinner,
@@ -96,6 +108,7 @@ import { map } from 'rxjs/operators';
       lucideChevronsLeft,
       lucideChevronsRight,
       lucidePencil,
+      lucideTrash2,
     }),
     provideHlmDatePickerConfig({
       formatDate: (date: Date) => {
@@ -160,6 +173,14 @@ export class ServiceList implements OnInit, OnDestroy {
   readonly createdBefore = signal<Date | undefined>(undefined);
   readonly updatedAfter = signal<Date | undefined>(undefined);
   readonly updatedBefore = signal<Date | undefined>(undefined);
+
+  readonly serviceToToggle = signal<ServiceResponse | null>(null);
+  readonly toggleAction = signal<'activate' | 'deactivate' | 'delete' | null>(null);
+  readonly isTogglingService = signal<boolean>(false);
+  readonly serviceIdBeingToggled = signal<number | null>(null);
+
+  readonly serviceToDelete = signal<ServiceResponse | null>(null);
+  readonly isDeletingService = signal<boolean>(false);
 
   get activeFilterValue(): ActiveFilterType {
     return this.activeFilter();
@@ -391,5 +412,126 @@ export class ServiceList implements OnInit, OnDestroy {
     this.isLoading.set(true);
 
     this.reloadFromPageZero();
+  }
+
+  onActivateAttempt(service: ServiceResponse): void {
+    if (!service.isActive) {
+      this.serviceToToggle.set(service);
+      this.toggleAction.set('activate');
+      this.serviceIdBeingToggled.set(service.serviceId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onDeactivateAttempt(service: ServiceResponse): void {
+    if (service.isActive) {
+      this.serviceToToggle.set(service);
+      this.toggleAction.set('deactivate');
+      this.serviceIdBeingToggled.set(service.serviceId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onDeleteAttempt(service: ServiceResponse): void {
+    if (!service.isActive) {
+      this.serviceToDelete.set(service);
+      this.serviceToToggle.set(service);
+      this.toggleAction.set('delete');
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onCancelToggle(): void {
+    this.serviceToToggle.set(null);
+    this.toggleAction.set(null);
+    this.serviceIdBeingToggled.set(null);
+  }
+
+  onConfirmToggle(closeDialog: () => void): void {
+    const service = this.serviceToToggle();
+    const action = this.toggleAction();
+
+    if (!service || !action) {
+      return;
+    }
+
+    if (action === 'delete') {
+      this.isDeletingService.set(true);
+
+      this.serviceService.deleteService(service.serviceId).subscribe({
+        next: (response) => {
+          this.services.update((services) =>
+            services.filter((s) => s.serviceId !== service.serviceId)
+          );
+
+          toast.success('Servicio eliminado', {
+            description: response.message,
+          });
+
+          this.isDeletingService.set(false);
+          this.serviceToDelete.set(null);
+          this.toggleAction.set(null);
+          closeDialog();
+        },
+        error: (error: ApiErrorResponse) => {
+          this.isDeletingService.set(false);
+          this.serviceToDelete.set(null);
+          this.toggleAction.set(null);
+          closeDialog();
+
+          toast.error('Error al eliminar servicio', {
+            description: error.message,
+          });
+        },
+      });
+
+      return;
+    }
+
+    this.isTogglingService.set(true);
+
+    const serviceCall =
+      action === 'activate'
+        ? this.serviceService.activateService(service.serviceId)
+        : this.serviceService.deactivateService(service.serviceId);
+
+    const newState = action === 'activate';
+    const successMessage = action === 'activate' ? 'Servicio activado' : 'Servicio desactivado';
+    const errorMessage =
+      action === 'activate' ? 'Error al activar servicio' : 'Error al desactivar servicio';
+
+    serviceCall.subscribe({
+      next: (response) => {
+        this.services.update((services) =>
+          services.map((s) =>
+            s.serviceId === service.serviceId ? { ...s, isActive: newState } : s
+          )
+        );
+
+        toast.success(successMessage, {
+          description: response.message,
+        });
+
+        this.isTogglingService.set(false);
+        this.serviceToToggle.set(null);
+        this.toggleAction.set(null);
+        this.serviceIdBeingToggled.set(null);
+        closeDialog();
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isTogglingService.set(false);
+        this.serviceToToggle.set(null);
+        this.toggleAction.set(null);
+        this.serviceIdBeingToggled.set(null);
+        closeDialog();
+
+        toast.error(errorMessage, {
+          description: error.message,
+        });
+      },
+    });
   }
 }

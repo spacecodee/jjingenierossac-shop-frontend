@@ -260,6 +260,7 @@
                   </div>
                 </th>
                 <th hlmTh>Estado</th>
+                <th hlmTh class="text-center">Activar/Desactivar</th>
                 <th
                   hlmTh
                   (click)="onSort('createdAt')"
@@ -324,6 +325,24 @@
                         <span hlmBadge variant="outline"> Inactivo </span>
                       }
                     </td>
+                    <td hlmTd class="text-center">
+                      <div class="flex items-center justify-center">
+                        <hlm-switch
+                          [checked]="
+                        serviceIdBeingToggled() === service.serviceId
+                          ? !service.isActive
+                          : service.isActive
+                      "
+                          (checkedChange)="
+                        $event ? onActivateAttempt(service) : onDeactivateAttempt(service)
+                      "
+                          [disabled]="false"
+                          [attr.aria-label]="
+                        service.isActive ? 'Desactivar servicio' : 'Activar servicio'
+                      "
+                        />
+                      </div>
+                    </td>
                     <td hlmTd>
                       {{ service.createdAt | date : 'dd/MM/yyyy HH:mm' }}
                     </td>
@@ -342,6 +361,33 @@
                           <ng-icon hlm size="sm" name="lucidePencil"/>
                           <span>Editar</span>
                         </button>
+
+                        <hlm-tooltip>
+                          <button
+                            hlmBtn
+                            variant="ghost"
+                            size="sm"
+                            hlmTooltipTrigger
+                            [disabled]="service.isActive"
+                            (click)="onDeleteAttempt(service)"
+                            class="flex items-center gap-2 cursor-pointer"
+                            [class.cursor-not-allowed]="service.isActive"
+                            [class.opacity-50]="service.isActive"
+                            [attr.aria-label]="
+                          service.isActive
+                            ? 'No se puede eliminar un servicio activo'
+                            : 'Eliminar servicio'
+                        "
+                          >
+                            <ng-icon hlm size="sm" name="lucideTrash2"/>
+                            <span>Eliminar</span>
+                          </button>
+                          @if (service.isActive) {
+                            <span *brnTooltipContent class="text-xs">
+                        Debe desactivar el servicio antes de eliminarlo
+                      </span>
+                          }
+                        </hlm-tooltip>
                       </div>
                     </td>
                   </tr>
@@ -435,4 +481,86 @@
       }
     </div>
   </section>
+
+  <hlm-alert-dialog>
+    <button id="toggle-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
+    <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+      <hlm-alert-dialog-header>
+        <h3 hlmAlertDialogTitle>
+          @if (toggleAction() === 'activate') {
+            Confirmar Activación
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Confirmar Desactivación
+          } @else if (toggleAction() === 'delete') {
+            Confirmar Eliminación
+          }
+        </h3>
+        <p hlmAlertDialogDescription>
+          @if (toggleAction() === 'activate') {
+            ¿Está seguro de que desea activar este servicio?
+          } @else if (toggleAction() === 'deactivate') {
+            ¿Está seguro de que desea desactivar este
+              servicio?
+          } @else if (toggleAction() === 'delete') {
+            <span class="text-red-600 dark:text-red-500 font-semibold">
+            ¿Está seguro de que desea eliminar permanentemente este servicio?
+          </span>
+          }
+          @if (serviceToToggle()) {
+            <span class="block mt-2 font-medium">{{ serviceToToggle()!.name }}</span>
+          }
+          @if (toggleAction() === 'activate') {
+            <span class="block mt-3 text-sm text-muted-foreground">
+            El servicio volverá a estar disponible en el catálogo público y podrá ser editado
+            nuevamente.
+          </span>
+          } @else if (toggleAction() === 'deactivate') {
+            <span class="block mt-3 text-sm text-muted-foreground">
+            El servicio dejará de aparecer en el catálogo público y los clientes no podrán verlo ni
+            solicitar cotización. Podrá reactivarlo posteriormente si lo necesita.
+          </span>
+          } @else if (toggleAction() === 'delete') {
+            <span class="block mt-3 text-sm text-red-600 dark:text-red-500">
+            Esta acción es irreversible y no se puede deshacer. El servicio se eliminará
+            permanentemente del sistema.
+          </span>
+          }
+        </p>
+      </hlm-alert-dialog-header>
+      <hlm-alert-dialog-footer>
+        <button
+          hlmAlertDialogCancel
+          class="cursor-pointer"
+          (click)="onCancelToggle(); ctx.close()"
+          [disabled]="isTogglingService() || isDeletingService()"
+        >
+          Cancelar
+        </button>
+        <button
+          hlmAlertDialogAction
+          [variant]="
+            toggleAction() === 'delete' || toggleAction() === 'deactivate'
+              ? 'destructive'
+              : 'default'
+          "
+          (click)="onConfirmToggle(ctx.close)"
+          [disabled]="isTogglingService() || isDeletingService()"
+          class="cursor-pointer"
+        >
+          @if (isTogglingService() || isDeletingService()) {
+            <hlm-spinner size="sm" class="mr-2"/>
+          }
+          @if (toggleAction() === 'activate') {
+            Activar
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Desactivar
+          } @else if (toggleAction() === 'delete') {
+            Eliminar
+          }
+        </button>
+      </hlm-alert-dialog-footer>
+    </hlm-alert-dialog-content>
+  </hlm-alert-dialog>
 </main>
