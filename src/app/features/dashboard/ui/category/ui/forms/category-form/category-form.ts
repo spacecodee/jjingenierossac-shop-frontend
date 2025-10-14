@@ -136,7 +136,7 @@ export class CategoryForm implements OnInit {
           this.categoryForm.disable();
           toast.warning('Categoría desactivada', {
             description:
-              'No es posible editar una categoría desactivada. Actívela para poder editarla.',
+              'Esta categoría está inactiva. Para poder editarla, primero debe activarla desde el listado de categorías.',
           });
         }
 
