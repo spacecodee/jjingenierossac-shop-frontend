@@ -52,4 +52,11 @@ export class ServiceApiService {
       .put<ApiDataResponse<ServiceResponse>>(`${ this.apiUrl }/${ id }`, request)
       .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
+
+  activateService(id: number): Observable<ApiDataResponse<ServiceResponse>> {
+    return this.http
+      .put<ApiDataResponse<ServiceResponse>>(`${ this.apiUrl }/${ id }/activate`, {})
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
 }

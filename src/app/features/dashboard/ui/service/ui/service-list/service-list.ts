@@ -40,7 +40,9 @@ import { SortDirection } from '@shared/data/types/sort-direction.type';
 import { DateFormatterService } from '@shared/services/date-formatter.service';
 import { PaginationHelperService } from '@shared/services/pagination-helper.service';
 import { SearchListHelperService } from '@shared/services/search-list-helper.service';
+import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -54,7 +56,9 @@ import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSeparator } from '@spartan-ng/helm/separator';
 import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmTableImports } from '@spartan-ng/helm/table';
+import { toast } from 'ngx-sonner';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -73,6 +77,9 @@ import { map } from 'rxjs/operators';
     ...HlmPaginationImports,
     ...HlmIconImports,
     ...HlmInputImports,
+    ...BrnAlertDialogImports,
+    ...HlmAlertDialogImports,
+    ...HlmSwitchImports,
     HlmLabel,
     NgIcon,
     HlmSpinner,
@@ -160,6 +167,11 @@ export class ServiceList implements OnInit, OnDestroy {
   readonly createdBefore = signal<Date | undefined>(undefined);
   readonly updatedAfter = signal<Date | undefined>(undefined);
   readonly updatedBefore = signal<Date | undefined>(undefined);
+
+  readonly serviceToToggle = signal<ServiceResponse | null>(null);
+  readonly toggleAction = signal<'activate' | null>(null);
+  readonly isTogglingService = signal<boolean>(false);
+  readonly serviceIdBeingToggled = signal<number | null>(null);
 
   get activeFilterValue(): ActiveFilterType {
     return this.activeFilter();
@@ -391,5 +403,61 @@ export class ServiceList implements OnInit, OnDestroy {
     this.isLoading.set(true);
 
     this.reloadFromPageZero();
+  }
+
+  onActivateAttempt(service: ServiceResponse): void {
+    if (!service.isActive) {
+      this.serviceToToggle.set(service);
+      this.toggleAction.set('activate');
+      this.serviceIdBeingToggled.set(service.serviceId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onCancelToggle(): void {
+    this.serviceToToggle.set(null);
+    this.toggleAction.set(null);
+    this.serviceIdBeingToggled.set(null);
+  }
+
+  onConfirmToggle(closeDialog: () => void): void {
+    const service = this.serviceToToggle();
+    const action = this.toggleAction();
+
+    if (!service || !action) {
+      return;
+    }
+
+    this.isTogglingService.set(true);
+
+    this.serviceService.activateService(service.serviceId).subscribe({
+      next: (response) => {
+        this.services.update((services) =>
+          services.map((s) => (s.serviceId === service.serviceId ? { ...s, isActive: true } : s))
+        );
+
+        toast.success('Servicio activado', {
+          description: response.message,
+        });
+
+        this.isTogglingService.set(false);
+        this.serviceToToggle.set(null);
+        this.toggleAction.set(null);
+        this.serviceIdBeingToggled.set(null);
+        closeDialog();
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isTogglingService.set(false);
+        this.serviceToToggle.set(null);
+        this.toggleAction.set(null);
+        this.serviceIdBeingToggled.set(null);
+        closeDialog();
+
+        toast.error('Error al activar servicio', {
+          description: error.message,
+        });
+      },
+    });
   }
 }

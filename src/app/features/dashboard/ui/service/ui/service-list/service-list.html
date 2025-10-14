@@ -260,6 +260,7 @@
                   </div>
                 </th>
                 <th hlmTh>Estado</th>
+                <th hlmTh class="text-center">Activar/Desactivar</th>
                 <th
                   hlmTh
                   (click)="onSort('createdAt')"
@@ -323,6 +324,22 @@
                       } @else {
                         <span hlmBadge variant="outline"> Inactivo </span>
                       }
+                    </td>
+                    <td hlmTd class="text-center">
+                      <div class="flex items-center justify-center">
+                        <hlm-switch
+                          [checked]="
+                        serviceIdBeingToggled() === service.serviceId
+                          ? !service.isActive
+                          : service.isActive
+                      "
+                          (checkedChange)="$event ? onActivateAttempt(service) : undefined"
+                          [disabled]="false"
+                          [attr.aria-label]="
+                        service.isActive ? 'Servicio activado' : 'Activar servicio'
+                      "
+                        />
+                      </div>
                     </td>
                     <td hlmTd>
                       {{ service.createdAt | date : 'dd/MM/yyyy HH:mm' }}
@@ -435,4 +452,42 @@
       }
     </div>
   </section>
+
+  <hlm-alert-dialog>
+    <button id="toggle-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
+    <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+      <hlm-alert-dialog-header>
+        <h3 hlmAlertDialogTitle>Confirmar Activación</h3>
+        <p hlmAlertDialogDescription>
+          ¿Está seguro de que desea activar este servicio? @if (serviceToToggle()) {
+          <span class="block mt-2 font-medium">{{ serviceToToggle()!.name }}</span>
+        }
+          <span class="block mt-3 text-sm text-muted-foreground">
+            El servicio volverá a estar disponible en el catálogo público y podrá ser editado
+            nuevamente.
+          </span>
+        </p>
+      </hlm-alert-dialog-header>
+      <hlm-alert-dialog-footer>
+        <button
+          hlmAlertDialogCancel
+          class="cursor-pointer"
+          (click)="onCancelToggle(); ctx.close()"
+          [disabled]="isTogglingService()"
+        >
+          Cancelar
+        </button>
+        <button
+          hlmAlertDialogAction
+          (click)="onConfirmToggle(ctx.close)"
+          [disabled]="isTogglingService()"
+          class="cursor-pointer"
+        >
+          @if (isTogglingService()) {
+            <hlm-spinner size="sm" class="mr-2"/>
+          } Activar
+        </button>
+      </hlm-alert-dialog-footer>
+    </hlm-alert-dialog-content>
+  </hlm-alert-dialog>
 </main>
