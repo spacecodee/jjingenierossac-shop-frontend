@@ -67,6 +67,11 @@ export class DashboardSidebarLayout {
       icon: 'lucidePackage',
     },
     {
+      label: 'Categorías de Productos',
+      route: '/dashboard/categories',
+      icon: 'lucideTag',
+    },
+    {
       label: 'Categorías de Servicio',
       route: '/dashboard/service-categories',
       icon: 'lucideTag',

@@ -1,0 +1,144 @@
+<main class="container mx-auto p-6 max-w-4xl">
+  @if (isLoading()) {
+    <section hlmCard>
+      <div hlmCardContent class="py-12">
+        <div class="flex flex-col items-center justify-center gap-4">
+          <hlm-spinner size="lg"/>
+          <p class="text-muted-foreground">Cargando categoría...</p>
+        </div>
+      </div>
+    </section>
+  } @else {
+    <section hlmCard>
+      <header hlmCardHeader>
+        <div class="flex items-center justify-between">
+          <div class="flex-1">
+            <div class="flex items-center gap-3">
+              <h3 hlmCardTitle>{{ pageTitle() }}</h3>
+              @if (isEditMode() && hasChanges() && !isInactive()) {
+                <span
+                  class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-200"
+                >
+              Cambios sin guardar
+            </span>
+              }
+            </div>
+            <p hlmCardDescription>
+              {{ pageDescription() }}
+            </p>
+          </div>
+          <button
+            hlmBtn
+            class="cursor-pointer"
+            variant="ghost"
+            size="icon"
+            type="button"
+            (click)="onCancel()"
+            [disabled]="isSubmitting()"
+          >
+            <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+          </button>
+        </div>
+      </header>
+
+      <hlm-separator/>
+
+      @if (isInactive()) {
+        <div hlmCardContent class="pt-6">
+          <div class="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <ng-icon hlm size="sm" name="lucideTriangleAlert" class="text-amber-600 mt-0.5"/>
+            <div class="flex-1">
+              <h4 class="font-semibold text-amber-900 text-sm">Categoría desactivada</h4>
+              <p class="text-sm text-amber-700 mt-1">
+                Esta categoría está inactiva. Para poder editarla, primero debe activarla desde el
+                listado de categorías.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <hlm-separator class="my-4"/>
+      }
+
+      <div hlmCardContent class="pt-6">
+        <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <hlm-form-field>
+            <label hlmLabel for="name" class="flex items-center justify-between">
+            <span>
+              Nombre
+              <span class="text-destructive ml-1">*</span>
+            </span>
+              <span class="text-xs text-muted-foreground font-normal">
+              {{ nameCharCount() }}/100
+            </span>
+            </label>
+            <input
+              hlmInput
+              id="name"
+              formControlName="name"
+              type="text"
+              placeholder="Ej: Equipos de Iluminación"
+              maxlength="100"
+              class="w-full"
+            />
+            @if (getNameError()) {
+              <hlm-error>{{ getNameError() }}</hlm-error>
+            } @else {
+              <hlm-hint>Ingresa un nombre único para la categoría (máximo 100 caracteres)</hlm-hint>
+            }
+          </hlm-form-field>
+
+          <hlm-form-field>
+            <label hlmLabel for="description" class="flex items-center justify-between">
+              <span>Descripción (Opcional)</span>
+              <span class="text-xs text-muted-foreground font-normal">
+              {{ descriptionCharCount() }} caracteres
+            </span>
+            </label>
+            <textarea
+              hlmInput
+              id="description"
+              formControlName="description"
+              placeholder="Describe los productos incluidos en esta categoría..."
+              rows="5"
+              class="w-full"
+            ></textarea>
+            <hlm-hint>Proporciona una descripción detallada de la categoría (opcional)</hlm-hint>
+          </hlm-form-field>
+
+          <div class="flex items-center gap-3 justify-end pt-4">
+            <button
+              class="cursor-pointer"
+              hlmBtn
+              variant="outline"
+              type="button"
+              (click)="onCancel()"
+              [disabled]="isSubmitting()"
+            >
+              Cancelar
+            </button>
+            <button
+              hlmBtn
+              type="submit"
+              [disabled]="
+              categoryForm.invalid ||
+              isSubmitting() ||
+              isInactive() ||
+              (isEditMode() && !hasChanges())
+            "
+              class="flex items-center gap-2 cursor-pointer"
+            >
+              @if (isSubmitting()) {
+                <hlm-spinner size="sm"/>
+                <span>{{ isEditMode() ? 'Guardando...' : 'Creando...' }}</span>
+              } @else {
+                <ng-icon hlm size="sm" name="lucideSave"/>
+                <span>{{ isEditMode() ? 'Guardar Cambios' : 'Crear Categoría' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  }
+</main>

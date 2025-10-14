@@ -1,5 +1,5 @@
-<main class="flex flex-col p-4">
-  <section hlmCard>
+<main class="flex flex-col min-h-full">
+  <section hlmCard class="flex flex-col overflow-visible">
     <header hlmCardHeader>
       <div class="flex items-start justify-between gap-4 flex-col sm:flex-row">
         <div class="flex-1">
@@ -39,7 +39,8 @@
 
     <hlm-separator class="my-4"/>
 
-    <div hlmCardContent class="space-y-6">
+    <!-- Sección 1: Filtros (flex-shrink-0) -->
+    <div hlmCardContent class="flex-shrink-0">
       <div class="flex flex-col gap-4">
         <div class="flex flex-col sm:flex-row gap-3">
           <div class="relative flex-1">
@@ -205,202 +206,198 @@
           </div>
         </div>
       }
+    </div>
 
-      <hlm-separator class="my-4"/>
+    <hlm-separator class="my-4"/>
 
-      <div>
-        @if (isLoading()) {
-          <div class="flex flex-col gap-4 py-4">
-            @for (item of [1, 2, 3, 4, 5]; track item) {
-              <hlm-skeleton class="h-12 w-full"/>
-            }
-          </div>
-        } @else if (displayedServices().length === 0) {
-          <div class="flex flex-col items-center justify-center gap-4 py-12 text-center">
-            <p class="text-sm text-muted-foreground">
-              No se encontraron servicios con los criterios especificados
-            </p>
-            @if (hasFiltersApplied()) {
-              <button hlmBtn variant="outline" size="sm" (click)="onClearFilters()">
-                Limpiar filtros
-              </button>
-            }
-          </div>
-        } @else {
-          <div class="w-full overflow-x-auto">
-            <table hlmTable>
-              <thead hlmTHead>
+    <!-- Sección 2: Tabla (sin límite de altura) -->
+    <div hlmCardContent class="overflow-x-auto">
+      @if (isLoading()) {
+        <div class="flex flex-col gap-4 py-4">
+          @for (item of [1, 2, 3, 4, 5]; track item) {
+            <hlm-skeleton class="h-12 w-full"/>
+          }
+        </div>
+      } @else if (displayedServices().length === 0) {
+        <div class="flex flex-col items-center justify-center gap-4 py-12 text-center">
+          <p class="text-sm text-muted-foreground">
+            No se encontraron servicios con los criterios especificados
+          </p>
+          @if (hasFiltersApplied()) {
+            <button hlmBtn variant="outline" size="sm" (click)="onClearFilters()">
+              Limpiar filtros
+            </button>
+          }
+        </div>
+      } @else {
+        <table hlmTable>
+          <thead hlmTHead>
+          <tr hlmTr>
+            <th
+              hlmTh
+              (click)="onSort('name')"
+              (keydown.enter)="onSort('name')"
+              tabindex="0"
+              class="cursor-pointer select-none"
+            >
+              <div class="flex items-center gap-2">
+                Nombre @if (sortField() === 'name') {
+                <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
+              }
+              </div>
+            </th>
+            <th hlmTh>Descripción</th>
+            <th hlmTh>Duración Estimada</th>
+            <th
+              hlmTh
+              (click)="onSort('serviceCategory')"
+              (keydown.enter)="onSort('serviceCategory')"
+              tabindex="0"
+              class="cursor-pointer select-none"
+            >
+              <div class="flex items-center gap-2">
+                Categoría @if (sortField() === 'serviceCategory') {
+                <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
+              }
+              </div>
+            </th>
+            <th hlmTh>Estado</th>
+            <th hlmTh class="text-center">Activar/Desactivar</th>
+            <th
+              hlmTh
+              (click)="onSort('createdAt')"
+              (keydown.enter)="onSort('createdAt')"
+              tabindex="0"
+              class="cursor-pointer select-none"
+            >
+              <div class="flex items-center gap-2">
+                Fecha Creación @if (sortField() === 'createdAt') {
+                <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
+              }
+              </div>
+            </th>
+            <th
+              hlmTh
+              (click)="onSort('updatedAt')"
+              (keydown.enter)="onSort('updatedAt')"
+              tabindex="0"
+              class="cursor-pointer select-none"
+            >
+              <div class="flex items-center gap-2">
+                Última Actualización @if (sortField() === 'updatedAt') {
+                <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
+              }
+              </div>
+            </th>
+            <th hlmTh class="text-center">Acciones</th>
+          </tr>
+          </thead>
+          <tbody hlmTBody>
+            @for (service of displayedServices(); track service.serviceId) {
               <tr hlmTr>
-                <th
-                  hlmTh
-                  (click)="onSort('name')"
-                  (keydown.enter)="onSort('name')"
-                  tabindex="0"
-                  class="cursor-pointer select-none"
-                >
-                  <div class="flex items-center gap-2">
-                    Nombre @if (sortField() === 'name') {
-                    <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
-                  }
+                <td hlmTd class="font-medium">{{ service.name }}</td>
+                <td hlmTd class="max-w-md truncate">{{ service.description }}</td>
+                <td hlmTd>{{ service.estimatedDuration }}</td>
+                <td hlmTd>
+                  <div class="flex flex-col gap-1">
+                    <span class="font-medium">{{ service.serviceCategory.name }}</span>
+                    @if (service.serviceCategory.isActive) {
+                      <span
+                        hlmBadge
+                        variant="secondary"
+                        class="bg-green-500 text-white dark:bg-green-600 w-fit text-xs"
+                      >
+                  Activo
+                </span>
+                    } @else {
+                      <span hlmBadge variant="outline" class="w-fit text-xs"> Inactivo </span>
+                    }
                   </div>
-                </th>
-                <th hlmTh>Descripción</th>
-                <th hlmTh>Duración Estimada</th>
-                <th
-                  hlmTh
-                  (click)="onSort('serviceCategory')"
-                  (keydown.enter)="onSort('serviceCategory')"
-                  tabindex="0"
-                  class="cursor-pointer select-none"
-                >
-                  <div class="flex items-center gap-2">
-                    Categoría @if (sortField() === 'serviceCategory') {
-                    <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
+                </td>
+                <td hlmTd>
+                  @if (service.isActive) {
+                    <span hlmBadge variant="secondary" class="bg-green-500 text-white dark:bg-green-600">
+                Activo
+              </span>
+                  } @else {
+                    <span hlmBadge variant="outline"> Inactivo </span>
                   }
+                </td>
+                <td hlmTd class="text-center">
+                  <div class="flex items-center justify-center">
+                    <hlm-switch
+                      [checked]="
+                    serviceIdBeingToggled() === service.serviceId
+                      ? !service.isActive
+                      : service.isActive
+                  "
+                      (checkedChange)="
+                    $event ? onActivateAttempt(service) : onDeactivateAttempt(service)
+                  "
+                      [disabled]="false"
+                      [attr.aria-label]="service.isActive ? 'Desactivar servicio' : 'Activar servicio'"
+                    />
                   </div>
-                </th>
-                <th hlmTh>Estado</th>
-                <th hlmTh class="text-center">Activar/Desactivar</th>
-                <th
-                  hlmTh
-                  (click)="onSort('createdAt')"
-                  (keydown.enter)="onSort('createdAt')"
-                  tabindex="0"
-                  class="cursor-pointer select-none"
-                >
-                  <div class="flex items-center gap-2">
-                    Fecha Creación @if (sortField() === 'createdAt') {
-                    <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
-                  }
-                  </div>
-                </th>
-                <th
-                  hlmTh
-                  (click)="onSort('updatedAt')"
-                  (keydown.enter)="onSort('updatedAt')"
-                  tabindex="0"
-                  class="cursor-pointer select-none"
-                >
-                  <div class="flex items-center gap-2">
-                    Última Actualización @if (sortField() === 'updatedAt') {
-                    <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
-                  }
-                  </div>
-                </th>
-                <th hlmTh class="text-center">Acciones</th>
-              </tr>
-              </thead>
-              <tbody hlmTBody>
-                @for (service of displayedServices(); track service.serviceId) {
-                  <tr hlmTr>
-                    <td hlmTd class="font-medium">{{ service.name }}</td>
-                    <td hlmTd class="max-w-md truncate">{{ service.description }}</td>
-                    <td hlmTd>{{ service.estimatedDuration }}</td>
-                    <td hlmTd>
-                      <div class="flex flex-col gap-1">
-                        <span class="font-medium">{{ service.serviceCategory.name }}</span>
-                        @if (service.serviceCategory.isActive) {
-                          <span
-                            hlmBadge
-                            variant="secondary"
-                            class="bg-green-500 text-white dark:bg-green-600 w-fit text-xs"
-                          >
-                      Activo
-                    </span>
-                        } @else {
-                          <span hlmBadge variant="outline" class="w-fit text-xs"> Inactivo </span>
-                        }
-                      </div>
-                    </td>
-                    <td hlmTd>
+                </td>
+                <td hlmTd>
+                  {{ service.createdAt | date : 'dd/MM/yyyy HH:mm' }}
+                </td>
+                <td hlmTd>
+                  {{ service.updatedAt | date : 'dd/MM/yyyy HH:mm' }}
+                </td>
+                <td hlmTd class="text-center">
+                  <div class="flex items-center justify-center gap-2">
+                    <button
+                      hlmBtn
+                      variant="ghost"
+                      size="sm"
+                      [routerLink]="['/dashboard/services', service.serviceId, 'edit']"
+                      class="flex items-center gap-2 cursor-pointer"
+                    >
+                      <ng-icon hlm size="sm" name="lucidePencil"/>
+                      <span>Editar</span>
+                    </button>
+
+                    <hlm-tooltip>
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="sm"
+                        hlmTooltipTrigger
+                        [disabled]="service.isActive"
+                        (click)="onDeleteAttempt(service)"
+                        class="flex items-center gap-2 cursor-pointer"
+                        [class.cursor-not-allowed]="service.isActive"
+                        [class.opacity-50]="service.isActive"
+                        [attr.aria-label]="
+                      service.isActive
+                        ? 'No se puede eliminar un servicio activo'
+                        : 'Eliminar servicio'
+                    "
+                      >
+                        <ng-icon hlm size="sm" name="lucideTrash2"/>
+                        <span>Eliminar</span>
+                      </button>
                       @if (service.isActive) {
-                        <span
-                          hlmBadge
-                          variant="secondary"
-                          class="bg-green-500 text-white dark:bg-green-600"
-                        >
-                    Activo
+                        <span *brnTooltipContent class="text-xs">
+                    Debe desactivar el servicio antes de eliminarlo
                   </span>
-                      } @else {
-                        <span hlmBadge variant="outline"> Inactivo </span>
                       }
-                    </td>
-                    <td hlmTd class="text-center">
-                      <div class="flex items-center justify-center">
-                        <hlm-switch
-                          [checked]="
-                        serviceIdBeingToggled() === service.serviceId
-                          ? !service.isActive
-                          : service.isActive
-                      "
-                          (checkedChange)="
-                        $event ? onActivateAttempt(service) : onDeactivateAttempt(service)
-                      "
-                          [disabled]="false"
-                          [attr.aria-label]="
-                        service.isActive ? 'Desactivar servicio' : 'Activar servicio'
-                      "
-                        />
-                      </div>
-                    </td>
-                    <td hlmTd>
-                      {{ service.createdAt | date : 'dd/MM/yyyy HH:mm' }}
-                    </td>
-                    <td hlmTd>
-                      {{ service.updatedAt | date : 'dd/MM/yyyy HH:mm' }}
-                    </td>
-                    <td hlmTd class="text-center">
-                      <div class="flex items-center justify-center gap-2">
-                        <button
-                          hlmBtn
-                          variant="ghost"
-                          size="sm"
-                          [routerLink]="['/dashboard/services', service.serviceId, 'edit']"
-                          class="flex items-center gap-2 cursor-pointer"
-                        >
-                          <ng-icon hlm size="sm" name="lucidePencil"/>
-                          <span>Editar</span>
-                        </button>
+                    </hlm-tooltip>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
 
-                        <hlm-tooltip>
-                          <button
-                            hlmBtn
-                            variant="ghost"
-                            size="sm"
-                            hlmTooltipTrigger
-                            [disabled]="service.isActive"
-                            (click)="onDeleteAttempt(service)"
-                            class="flex items-center gap-2 cursor-pointer"
-                            [class.cursor-not-allowed]="service.isActive"
-                            [class.opacity-50]="service.isActive"
-                            [attr.aria-label]="
-                          service.isActive
-                            ? 'No se puede eliminar un servicio activo'
-                            : 'Eliminar servicio'
-                        "
-                          >
-                            <ng-icon hlm size="sm" name="lucideTrash2"/>
-                            <span>Eliminar</span>
-                          </button>
-                          @if (service.isActive) {
-                            <span *brnTooltipContent class="text-xs">
-                        Debe desactivar el servicio antes de eliminarlo
-                      </span>
-                          }
-                        </hlm-tooltip>
-                      </div>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
-      </div>
-
-      @if (!isLoading() && totalPages() > 0) {
-        <hlm-separator class="my-4"/>
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+    <!-- Sección 3: Paginación (flex-shrink-0) -->
+    @if (!isLoading() && totalPages() > 0) {
+      <hlm-separator class="my-4"/>
+      <div hlmCardContent class="flex-shrink-0">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div class="text-sm text-muted-foreground">
             Mostrando {{ currentPage() * pageSize() + 1 }} -
             {{ Math.min((currentPage() + 1) * pageSize(), totalElements()) }} de
@@ -478,8 +475,8 @@
             </nav>
           </div>
         </div>
-      }
-    </div>
+      </div>
+    }
   </section>
 
   <hlm-alert-dialog>
