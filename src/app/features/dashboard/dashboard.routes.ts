@@ -62,4 +62,12 @@ export const dashboardRoutes: Routes = [
         (m) => m.ServiceForm
       ),
   },
+  {
+    path: 'categories',
+    title: 'Categorías de Productos - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/category/ui/category-list/category-list').then(
+        (m) => m.CategoryList
+      ),
+  },
 ];
