@@ -29,6 +29,7 @@ import {
   lucideRefreshCw,
   lucideSearch,
   lucideSlidersHorizontal,
+  lucideTrash2,
   lucideX,
 } from '@ng-icons/lucide';
 import {
@@ -42,6 +43,7 @@ import { PaginationHelperService } from '@shared/services/pagination-helper.serv
 import { SearchListHelperService } from '@shared/services/search-list-helper.service';
 import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
+import { BrnTooltipImports } from '@spartan-ng/brain/tooltip';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -58,6 +60,7 @@ import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmTableImports } from '@spartan-ng/helm/table';
+import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { toast } from 'ngx-sonner';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -69,6 +72,7 @@ import { map } from 'rxjs/operators';
     ...HlmButtonImports,
     ...BrnSelectImports,
     ...HlmSelectImports,
+    ...BrnTooltipImports,
     ServiceCategoryAutocomplete,
     ...HlmTableImports,
     ...HlmBadgeImports,
@@ -80,6 +84,7 @@ import { map } from 'rxjs/operators';
     ...BrnAlertDialogImports,
     ...HlmAlertDialogImports,
     ...HlmSwitchImports,
+    ...HlmTooltipImports,
     HlmLabel,
     NgIcon,
     HlmSpinner,
@@ -103,6 +108,7 @@ import { map } from 'rxjs/operators';
       lucideChevronsLeft,
       lucideChevronsRight,
       lucidePencil,
+      lucideTrash2,
     }),
     provideHlmDatePickerConfig({
       formatDate: (date: Date) => {
@@ -169,9 +175,12 @@ export class ServiceList implements OnInit, OnDestroy {
   readonly updatedBefore = signal<Date | undefined>(undefined);
 
   readonly serviceToToggle = signal<ServiceResponse | null>(null);
-  readonly toggleAction = signal<'activate' | 'deactivate' | null>(null);
+  readonly toggleAction = signal<'activate' | 'deactivate' | 'delete' | null>(null);
   readonly isTogglingService = signal<boolean>(false);
   readonly serviceIdBeingToggled = signal<number | null>(null);
+
+  readonly serviceToDelete = signal<ServiceResponse | null>(null);
+  readonly isDeletingService = signal<boolean>(false);
 
   get activeFilterValue(): ActiveFilterType {
     return this.activeFilter();
@@ -425,6 +434,16 @@ export class ServiceList implements OnInit, OnDestroy {
     }
   }
 
+  onDeleteAttempt(service: ServiceResponse): void {
+    if (!service.isActive) {
+      this.serviceToDelete.set(service);
+      this.serviceToToggle.set(service);
+      this.toggleAction.set('delete');
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
   onCancelToggle(): void {
     this.serviceToToggle.set(null);
     this.toggleAction.set(null);
@@ -436,6 +455,39 @@ export class ServiceList implements OnInit, OnDestroy {
     const action = this.toggleAction();
 
     if (!service || !action) {
+      return;
+    }
+
+    if (action === 'delete') {
+      this.isDeletingService.set(true);
+
+      this.serviceService.deleteService(service.serviceId).subscribe({
+        next: (response) => {
+          this.services.update((services) =>
+            services.filter((s) => s.serviceId !== service.serviceId)
+          );
+
+          toast.success('Servicio eliminado', {
+            description: response.message,
+          });
+
+          this.isDeletingService.set(false);
+          this.serviceToDelete.set(null);
+          this.toggleAction.set(null);
+          closeDialog();
+        },
+        error: (error: ApiErrorResponse) => {
+          this.isDeletingService.set(false);
+          this.serviceToDelete.set(null);
+          this.toggleAction.set(null);
+          closeDialog();
+
+          toast.error('Error al eliminar servicio', {
+            description: error.message,
+          });
+        },
+      });
+
       return;
     }
 
