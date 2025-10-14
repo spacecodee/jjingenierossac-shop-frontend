@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
 import { CategoryResponse } from '@features/dashboard/data/models/category-response.interface';
+import { CreateCategoryRequest } from '@features/dashboard/data/models/create-category-request.interface';
 import { SearchCategoriesParams } from '@features/dashboard/data/models/search-categories-params.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
@@ -28,6 +29,18 @@ export class CategoryService {
       .get<ApiDataResponse<ApiPaginatedResponse<CategoryResponse>>>(`${ this.apiUrl }/search`, {
         params: httpParams,
       })
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  getCategoryById(id: number): Observable<ApiDataResponse<CategoryResponse>> {
+    return this.http
+      .get<ApiDataResponse<CategoryResponse>>(`${ this.apiUrl }/${ id }`)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  createCategory(request: CreateCategoryRequest): Observable<ApiDataResponse<CategoryResponse>> {
+    return this.http
+      .post<ApiDataResponse<CategoryResponse>>(this.apiUrl, request)
       .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 

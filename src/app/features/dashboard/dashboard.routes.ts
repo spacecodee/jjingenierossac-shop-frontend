@@ -70,4 +70,20 @@ export const dashboardRoutes: Routes = [
         (m) => m.CategoryList
       ),
   },
+  {
+    path: 'categories/create',
+    title: 'Crear Categoría de Producto - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/category/ui/forms/category-form/category-form').then(
+        (m) => m.CategoryForm
+      ),
+  },
+  {
+    path: 'categories/:id/edit',
+    title: 'Editar Categoría de Producto - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/category/ui/forms/category-form/category-form').then(
+        (m) => m.CategoryForm
+      ),
+  },
 ];
