@@ -169,7 +169,7 @@ export class ServiceList implements OnInit, OnDestroy {
   readonly updatedBefore = signal<Date | undefined>(undefined);
 
   readonly serviceToToggle = signal<ServiceResponse | null>(null);
-  readonly toggleAction = signal<'activate' | null>(null);
+  readonly toggleAction = signal<'activate' | 'deactivate' | null>(null);
   readonly isTogglingService = signal<boolean>(false);
   readonly serviceIdBeingToggled = signal<number | null>(null);
 
@@ -415,6 +415,16 @@ export class ServiceList implements OnInit, OnDestroy {
     }
   }
 
+  onDeactivateAttempt(service: ServiceResponse): void {
+    if (service.isActive) {
+      this.serviceToToggle.set(service);
+      this.toggleAction.set('deactivate');
+      this.serviceIdBeingToggled.set(service.serviceId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
   onCancelToggle(): void {
     this.serviceToToggle.set(null);
     this.toggleAction.set(null);
@@ -431,13 +441,25 @@ export class ServiceList implements OnInit, OnDestroy {
 
     this.isTogglingService.set(true);
 
-    this.serviceService.activateService(service.serviceId).subscribe({
+    const serviceCall =
+      action === 'activate'
+        ? this.serviceService.activateService(service.serviceId)
+        : this.serviceService.deactivateService(service.serviceId);
+
+    const newState = action === 'activate';
+    const successMessage = action === 'activate' ? 'Servicio activado' : 'Servicio desactivado';
+    const errorMessage =
+      action === 'activate' ? 'Error al activar servicio' : 'Error al desactivar servicio';
+
+    serviceCall.subscribe({
       next: (response) => {
         this.services.update((services) =>
-          services.map((s) => (s.serviceId === service.serviceId ? { ...s, isActive: true } : s))
+          services.map((s) =>
+            s.serviceId === service.serviceId ? { ...s, isActive: newState } : s
+          )
         );
 
-        toast.success('Servicio activado', {
+        toast.success(successMessage, {
           description: response.message,
         });
 
@@ -454,7 +476,7 @@ export class ServiceList implements OnInit, OnDestroy {
         this.serviceIdBeingToggled.set(null);
         closeDialog();
 
-        toast.error('Error al activar servicio', {
+        toast.error(errorMessage, {
           description: error.message,
         });
       },

@@ -333,10 +333,12 @@
                           ? !service.isActive
                           : service.isActive
                       "
-                          (checkedChange)="$event ? onActivateAttempt(service) : undefined"
+                          (checkedChange)="
+                        $event ? onActivateAttempt(service) : onDeactivateAttempt(service)
+                      "
                           [disabled]="false"
                           [attr.aria-label]="
-                        service.isActive ? 'Servicio activado' : 'Activar servicio'
+                        service.isActive ? 'Desactivar servicio' : 'Activar servicio'
                       "
                         />
                       </div>
@@ -457,15 +459,35 @@
     <button id="toggle-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
     <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
       <hlm-alert-dialog-header>
-        <h3 hlmAlertDialogTitle>Confirmar Activación</h3>
+        <h3 hlmAlertDialogTitle>
+          @if (toggleAction() === 'activate') {
+            Confirmar Activación
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Confirmar Desactivación
+          }
+        </h3>
         <p hlmAlertDialogDescription>
-          ¿Está seguro de que desea activar este servicio? @if (serviceToToggle()) {
-          <span class="block mt-2 font-medium">{{ serviceToToggle()!.name }}</span>
-        }
-          <span class="block mt-3 text-sm text-muted-foreground">
+          @if (toggleAction() === 'activate') {
+            ¿Está seguro de que desea activar este servicio?
+          } @else if (toggleAction() === 'deactivate') {
+            ¿Está seguro de que desea desactivar este
+              servicio?
+          }
+          @if (serviceToToggle()) {
+            <span class="block mt-2 font-medium">{{ serviceToToggle()!.name }}</span>
+          }
+          @if (toggleAction() === 'activate') {
+            <span class="block mt-3 text-sm text-muted-foreground">
             El servicio volverá a estar disponible en el catálogo público y podrá ser editado
             nuevamente.
           </span>
+          } @else if (toggleAction() === 'deactivate') {
+            <span class="block mt-3 text-sm text-muted-foreground">
+            El servicio dejará de aparecer en el catálogo público y los clientes no podrán verlo ni
+            solicitar cotización. Podrá reactivarlo posteriormente si lo necesita.
+          </span>
+          }
         </p>
       </hlm-alert-dialog-header>
       <hlm-alert-dialog-footer>
@@ -479,13 +501,20 @@
         </button>
         <button
           hlmAlertDialogAction
+          [variant]="toggleAction() === 'deactivate' ? 'destructive' : 'default'"
           (click)="onConfirmToggle(ctx.close)"
           [disabled]="isTogglingService()"
           class="cursor-pointer"
         >
           @if (isTogglingService()) {
             <hlm-spinner size="sm" class="mr-2"/>
-          } Activar
+          }
+          @if (toggleAction() === 'activate') {
+            Activar
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Desactivar
+          }
         </button>
       </hlm-alert-dialog-footer>
     </hlm-alert-dialog-content>

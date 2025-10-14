@@ -59,4 +59,9 @@ export class ServiceApiService {
       .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
+  deactivateService(id: number): Observable<ApiDataResponse<ServiceResponse>> {
+    return this.http
+      .put<ApiDataResponse<ServiceResponse>>(`${ this.apiUrl }/${ id }/deactivate`, {})
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
 }
