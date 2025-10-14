@@ -56,7 +56,7 @@ export class PublicServiceDetail implements OnInit {
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
       const id = params['id'];
-      if (id && !isNaN(+id) && +id > 0) {
+      if (id && !Number.isNaN(+id) && +id > 0) {
         this.serviceId.set(+id);
         this.loadServiceDetail(+id);
       } else {
@@ -100,7 +100,7 @@ export class PublicServiceDetail implements OnInit {
   }
 
   onBackToCatalog(): void {
-    this.router.navigate(['/public/services']);
+    this.router.navigate(['/public/services']).then(r => !r && undefined);
   }
 
   onRequestQuote(): void {
@@ -114,7 +114,7 @@ export class PublicServiceDetail implements OnInit {
     if (categoryId) {
       this.router.navigate(['/public/services'], {
         queryParams: { category: categoryId },
-      });
+      }).then(r => !r && undefined);
     }
   }
 

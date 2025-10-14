@@ -14,9 +14,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SearchServicesParams } from '@features/dashboard/data/models/search-services-params.interface';
-import { ServiceCategoryOption } from '@features/dashboard/data/models/service-category-option.interface';
 import { ServiceResponse } from '@features/dashboard/data/models/service-response.interface';
-import { ServiceCategoryService } from '@features/dashboard/data/services/service-category/service-category.service';
 import { ServiceApiService } from '@features/dashboard/data/services/service/service-api';
 import { ServiceSortField } from '@features/dashboard/data/types/service-sort-field.type';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -33,6 +31,9 @@ import {
   lucideSlidersHorizontal,
   lucideX,
 } from '@ng-icons/lucide';
+import {
+  ServiceCategoryAutocomplete
+} from '@shared/components/service-category-autocomplete/service-category-autocomplete';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { ActiveFilterType } from '@shared/data/types/active-filter.type';
 import { SortDirection } from '@shared/data/types/sort-direction.type';
@@ -40,7 +41,6 @@ import { DateFormatterService } from '@shared/services/date-formatter.service';
 import { PaginationHelperService } from '@shared/services/pagination-helper.service';
 import { SearchListHelperService } from '@shared/services/search-list-helper.service';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
-import { HlmAutocomplete } from '@spartan-ng/helm/autocomplete';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -55,7 +55,6 @@ import { HlmSeparator } from '@spartan-ng/helm/separator';
 import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { HlmTableImports } from '@spartan-ng/helm/table';
-import { toast } from 'ngx-sonner';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -66,7 +65,7 @@ import { map } from 'rxjs/operators';
     ...HlmButtonImports,
     ...BrnSelectImports,
     ...HlmSelectImports,
-    HlmAutocomplete,
+    ServiceCategoryAutocomplete,
     ...HlmTableImports,
     ...HlmBadgeImports,
     ...HlmRadioGroupImports,
@@ -116,16 +115,13 @@ export class ServiceList implements OnInit, OnDestroy {
   }
 
   private readonly serviceService = inject(ServiceApiService);
-  private readonly serviceCategoryService = inject(ServiceCategoryService);
   private readonly paginationHelper = inject(PaginationHelperService);
   private readonly dateFormatter = inject(DateFormatterService);
   private readonly searchListHelper = inject(SearchListHelperService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly searchSubject = new Subject<string>();
-  private readonly categorySearchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
-  private categorySearchSubscription?: Subscription;
   private queryParamsSubscription?: Subscription;
 
   readonly Math = Math;
@@ -133,11 +129,6 @@ export class ServiceList implements OnInit, OnDestroy {
   readonly services = signal<ServiceResponse[]>([]);
   readonly isLoading = signal<boolean>(true);
   readonly isRefreshing = signal<boolean>(false);
-
-  readonly serviceCategories = signal<ServiceCategoryOption[]>([]);
-  readonly isLoadingCategories = signal<boolean>(false);
-  serviceCategorySearch = signal<string>('');
-  readonly serviceCategoryNames = computed(() => this.serviceCategories().map((c) => c.name));
 
   private readonly _pageQuery = toSignal(
     this.route.queryParamMap.pipe(
@@ -202,22 +193,12 @@ export class ServiceList implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    this.loadServiceCategories();
-
     this.searchSubscription = this.searchSubject.pipe(debounceTime(500)).subscribe((searchTerm) => {
       if (searchTerm.length >= 3 || searchTerm.length === 0) {
         this.searchName.set(searchTerm);
         this.reloadFromPageZero();
       }
     });
-
-    this.categorySearchSubscription = this.categorySearchSubject
-      .pipe(debounceTime(500))
-      .subscribe((searchTerm) => {
-        if (searchTerm.length >= 3 || searchTerm.length === 0) {
-          this.loadServiceCategories(searchTerm);
-        }
-      });
 
     this.queryParamsSubscription = this.route.queryParamMap
       .pipe(
@@ -232,24 +213,7 @@ export class ServiceList implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.searchSubscription?.unsubscribe();
-    this.categorySearchSubscription?.unsubscribe();
     this.queryParamsSubscription?.unsubscribe();
-  }
-
-  loadServiceCategories(name?: string): void {
-    this.isLoadingCategories.set(true);
-    this.serviceCategoryService.getServiceCategoriesForSelect(name).subscribe({
-      next: (response) => {
-        this.serviceCategories.set(response.data);
-        this.isLoadingCategories.set(false);
-      },
-      error: (error: ApiErrorResponse) => {
-        this.isLoadingCategories.set(false);
-        toast.error('Error al cargar categorías', {
-          description: error.message || 'No se pudieron cargar las categorías de servicio',
-        });
-      },
-    });
   }
 
   loadServices(): void {
@@ -330,7 +294,6 @@ export class ServiceList implements OnInit, OnDestroy {
     this.searchName.set('');
     this.activeFilter.set('all');
     this.selectedServiceCategoryId.set(null);
-    this.serviceCategorySearch.set('');
     this.createdAfter.set(undefined);
     this.createdBefore.set(undefined);
     this.updatedAfter.set(undefined);
@@ -355,27 +318,13 @@ export class ServiceList implements OnInit, OnDestroy {
     this.reloadFromPageZero();
   }
 
-  onServiceCategorySelect(categoryName: string | null): void {
-    if (categoryName) {
-      const category = this.serviceCategories().find((c) => c.name === categoryName);
-      if (category) {
-        this.selectedServiceCategoryId.set(category.serviceCategoryId);
-        this.isLoading.set(true);
-        this.reloadFromPageZero();
-      }
-    } else {
-      const previousValue = this.selectedServiceCategoryId();
-      if (previousValue !== null) {
-        this.selectedServiceCategoryId.set(null);
-        this.isLoading.set(true);
-        this.reloadFromPageZero();
-      }
+  onCategorySelected(categoryId: number | null): void {
+    const previousValue = this.selectedServiceCategoryId();
+    if (previousValue !== categoryId) {
+      this.selectedServiceCategoryId.set(categoryId);
+      this.isLoading.set(true);
+      this.reloadFromPageZero();
     }
-  }
-
-  onServiceCategorySearchChange(searchTerm: string): void {
-    this.serviceCategorySearch.set(searchTerm);
-    this.categorySearchSubject.next(searchTerm);
   }
 
   onCreatedAfterChange(date: Date): void {

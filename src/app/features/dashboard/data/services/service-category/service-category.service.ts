@@ -26,7 +26,7 @@ import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response
 import { ApiPlainResponse } from '@shared/data/models/api-plain-response.interface';
 import { HttpErrorHandlerService } from '@shared/services/http-error-handler.service';
 import { HttpParamsBuilderService } from '@shared/services/http-params-builder.service';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -47,29 +47,21 @@ export class ServiceCategoryService {
         `${ this.apiUrl }/search`,
         { params: httpParams }
       )
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          return throwError(() => this.errorHandler.handleError(error));
-        })
-      );
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   createServiceCategory(
     request: CreateServiceCategoryRequest
   ): Observable<ApiDataResponse<ServiceCategoryResponse>> {
-    return this.http.post<ApiDataResponse<ServiceCategoryResponse>>(this.apiUrl, request).pipe(
-      catchError((error: HttpErrorResponse) => {
-        return throwError(() => this.errorHandler.handleError(error));
-      })
-    );
+    return this.http
+      .post<ApiDataResponse<ServiceCategoryResponse>>(this.apiUrl, request)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   findServiceCategoryById(id: number): Observable<ApiDataResponse<ServiceCategoryResponse>> {
-    return this.http.get<ApiDataResponse<ServiceCategoryResponse>>(`${ this.apiUrl }/${ id }`).pipe(
-      catchError((error: HttpErrorResponse) => {
-        return throwError(() => this.errorHandler.handleError(error));
-      })
-    );
+    return this.http
+      .get<ApiDataResponse<ServiceCategoryResponse>>(`${ this.apiUrl }/${ id }`)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   getServiceCategoriesForSelect(
@@ -85,11 +77,7 @@ export class ServiceCategoryService {
       .get<ApiDataResponse<ServiceCategorySelectResponse[]>>(`${ this.apiUrl }/for-select`, {
         params: httpParams,
       })
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          return throwError(() => this.errorHandler.handleError(error));
-        })
-      );
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   updateServiceCategory(
@@ -98,27 +86,19 @@ export class ServiceCategoryService {
   ): Observable<ApiDataResponse<ServiceCategoryResponse>> {
     return this.http
       .put<ApiDataResponse<ServiceCategoryResponse>>(`${ this.apiUrl }/${ id }`, request)
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          return throwError(() => this.errorHandler.handleError(error));
-        })
-      );
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   activateServiceCategory(id: number): Observable<ApiPlainResponse> {
-    return this.http.put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/activate`, {}).pipe(
-      catchError((error: HttpErrorResponse) => {
-        return throwError(() => this.errorHandler.handleError(error));
-      })
-    );
+    return this.http
+      .put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/activate`, {})
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   deactivateServiceCategory(id: number): Observable<ApiPlainResponse> {
-    return this.http.put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/deactivate`, {}).pipe(
-      catchError((error: HttpErrorResponse) => {
-        return throwError(() => this.errorHandler.handleError(error));
-      })
-    );
+    return this.http
+      .put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/deactivate`, {})
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   batchActivateServiceCategories(
@@ -126,11 +106,7 @@ export class ServiceCategoryService {
   ): Observable<ApiDataResponse<BatchOperationResponse>> {
     return this.http
       .put<ApiDataResponse<BatchOperationResponse>>(`${ this.apiUrl }/batch/activate`, request)
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          return throwError(() => this.errorHandler.handleError(error));
-        })
-      );
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   batchDeactivateServiceCategories(
@@ -138,18 +114,12 @@ export class ServiceCategoryService {
   ): Observable<ApiDataResponse<BatchOperationResponse>> {
     return this.http
       .put<ApiDataResponse<BatchOperationResponse>>(`${ this.apiUrl }/batch/deactivate`, request)
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          return throwError(() => this.errorHandler.handleError(error));
-        })
-      );
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   deleteServiceCategory(id: number): Observable<ApiPlainResponse> {
-    return this.http.delete<ApiPlainResponse>(`${ this.apiUrl }/${ id }`).pipe(
-      catchError((error: HttpErrorResponse) => {
-        return throwError(() => this.errorHandler.handleError(error));
-      })
-    );
+    return this.http
+      .delete<ApiPlainResponse>(`${ this.apiUrl }/${ id }`)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 }

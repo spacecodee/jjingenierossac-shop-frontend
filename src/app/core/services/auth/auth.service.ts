@@ -141,7 +141,7 @@ export class AuthService {
 
       const baseError = {
         timestamp: apiError.timestamp || new Date().toISOString(),
-        backendMessage: apiError.backendMessage || 'Error del servidor',
+        backendMessage: 'Error del servidor',
         message: apiError.message || this.getDefaultErrorMessage(error.status),
         path: apiError.path || '',
         method: apiError.method || '',
@@ -160,7 +160,6 @@ export class AuthService {
 
     return {
       timestamp: new Date().toISOString(),
-      backendMessage: 'Error de conexión',
       message: this.getDefaultErrorMessage(error.status),
       path: '',
       method: '',

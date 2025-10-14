@@ -217,19 +217,12 @@ export class ServiceCategoryForm implements OnInit {
       error: (error: ApiErrorResponse) => {
         this.isSubmitting.set(false);
 
-        let errorMessage = 'No se pudo crear la categoría';
-
         if (error.status === 409) {
-          errorMessage = 'Ya existe una categoría con este nombre';
           this.categoryForm.get('name')?.setErrors({ duplicate: true });
-        } else if (error.status === 422) {
-          errorMessage = 'Datos inválidos. Verifica los campos';
-        } else if (error.status === 403) {
-          errorMessage = 'No tienes permisos para crear categorías';
         }
 
         toast.error('Error al crear categoría', {
-          description: error.message || errorMessage,
+          description: error.message || 'No se pudo crear la categoría',
         });
       },
     });
@@ -249,21 +242,12 @@ export class ServiceCategoryForm implements OnInit {
       error: (error: ApiErrorResponse) => {
         this.isSubmitting.set(false);
 
-        let errorMessage = 'No se pudo actualizar la categoría';
-
         if (error.status === 409) {
-          errorMessage = 'Ya existe otra categoría con este nombre';
           this.categoryForm.get('name')?.setErrors({ duplicate: true });
-        } else if (error.status === 422) {
-          errorMessage = 'Datos inválidos. Verifica los campos';
-        } else if (error.status === 403) {
-          errorMessage = 'No tienes permisos para actualizar categorías';
-        } else if (error.status === 404) {
-          errorMessage = 'La categoría no existe o fue eliminada';
         }
 
         toast.error('Error al actualizar categoría', {
-          description: error.message || errorMessage,
+          description: error.message || 'No se pudo actualizar la categoría',
         });
       },
     });

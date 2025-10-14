@@ -46,4 +46,20 @@ export const dashboardRoutes: Routes = [
         (m) => m.ServiceList
       ),
   },
+  {
+    path: 'services/create',
+    title: 'Crear Servicio - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/service/ui/forms/service-form/service-form').then(
+        (m) => m.ServiceForm
+      ),
+  },
+  {
+    path: 'services/:id/edit',
+    title: 'Editar Servicio - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/service/ui/forms/service-form/service-form').then(
+        (m) => m.ServiceForm
+      ),
+  },
 ];
