@@ -1,0 +1,159 @@
+<main class="container mx-auto p-6 max-w-4xl">
+  <section hlmCard>
+    <header hlmCardHeader>
+      <div class="flex items-center justify-between">
+        <div class="flex-1">
+          <div class="flex items-center gap-3">
+            <h3 hlmCardTitle>{{ pageTitle }}</h3>
+          </div>
+          <p hlmCardDescription>
+            {{ pageDescription }}
+          </p>
+        </div>
+        <button
+          hlmBtn
+          class="cursor-pointer"
+          variant="ghost"
+          size="icon"
+          type="button"
+          (click)="onCancel()"
+          [disabled]="isSubmitting()"
+        >
+          <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+        </button>
+      </div>
+    </header>
+
+    <hlm-separator/>
+
+    <div hlmCardContent class="pt-6">
+      <form [formGroup]="serviceForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <hlm-form-field>
+          <label hlmLabel for="name" class="flex items-center justify-between">
+            <span>
+              Nombre
+              <span class="text-destructive ml-1">*</span>
+            </span>
+            <span class="text-xs text-muted-foreground font-normal">
+              {{ nameCharCount() }}/255
+            </span>
+          </label>
+          <input
+            hlmInput
+            id="name"
+            formControlName="name"
+            type="text"
+            placeholder="Ej: Instalación de Router Empresarial"
+            maxlength="255"
+            class="w-full"
+          />
+          @if (getNameError()) {
+            <hlm-error>{{ getNameError() }}</hlm-error>
+          } @else {
+            <hlm-hint>Ingresa un nombre único para el servicio (máximo 255 caracteres)</hlm-hint>
+          }
+        </hlm-form-field>
+
+        <hlm-form-field>
+          <label hlmLabel for="description" class="flex items-center justify-between">
+            <span>
+              Descripción
+              <span class="text-destructive ml-1">*</span>
+            </span>
+            <span class="text-xs text-muted-foreground font-normal">
+              {{ descriptionCharCount() }} caracteres
+            </span>
+          </label>
+          <textarea
+            hlmInput
+            id="description"
+            formControlName="description"
+            placeholder="Describe el servicio en detalle..."
+            rows="5"
+            class="w-full"
+          ></textarea>
+          @if (getDescriptionError()) {
+            <hlm-error>{{ getDescriptionError() }}</hlm-error>
+          } @else {
+            <hlm-hint>Proporciona una descripción detallada del servicio</hlm-hint>
+          }
+        </hlm-form-field>
+
+        <hlm-form-field>
+          <label hlmLabel for="estimatedDuration" class="flex items-center justify-between">
+            <span>Duración Estimada (Opcional)</span>
+            <span class="text-xs text-muted-foreground font-normal">
+              {{ durationCharCount() }}/50
+            </span>
+          </label>
+          <input
+            hlmInput
+            id="estimatedDuration"
+            formControlName="estimatedDuration"
+            type="text"
+            placeholder="Ej: 2-3 horas"
+            maxlength="50"
+            class="w-full"
+          />
+          @if (getDurationError()) {
+            <hlm-error>{{ getDurationError() }}</hlm-error>
+          } @else {
+            <hlm-hint
+            >Indica el tiempo estimado para completar el servicio (máximo 50 caracteres)
+            </hlm-hint>
+          }
+        </hlm-form-field>
+
+        <div class="space-y-2">
+          <label hlmLabel for="serviceCategory" class="flex items-center justify-between">
+            <span>
+              Categoría de Servicio
+              <span class="text-destructive ml-1">*</span>
+            </span>
+          </label>
+          <app-service-category-autocomplete
+            placeholder="Busca una categoría..."
+            (categorySelected)="onCategorySelected($event)"
+          />
+          @if (getCategoryError()) {
+            <p class="text-sm font-medium text-destructive">{{ getCategoryError() }}</p>
+          } @else {
+            <p class="text-sm text-muted-foreground">
+              Selecciona la categoría a la que pertenece este servicio (escribe al menos 3 caracteres
+              para buscar)
+            </p>
+          }
+        </div>
+
+        <div class="flex items-center gap-3 justify-end pt-4">
+          <button
+            class="cursor-pointer"
+            hlmBtn
+            variant="outline"
+            type="button"
+            (click)="onCancel()"
+            [disabled]="isSubmitting()"
+          >
+            Cancelar
+          </button>
+          <button
+            hlmBtn
+            type="submit"
+            [disabled]="
+              serviceForm.invalid || isSubmitting() || selectedServiceCategoryId() === null
+            "
+            class="flex items-center gap-2 cursor-pointer"
+          >
+            @if (isSubmitting()) {
+              <hlm-spinner size="sm"/>
+              <span>Creando...</span>
+            } @else {
+              <ng-icon hlm size="sm" name="lucideSave"/>
+              <span>Crear Servicio</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>

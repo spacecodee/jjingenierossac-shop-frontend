@@ -148,12 +148,9 @@
 
             <div class="flex flex-col gap-3 flex-1">
               <span class="text-sm font-medium">Categoría de Servicio</span>
-              <hlm-autocomplete
-                [filteredOptions]="serviceCategoryNames()"
-                [search]="serviceCategorySearch()"
-                (searchChange)="onServiceCategorySearchChange($event)"
-                (valueChange)="onServiceCategorySelect($event)"
-                searchPlaceholderText="Buscar categoría (mín. 3 caracteres)..."
+              <app-service-category-autocomplete
+                placeholder="Buscar categoría..."
+                (categorySelected)="onCategorySelected($event)"
               />
             </div>
           </div>
