@@ -446,7 +446,7 @@
           'deactivate') {
             Confirmar Desactivación
           } @else if (toggleAction() === 'delete') {
-            Confirmar Eliminación
+            Eliminar Categoría
           }
         </h3>
         <p hlmAlertDialogDescription>
@@ -471,8 +471,8 @@
           }
           @if (toggleAction() === 'delete') {
             <span class="block mt-3 text-sm text-red-600 dark:text-red-500">
-            Esta acción no se puede deshacer. La categoría será eliminada permanentemente del
-            sistema. Asegúrese de que no haya productos asociados a esta categoría.
+            Esta acción es irreversible y no se puede deshacer. La categoría se eliminará
+            permanentemente del sistema.
           </span>
           }
         </p>
