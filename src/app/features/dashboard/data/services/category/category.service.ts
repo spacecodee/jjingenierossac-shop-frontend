@@ -1,7 +1,8 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
 import { CategoryResponse } from '@features/dashboard/data/models/category-response.interface';
+import { CategorySelectResponse } from '@features/dashboard/data/models/category-select-response.interface';
 import { CreateCategoryRequest } from '@features/dashboard/data/models/create-category-request.interface';
 import { SearchCategoriesParams } from '@features/dashboard/data/models/search-categories-params.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
@@ -41,6 +42,20 @@ export class CategoryService {
   createCategory(request: CreateCategoryRequest): Observable<ApiDataResponse<CategoryResponse>> {
     return this.http
       .post<ApiDataResponse<CategoryResponse>>(this.apiUrl, request)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  getCategoriesForSelect(name?: string): Observable<ApiDataResponse<CategorySelectResponse[]>> {
+    let httpParams = new HttpParams();
+
+    if (name !== undefined && name !== null && name.trim() !== '') {
+      httpParams = httpParams.set('name', name.trim());
+    }
+
+    return this.http
+      .get<ApiDataResponse<CategorySelectResponse[]>>(`${ this.apiUrl }/for-select`, {
+        params: httpParams,
+      })
       .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
