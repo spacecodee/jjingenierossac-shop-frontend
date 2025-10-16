@@ -253,6 +253,7 @@
             </th>
             <th hlmTh>Descripción</th>
             <th hlmTh>Estado</th>
+            <th hlmTh class="text-center">Switch</th>
             <th
               hlmTh
               (click)="onSort('createdAt')"
@@ -311,6 +312,24 @@
                   } @else {
                     <span hlmBadge variant="outline"> Inactivo </span>
                   }
+                </td>
+                <td hlmTd class="text-center">
+                  <div class="flex items-center justify-center">
+                    <hlm-switch
+                      [checked]="
+                    subcategoryIdBeingToggled() === subcategory.subcategoryId
+                      ? !subcategory.isActive
+                      : subcategory.isActive
+                  "
+                      (checkedChange)="
+                    $event ? onActivateAttempt(subcategory) : onDeactivateAttempt(subcategory)
+                  "
+                      [disabled]="false"
+                      [attr.aria-label]="
+                    subcategory.isActive ? 'Desactivar subcategoría' : 'Activar subcategoría'
+                  "
+                    />
+                  </div>
                 </td>
                 <td hlmTd>{{ subcategory.createdAt | date : 'dd/MM/yyyy HH:mm' }}</td>
                 <td hlmTd>{{ subcategory.updatedAt | date : 'dd/MM/yyyy HH:mm' }}</td>
@@ -418,4 +437,69 @@
       </div>
     }
   </section>
+
+  <hlm-alert-dialog>
+    <button id="toggle-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
+    <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+      <hlm-alert-dialog-header>
+        <h3 hlmAlertDialogTitle>
+          @if (toggleAction() === 'activate') {
+            Confirmar Activación
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Confirmar Desactivación
+          }
+        </h3>
+        <p hlmAlertDialogDescription>
+          @if (toggleAction() === 'activate') {
+            ¿Está seguro de que desea activar esta subcategoría?
+          } @else if (toggleAction() === 'deactivate') {
+            ¿Está seguro de que desea desactivar esta
+              subcategoría?
+          }
+          @if (subcategoryToToggle()) {
+            <span class="block mt-2 font-medium">{{ subcategoryToToggle()!.name }}</span>
+          }
+          @if (toggleAction() === 'activate') {
+            <span class="block mt-3 text-sm text-muted-foreground">
+            La subcategoría volverá a estar disponible en el catálogo público y podrá ser editada
+            nuevamente.
+          </span>
+          } @else if (toggleAction() === 'deactivate') {
+            <span class="block mt-3 text-sm text-muted-foreground">
+            La subcategoría dejará de aparecer en el catálogo público y en los dropdowns de
+            selección. Podrá reactivarla posteriormente si lo necesita.
+          </span>
+          }
+        </p>
+      </hlm-alert-dialog-header>
+      <hlm-alert-dialog-footer>
+        <button
+          hlmAlertDialogCancel
+          class="cursor-pointer"
+          (click)="onCancelToggle(); ctx.close()"
+          [disabled]="isTogglingSubcategory()"
+        >
+          Cancelar
+        </button>
+        <button
+          hlmAlertDialogAction
+          [variant]="toggleAction() === 'deactivate' ? 'destructive' : 'default'"
+          (click)="onConfirmToggle(ctx.close)"
+          [disabled]="isTogglingSubcategory()"
+          class="cursor-pointer"
+        >
+          @if (isTogglingSubcategory()) {
+            <hlm-spinner size="sm" class="mr-2"/>
+          }
+          @if (toggleAction() === 'activate') {
+            Activar
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Desactivar
+          }
+        </button>
+      </hlm-alert-dialog-footer>
+    </hlm-alert-dialog-content>
+  </hlm-alert-dialog>
 </main>

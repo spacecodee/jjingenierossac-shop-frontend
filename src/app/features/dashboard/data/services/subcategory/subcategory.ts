@@ -8,6 +8,7 @@ import { SubcategorySelectResponse } from '@features/dashboard/data/models/subca
 import { UpdateSubcategoryRequest } from '@features/dashboard/data/models/update-subcategory-request.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
+import { ApiPlainResponse } from '@shared/data/models/api-plain-response.interface';
 import { HttpErrorHandlerService } from '@shared/services/http-error-handler.service';
 import { HttpParamsBuilderService } from '@shared/services/http-params-builder.service';
 import { catchError, Observable } from 'rxjs';
@@ -74,6 +75,18 @@ export class Subcategory {
   ): Observable<ApiDataResponse<SubcategoryResponse>> {
     return this.http
       .put<ApiDataResponse<SubcategoryResponse>>(`${ this.apiUrl }/${ id }`, request)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  activateSubcategory(id: number): Observable<ApiPlainResponse> {
+    return this.http
+      .put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/activate`, {})
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  deactivateSubcategory(id: number): Observable<ApiPlainResponse> {
+    return this.http
+      .put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/deactivate`, {})
       .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 }

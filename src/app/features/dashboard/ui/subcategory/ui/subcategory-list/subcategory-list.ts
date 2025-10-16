@@ -37,7 +37,9 @@ import { SortDirection } from '@shared/data/types/sort-direction.type';
 import { DateFormatterService } from '@shared/services/date-formatter.service';
 import { PaginationHelperService } from '@shared/services/pagination-helper.service';
 import { SearchListHelperService } from '@shared/services/search-list-helper.service';
+import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -51,7 +53,9 @@ import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSeparator } from '@spartan-ng/helm/separator';
 import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmTableImports } from '@spartan-ng/helm/table';
+import { toast } from 'ngx-sonner';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -60,6 +64,8 @@ import { map } from 'rxjs/operators';
   imports: [
     ...HlmCardImports,
     ...HlmButtonImports,
+    ...BrnAlertDialogImports,
+    ...HlmAlertDialogImports,
     ...BrnSelectImports,
     ...HlmSelectImports,
     ...HlmTableImports,
@@ -74,6 +80,7 @@ import { map } from 'rxjs/operators';
     HlmSpinner,
     HlmSeparator,
     HlmSkeleton,
+    ...HlmSwitchImports,
     FormsModule,
     DatePipe,
     RouterLink,
@@ -155,6 +162,11 @@ export class SubcategoryList implements OnInit, OnDestroy {
   readonly createdBefore = signal<Date | undefined>(undefined);
   readonly updatedAfter = signal<Date | undefined>(undefined);
   readonly updatedBefore = signal<Date | undefined>(undefined);
+
+  readonly subcategoryToToggle = signal<SubcategoryResponse | null>(null);
+  readonly toggleAction = signal<'activate' | 'deactivate' | null>(null);
+  readonly subcategoryIdBeingToggled = signal<number | null>(null);
+  readonly isTogglingSubcategory = signal<boolean>(false);
 
   get activeFilterValue(): ActiveFilterType {
     return this.activeFilter();
@@ -360,6 +372,85 @@ export class SubcategoryList implements OnInit, OnDestroy {
     }
     this.isLoading.set(true);
     this.loadSubcategories();
+  }
+
+  onActivateAttempt(subcategory: SubcategoryResponse): void {
+    if (!subcategory.isActive) {
+      this.subcategoryToToggle.set(subcategory);
+      this.toggleAction.set('activate');
+      this.subcategoryIdBeingToggled.set(subcategory.subcategoryId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onDeactivateAttempt(subcategory: SubcategoryResponse): void {
+    if (subcategory.isActive) {
+      this.subcategoryToToggle.set(subcategory);
+      this.toggleAction.set('deactivate');
+      this.subcategoryIdBeingToggled.set(subcategory.subcategoryId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onCancelToggle(): void {
+    this.subcategoryToToggle.set(null);
+    this.toggleAction.set(null);
+    this.subcategoryIdBeingToggled.set(null);
+  }
+
+  onConfirmToggle(closeDialog: () => void): void {
+    const subcategory = this.subcategoryToToggle();
+    const action = this.toggleAction();
+
+    if (!subcategory || !action) {
+      return;
+    }
+
+    this.isTogglingSubcategory.set(true);
+
+    const subcategoryCall =
+      action === 'activate'
+        ? this.subcategoryService.activateSubcategory(subcategory.subcategoryId)
+        : this.subcategoryService.deactivateSubcategory(subcategory.subcategoryId);
+
+    const newState = action === 'activate';
+    const successMessage =
+      action === 'activate' ? 'Subcategoría activada' : 'Subcategoría desactivada';
+    const errorMessage =
+      action === 'activate' ? 'Error al activar subcategoría' : 'Error al desactivar subcategoría';
+
+    subcategoryCall.subscribe({
+      next: (response) => {
+        this.subcategories.update((subcategories) =>
+          subcategories.map((s) =>
+            s.subcategoryId === subcategory.subcategoryId ? { ...s, isActive: newState } : s
+          )
+        );
+
+        toast.success(successMessage, {
+          description: response.message,
+        });
+
+        this.isTogglingSubcategory.set(false);
+        this.subcategoryToToggle.set(null);
+        this.toggleAction.set(null);
+        this.subcategoryIdBeingToggled.set(null);
+        closeDialog();
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isTogglingSubcategory.set(false);
+        this.subcategoryToToggle.set(null);
+        this.toggleAction.set(null);
+        this.subcategoryIdBeingToggled.set(null);
+        closeDialog();
+
+        toast.error(errorMessage, {
+          description: error.message,
+        });
+      },
+    });
   }
 
   private reloadFromPageZero(): void {
