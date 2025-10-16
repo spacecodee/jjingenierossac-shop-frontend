@@ -1,0 +1,9 @@
+<hlm-autocomplete
+  [searchPlaceholderText]="placeholder()"
+  [filteredOptions]="categoryNames()"
+  [search]="categorySearch()"
+  [disabled]="disabled()"
+  (searchChange)="onCategorySearchChange($event)"
+  (valueChange)="onCategorySelect($event)"
+  class="w-full"
+/>

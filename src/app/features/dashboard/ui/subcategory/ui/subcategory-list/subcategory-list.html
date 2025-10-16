@@ -117,8 +117,8 @@
 
       @if (showFilters()) {
         <div class="space-y-4 pt-4 border-t">
-          <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-3">
+          <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex flex-col gap-3 flex-1">
               <span class="text-sm font-medium">Estado</span>
               <hlm-radio-group
                 class="flex flex-row gap-4"
@@ -144,6 +144,15 @@
                   Inactivos
                 </label>
               </hlm-radio-group>
+            </div>
+
+            <div class="flex flex-col gap-3 flex-1">
+              <span class="text-sm font-medium">Categoría de Producto</span>
+              <app-product-category-autocomplete
+                #categoryAutocomplete
+                placeholder="Buscar categoría..."
+                (categorySelected)="onCategorySelected($event)"
+              />
             </div>
           </div>
         </div>

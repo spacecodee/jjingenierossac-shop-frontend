@@ -1,6 +1,16 @@
 import { DatePipe, registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
-import { Component, computed, inject, LOCALE_ID, numberAttribute, OnDestroy, OnInit, signal, } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  LOCALE_ID,
+  numberAttribute,
+  OnDestroy,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -18,6 +28,9 @@ import {
   lucideSlidersHorizontal,
   lucideX,
 } from '@ng-icons/lucide';
+import {
+  ProductCategoryAutocomplete
+} from '@shared/components/product-category-autocomplete/product-category-autocomplete';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { ActiveFilterType } from '@shared/data/types/active-filter.type';
 import { SortDirection } from '@shared/data/types/sort-direction.type';
@@ -64,6 +77,7 @@ import { map } from 'rxjs/operators';
     FormsModule,
     DatePipe,
     RouterLink,
+    ProductCategoryAutocomplete,
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'es-PE' },
@@ -103,6 +117,8 @@ export class SubcategoryList implements OnInit, OnDestroy {
   private searchSubscription?: Subscription;
   private queryParamsSubscription?: Subscription;
 
+  readonly categoryAutocomplete = viewChild<ProductCategoryAutocomplete>('categoryAutocomplete');
+
   readonly Math = Math;
 
   readonly subcategories = signal<SubcategoryResponse[]>([]);
@@ -133,7 +149,7 @@ export class SubcategoryList implements OnInit, OnDestroy {
   readonly showFilters = signal<boolean>(false);
   readonly showDateFilters = signal<boolean>(false);
   readonly activeFilter = signal<ActiveFilterType>('all');
-  readonly selectedCategoryId = signal<number | undefined>(undefined);
+  readonly selectedCategoryId = signal<number | null>(null);
 
   readonly createdAfter = signal<Date | undefined>(undefined);
   readonly createdBefore = signal<Date | undefined>(undefined);
@@ -152,7 +168,7 @@ export class SubcategoryList implements OnInit, OnDestroy {
     return (
       this.searchName() !== '' ||
       this.activeFilter() !== 'all' ||
-      this.selectedCategoryId() !== undefined ||
+      this.selectedCategoryId() !== null ||
       this.createdAfter() !== undefined ||
       this.createdBefore() !== undefined ||
       this.updatedAfter() !== undefined ||
@@ -207,8 +223,8 @@ export class SubcategoryList implements OnInit, OnDestroy {
       params.name = this.searchName();
     }
 
-    if (this.selectedCategoryId() !== undefined) {
-      params.categoryId = this.selectedCategoryId();
+    if (this.selectedCategoryId() !== null) {
+      params.categoryId = this.selectedCategoryId()!;
     }
 
     this.searchListHelper.applyActiveFilter(params, this.activeFilter);
@@ -272,11 +288,12 @@ export class SubcategoryList implements OnInit, OnDestroy {
     this.searchInputValue.set('');
     this.searchName.set('');
     this.activeFilter.set('all');
-    this.selectedCategoryId.set(undefined);
+    this.selectedCategoryId.set(null);
     this.createdAfter.set(undefined);
     this.createdBefore.set(undefined);
     this.updatedAfter.set(undefined);
     this.updatedBefore.set(undefined);
+    this.categoryAutocomplete()?.reset();
     this.isLoading.set(true);
 
     this.reloadFromPageZero();
@@ -323,6 +340,15 @@ export class SubcategoryList implements OnInit, OnDestroy {
     this.isLoading.set(true);
 
     this.reloadFromPageZero();
+  }
+
+  onCategorySelected(categoryId: number | null): void {
+    const previousValue = this.selectedCategoryId();
+    if (previousValue !== categoryId) {
+      this.selectedCategoryId.set(categoryId);
+      this.isLoading.set(true);
+      this.reloadFromPageZero();
+    }
   }
 
   onSort(field: SubcategorySortField): void {
