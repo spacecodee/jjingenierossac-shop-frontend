@@ -150,6 +150,7 @@
             <div class="flex flex-col gap-3 flex-1">
               <span class="text-sm font-medium">Categoría de Servicio</span>
               <app-service-category-autocomplete
+                #serviceCategoryAutocomplete
                 placeholder="Buscar categoría..."
                 (categorySelected)="onCategorySelected($event)"
               />

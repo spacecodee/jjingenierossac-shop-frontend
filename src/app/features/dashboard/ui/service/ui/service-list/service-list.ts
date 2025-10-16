@@ -9,6 +9,7 @@ import {
   OnDestroy,
   OnInit,
   signal,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -136,6 +137,10 @@ export class ServiceList implements OnInit, OnDestroy {
   private readonly searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
   private queryParamsSubscription?: Subscription;
+
+  readonly serviceCategoryAutocomplete = viewChild<ServiceCategoryAutocomplete>(
+    'serviceCategoryAutocomplete'
+  );
 
   readonly Math = Math;
 
@@ -319,6 +324,7 @@ export class ServiceList implements OnInit, OnDestroy {
     this.createdBefore.set(undefined);
     this.updatedAfter.set(undefined);
     this.updatedBefore.set(undefined);
+    this.serviceCategoryAutocomplete()?.reset();
     this.isLoading.set(true);
 
     this.reloadFromPageZero();
