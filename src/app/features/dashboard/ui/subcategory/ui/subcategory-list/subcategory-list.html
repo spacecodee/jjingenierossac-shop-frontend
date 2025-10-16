@@ -3,16 +3,16 @@
     <header hlmCardHeader>
       <div class="flex items-start justify-between gap-4 flex-col sm:flex-row">
         <div class="flex-1">
-          <h1 hlmCardTitle class="text-2xl font-bold">Servicios</h1>
+          <h1 hlmCardTitle class="text-2xl font-bold">Subcategorías de Productos</h1>
           <p hlmCardDescription class="text-sm text-muted-foreground mt-1">
-            Gestiona los servicios del sistema
+            Gestiona las subcategorías de productos del sistema
           </p>
         </div>
         <div class="flex items-center gap-2">
           <button
             hlmBtn
             size="sm"
-            routerLink="/dashboard/services/create"
+            routerLink="/dashboard/subcategories/create"
             class="flex items-center gap-2 cursor-pointer"
           >
             <ng-icon hlm size="sm" name="lucidePlus"/>
@@ -39,7 +39,6 @@
 
     <hlm-separator class="my-4"/>
 
-    <!-- Sección 1: Filtros (flex-shrink-0) -->
     <div hlmCardContent class="flex-shrink-0">
       <div class="flex flex-col gap-4">
         <div class="flex flex-col sm:flex-row gap-3">
@@ -117,8 +116,8 @@
       </div>
 
       @if (showFilters()) {
-        <div class="pt-4 border-t">
-          <div class="flex flex-col lg:flex-row gap-6 lg:items-end">
+        <div class="space-y-4 pt-4 border-t">
+          <div class="flex flex-col md:flex-row gap-4">
             <div class="flex flex-col gap-3 flex-1">
               <span class="text-sm font-medium">Estado</span>
               <hlm-radio-group
@@ -148,9 +147,9 @@
             </div>
 
             <div class="flex flex-col gap-3 flex-1">
-              <span class="text-sm font-medium">Categoría de Servicio</span>
-              <app-service-category-autocomplete
-                #serviceCategoryAutocomplete
+              <span class="text-sm font-medium">Categoría de Producto</span>
+              <app-product-category-autocomplete
+                #categoryAutocomplete
                 placeholder="Buscar categoría..."
                 (categorySelected)="onCategorySelected($event)"
               />
@@ -211,29 +210,34 @@
 
     <hlm-separator class="my-4"/>
 
-    <!-- Sección 2: Tabla (sin límite de altura) -->
-    <div hlmCardContent class="overflow-x-auto">
+    <div hlmCardContent class="flex-1 overflow-auto">
       @if (isLoading()) {
-        <div class="flex flex-col gap-4 py-4">
-          @for (item of [1, 2, 3, 4, 5]; track item) {
-            <hlm-skeleton class="h-12 w-full"/>
+        <div class="space-y-4">
+          @for (i of [1, 2, 3, 4, 5]; track i) {
+            <hlm-skeleton class="h-16 w-full"/>
           }
         </div>
-      } @else if (displayedServices().length === 0) {
-        <div class="flex flex-col items-center justify-center gap-4 py-12 text-center">
-          <p class="text-sm text-muted-foreground">
-            No se encontraron servicios con los criterios especificados
-          </p>
-          @if (hasFiltersApplied()) {
-            <button hlmBtn variant="outline" size="sm" (click)="onClearFilters()">
-              Limpiar filtros
-            </button>
-          }
+      } @else if (displayedSubcategories().length === 0) {
+        <div class="text-center py-12">
+          <p class="text-muted-foreground">No se encontraron subcategorías</p>
         </div>
       } @else {
         <table hlmTable>
           <thead hlmTHead>
           <tr hlmTr>
+            <th
+              hlmTh
+              (click)="onSort('categoryName')"
+              (keydown.enter)="onSort('categoryName')"
+              tabindex="0"
+              class="cursor-pointer select-none"
+            >
+              <div class="flex items-center gap-2">
+                Categoría Padre @if (sortField() === 'categoryName') {
+                <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
+              }
+              </div>
+            </th>
             <th
               hlmTh
               (click)="onSort('name')"
@@ -248,22 +252,7 @@
               </div>
             </th>
             <th hlmTh>Descripción</th>
-            <th hlmTh>Duración Estimada</th>
-            <th
-              hlmTh
-              (click)="onSort('serviceCategory')"
-              (keydown.enter)="onSort('serviceCategory')"
-              tabindex="0"
-              class="cursor-pointer select-none"
-            >
-              <div class="flex items-center gap-2">
-                Categoría @if (sortField() === 'serviceCategory') {
-                <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
-              }
-              </div>
-            </th>
             <th hlmTh>Estado</th>
-            <th hlmTh class="text-center">Activar/Desactivar</th>
             <th
               hlmTh
               (click)="onSort('createdAt')"
@@ -294,15 +283,12 @@
           </tr>
           </thead>
           <tbody hlmTBody>
-            @for (service of displayedServices(); track service.serviceId) {
+            @for (subcategory of displayedSubcategories(); track subcategory.subcategoryId) {
               <tr hlmTr>
-                <td hlmTd class="font-medium">{{ service.name }}</td>
-                <td hlmTd class="max-w-md truncate">{{ service.description }}</td>
-                <td hlmTd>{{ service.estimatedDuration }}</td>
                 <td hlmTd>
                   <div class="flex flex-col gap-1">
-                    <span class="font-medium">{{ service.serviceCategory.name }}</span>
-                    @if (service.serviceCategory.isActive) {
+                    <span class="font-medium">{{ subcategory.category.categoryName }}</span>
+                    @if (subcategory.category.categoryIsActive) {
                       <span
                         hlmBadge
                         variant="secondary"
@@ -315,8 +301,10 @@
                     }
                   </div>
                 </td>
+                <td hlmTd>{{ subcategory.name }}</td>
+                <td hlmTd>{{ subcategory.description }}</td>
                 <td hlmTd>
-                  @if (service.isActive) {
+                  @if (subcategory.isActive) {
                     <span hlmBadge variant="secondary" class="bg-green-500 text-white dark:bg-green-600">
                 Activo
               </span>
@@ -324,67 +312,19 @@
                     <span hlmBadge variant="outline"> Inactivo </span>
                   }
                 </td>
-                <td hlmTd class="text-center">
-                  <div class="flex items-center justify-center">
-                    <hlm-switch
-                      [checked]="
-                    serviceIdBeingToggled() === service.serviceId
-                      ? !service.isActive
-                      : service.isActive
-                  "
-                      (checkedChange)="
-                    $event ? onActivateAttempt(service) : onDeactivateAttempt(service)
-                  "
-                      [disabled]="false"
-                      [attr.aria-label]="service.isActive ? 'Desactivar servicio' : 'Activar servicio'"
-                    />
-                  </div>
-                </td>
+                <td hlmTd>{{ subcategory.createdAt | date : 'dd/MM/yyyy HH:mm' }}</td>
+                <td hlmTd>{{ subcategory.updatedAt | date : 'dd/MM/yyyy HH:mm' }}</td>
                 <td hlmTd>
-                  {{ service.createdAt | date : 'dd/MM/yyyy HH:mm' }}
-                </td>
-                <td hlmTd>
-                  {{ service.updatedAt | date : 'dd/MM/yyyy HH:mm' }}
-                </td>
-                <td hlmTd class="text-center">
-                  <div class="flex items-center justify-center gap-2">
+                  <div class="flex items-center gap-2">
                     <button
                       hlmBtn
                       variant="ghost"
                       size="sm"
-                      [routerLink]="['/dashboard/services', service.serviceId, 'edit']"
-                      class="flex items-center gap-2 cursor-pointer"
+                      [routerLink]="['/dashboard/subcategories', subcategory.subcategoryId, 'edit']"
+                      class="cursor-pointer"
                     >
                       <ng-icon hlm size="sm" name="lucidePencil"/>
-                      <span>Editar</span>
                     </button>
-
-                    <hlm-tooltip>
-                      <button
-                        hlmBtn
-                        variant="ghost"
-                        size="sm"
-                        hlmTooltipTrigger
-                        [disabled]="service.isActive"
-                        (click)="onDeleteAttempt(service)"
-                        class="flex items-center gap-2 cursor-pointer"
-                        [class.cursor-not-allowed]="service.isActive"
-                        [class.opacity-50]="service.isActive"
-                        [attr.aria-label]="
-                      service.isActive
-                        ? 'No se puede eliminar un servicio activo'
-                        : 'Eliminar servicio'
-                    "
-                      >
-                        <ng-icon hlm size="sm" name="lucideTrash2"/>
-                        <span>Eliminar</span>
-                      </button>
-                      @if (service.isActive) {
-                        <span *brnTooltipContent class="text-xs">
-                    Debe desactivar el servicio antes de eliminarlo
-                  </span>
-                      }
-                    </hlm-tooltip>
                   </div>
                 </td>
               </tr>
@@ -394,7 +334,6 @@
       }
     </div>
 
-    <!-- Sección 3: Paginación (flex-shrink-0) -->
     @if (!isLoading() && totalPages() > 0) {
       <hlm-separator class="my-4"/>
       <div hlmCardContent class="flex-shrink-0">
@@ -479,86 +418,4 @@
       </div>
     }
   </section>
-
-  <hlm-alert-dialog>
-    <button id="toggle-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
-    <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
-      <hlm-alert-dialog-header>
-        <h3 hlmAlertDialogTitle>
-          @if (toggleAction() === 'activate') {
-            Confirmar Activación
-          } @else if (toggleAction() ===
-          'deactivate') {
-            Confirmar Desactivación
-          } @else if (toggleAction() === 'delete') {
-            Confirmar Eliminación
-          }
-        </h3>
-        <p hlmAlertDialogDescription>
-          @if (toggleAction() === 'activate') {
-            ¿Está seguro de que desea activar este servicio?
-          } @else if (toggleAction() === 'deactivate') {
-            ¿Está seguro de que desea desactivar este
-              servicio?
-          } @else if (toggleAction() === 'delete') {
-            <span class="text-red-600 dark:text-red-500 font-semibold">
-            ¿Está seguro de que desea eliminar permanentemente este servicio?
-          </span>
-          }
-          @if (serviceToToggle()) {
-            <span class="block mt-2 font-medium">{{ serviceToToggle()!.name }}</span>
-          }
-          @if (toggleAction() === 'activate') {
-            <span class="block mt-3 text-sm text-muted-foreground">
-            El servicio volverá a estar disponible en el catálogo público y podrá ser editado
-            nuevamente.
-          </span>
-          } @else if (toggleAction() === 'deactivate') {
-            <span class="block mt-3 text-sm text-muted-foreground">
-            El servicio dejará de aparecer en el catálogo público y los clientes no podrán verlo ni
-            solicitar cotización. Podrá reactivarlo posteriormente si lo necesita.
-          </span>
-          } @else if (toggleAction() === 'delete') {
-            <span class="block mt-3 text-sm text-red-600 dark:text-red-500">
-            Esta acción es irreversible y no se puede deshacer. El servicio se eliminará
-            permanentemente del sistema.
-          </span>
-          }
-        </p>
-      </hlm-alert-dialog-header>
-      <hlm-alert-dialog-footer>
-        <button
-          hlmAlertDialogCancel
-          class="cursor-pointer"
-          (click)="onCancelToggle(); ctx.close()"
-          [disabled]="isTogglingService() || isDeletingService()"
-        >
-          Cancelar
-        </button>
-        <button
-          hlmAlertDialogAction
-          [variant]="
-            toggleAction() === 'delete' || toggleAction() === 'deactivate'
-              ? 'destructive'
-              : 'default'
-          "
-          (click)="onConfirmToggle(ctx.close)"
-          [disabled]="isTogglingService() || isDeletingService()"
-          class="cursor-pointer"
-        >
-          @if (isTogglingService() || isDeletingService()) {
-            <hlm-spinner size="sm" class="mr-2"/>
-          }
-          @if (toggleAction() === 'activate') {
-            Activar
-          } @else if (toggleAction() ===
-          'deactivate') {
-            Desactivar
-          } @else if (toggleAction() === 'delete') {
-            Eliminar
-          }
-        </button>
-      </hlm-alert-dialog-footer>
-    </hlm-alert-dialog-content>
-  </hlm-alert-dialog>
 </main>
