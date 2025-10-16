@@ -333,17 +333,47 @@
                 </td>
                 <td hlmTd>{{ subcategory.createdAt | date : 'dd/MM/yyyy HH:mm' }}</td>
                 <td hlmTd>{{ subcategory.updatedAt | date : 'dd/MM/yyyy HH:mm' }}</td>
-                <td hlmTd>
-                  <div class="flex items-center gap-2">
+                <td hlmTd class="text-center">
+                  <div class="flex items-center justify-center gap-2">
                     <button
                       hlmBtn
                       variant="ghost"
                       size="sm"
                       [routerLink]="['/dashboard/subcategories', subcategory.subcategoryId, 'edit']"
-                      class="cursor-pointer"
+                      class="flex items-center gap-2 cursor-pointer"
                     >
                       <ng-icon hlm size="sm" name="lucidePencil"/>
+                      <span>Editar</span>
                     </button>
+
+                    <hlm-tooltip>
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="sm"
+                        hlmTooltipTrigger
+                        [disabled]="subcategory.isActive"
+                        (click)="onDeleteAttempt(subcategory)"
+                        class="flex items-center gap-2 cursor-pointer"
+                        [class.cursor-not-allowed]="subcategory.isActive"
+                        [class.opacity-50]="subcategory.isActive"
+                        [attr.aria-label]="
+                      subcategory.isActive
+                        ? 'No se puede eliminar una subcategoría activa'
+                        : 'Eliminar subcategoría'
+                    "
+                      >
+                        <ng-icon hlm size="sm" name="lucideTrash2"/>
+                        <span>Eliminar</span>
+                      </button>
+                      @if (subcategory.isActive) {
+                        <span *brnTooltipContent class="text-xs">
+                    Debe desactivar la subcategoría antes de eliminarla
+                  </span>
+                      } @else {
+                        <span *brnTooltipContent class="text-xs"> Eliminar subcategoría </span>
+                      }
+                    </hlm-tooltip>
                   </div>
                 </td>
               </tr>
@@ -448,6 +478,8 @@
           } @else if (toggleAction() ===
           'deactivate') {
             Confirmar Desactivación
+          } @else if (toggleAction() === 'delete') {
+            Confirmar Eliminación
           }
         </h3>
         <p hlmAlertDialogDescription>
@@ -456,6 +488,10 @@
           } @else if (toggleAction() === 'deactivate') {
             ¿Está seguro de que desea desactivar esta
               subcategoría?
+          } @else if (toggleAction() === 'delete') {
+            <span class="text-red-600 dark:text-red-500 font-semibold">
+            ¿Está seguro de que desea eliminar permanentemente esta subcategoría?
+          </span>
           }
           @if (subcategoryToToggle()) {
             <span class="block mt-2 font-medium">{{ subcategoryToToggle()!.name }}</span>
@@ -470,6 +506,11 @@
             La subcategoría dejará de aparecer en el catálogo público y en los dropdowns de
             selección. Podrá reactivarla posteriormente si lo necesita.
           </span>
+          } @else if (toggleAction() === 'delete') {
+            <span class="block mt-3 text-sm text-red-600 dark:text-red-500">
+            Esta acción es irreversible y no se puede deshacer. La subcategoría se eliminará
+            permanentemente del sistema.
+          </span>
           }
         </p>
       </hlm-alert-dialog-header>
@@ -478,18 +519,22 @@
           hlmAlertDialogCancel
           class="cursor-pointer"
           (click)="onCancelToggle(); ctx.close()"
-          [disabled]="isTogglingSubcategory()"
+          [disabled]="isTogglingSubcategory() || isDeletingSubcategory()"
         >
           Cancelar
         </button>
         <button
           hlmAlertDialogAction
-          [variant]="toggleAction() === 'deactivate' ? 'destructive' : 'default'"
+          [variant]="
+            toggleAction() === 'delete' || toggleAction() === 'deactivate'
+              ? 'destructive'
+              : 'default'
+          "
           (click)="onConfirmToggle(ctx.close)"
-          [disabled]="isTogglingSubcategory()"
+          [disabled]="isTogglingSubcategory() || isDeletingSubcategory()"
           class="cursor-pointer"
         >
-          @if (isTogglingSubcategory()) {
+          @if (isTogglingSubcategory() || isDeletingSubcategory()) {
             <hlm-spinner size="sm" class="mr-2"/>
           }
           @if (toggleAction() === 'activate') {
@@ -497,6 +542,8 @@
           } @else if (toggleAction() ===
           'deactivate') {
             Desactivar
+          } @else if (toggleAction() === 'delete') {
+            Eliminar
           }
         </button>
       </hlm-alert-dialog-footer>

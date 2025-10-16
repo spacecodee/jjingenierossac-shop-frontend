@@ -26,6 +26,7 @@ import {
   lucideRefreshCw,
   lucideSearch,
   lucideSlidersHorizontal,
+  lucideTrash2,
   lucideX,
 } from '@ng-icons/lucide';
 import {
@@ -39,6 +40,7 @@ import { PaginationHelperService } from '@shared/services/pagination-helper.serv
 import { SearchListHelperService } from '@shared/services/search-list-helper.service';
 import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
+import { BrnTooltipImports } from '@spartan-ng/brain/tooltip';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -55,6 +57,7 @@ import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
 import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmTableImports } from '@spartan-ng/helm/table';
+import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { toast } from 'ngx-sonner';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -66,6 +69,8 @@ import { map } from 'rxjs/operators';
     ...HlmButtonImports,
     ...BrnAlertDialogImports,
     ...HlmAlertDialogImports,
+    ...BrnTooltipImports,
+    ...HlmTooltipImports,
     ...BrnSelectImports,
     ...HlmSelectImports,
     ...HlmTableImports,
@@ -96,6 +101,7 @@ import { map } from 'rxjs/operators';
       lucidePlus,
       lucideRefreshCw,
       lucidePencil,
+      lucideTrash2,
     }),
     provideHlmDatePickerConfig({
       formatDate: (date: Date) => {
@@ -164,9 +170,12 @@ export class SubcategoryList implements OnInit, OnDestroy {
   readonly updatedBefore = signal<Date | undefined>(undefined);
 
   readonly subcategoryToToggle = signal<SubcategoryResponse | null>(null);
-  readonly toggleAction = signal<'activate' | 'deactivate' | null>(null);
+  readonly toggleAction = signal<'activate' | 'deactivate' | 'delete' | null>(null);
   readonly subcategoryIdBeingToggled = signal<number | null>(null);
   readonly isTogglingSubcategory = signal<boolean>(false);
+
+  readonly subcategoryToDelete = signal<SubcategoryResponse | null>(null);
+  readonly isDeletingSubcategory = signal<boolean>(false);
 
   get activeFilterValue(): ActiveFilterType {
     return this.activeFilter();
@@ -394,6 +403,16 @@ export class SubcategoryList implements OnInit, OnDestroy {
     }
   }
 
+  onDeleteAttempt(subcategory: SubcategoryResponse): void {
+    if (!subcategory.isActive) {
+      this.subcategoryToDelete.set(subcategory);
+      this.subcategoryToToggle.set(subcategory);
+      this.toggleAction.set('delete');
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
   onCancelToggle(): void {
     this.subcategoryToToggle.set(null);
     this.toggleAction.set(null);
@@ -405,6 +424,39 @@ export class SubcategoryList implements OnInit, OnDestroy {
     const action = this.toggleAction();
 
     if (!subcategory || !action) {
+      return;
+    }
+
+    if (action === 'delete') {
+      this.isDeletingSubcategory.set(true);
+
+      this.subcategoryService.deleteSubcategory(subcategory.subcategoryId).subscribe({
+        next: (response) => {
+          this.subcategories.update((subcategories) =>
+            subcategories.filter((s) => s.subcategoryId !== subcategory.subcategoryId)
+          );
+
+          toast.success('Subcategoría eliminada', {
+            description: response.message,
+          });
+
+          this.isDeletingSubcategory.set(false);
+          this.subcategoryToDelete.set(null);
+          this.toggleAction.set(null);
+          closeDialog();
+        },
+        error: (error: ApiErrorResponse) => {
+          this.isDeletingSubcategory.set(false);
+          this.subcategoryToDelete.set(null);
+          this.toggleAction.set(null);
+          closeDialog();
+
+          toast.error('Error al eliminar subcategoría', {
+            description: error.message,
+          });
+        },
+      });
+
       return;
     }
 

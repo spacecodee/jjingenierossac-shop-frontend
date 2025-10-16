@@ -89,4 +89,10 @@ export class Subcategory {
       .put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/deactivate`, {})
       .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
+
+  deleteSubcategory(id: number): Observable<ApiPlainResponse> {
+    return this.http
+      .delete<ApiPlainResponse>(`${ this.apiUrl }/${ id }`)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
 }
