@@ -86,4 +86,12 @@ export const dashboardRoutes: Routes = [
         (m) => m.CategoryForm
       ),
   },
+  {
+    path: 'subcategories',
+    title: 'Subcategorías de Productos - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/subcategory/ui/subcategory-list/subcategory-list').then(
+        (m) => m.SubcategoryList
+      ),
+  },
 ];

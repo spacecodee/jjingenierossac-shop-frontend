@@ -72,6 +72,11 @@ export class DashboardSidebarLayout {
       icon: 'lucideTag',
     },
     {
+      label: 'Subcategorías de Productos',
+      route: '/dashboard/subcategories',
+      icon: 'lucideTag',
+    },
+    {
       label: 'Categorías de Servicio',
       route: '/dashboard/service-categories',
       icon: 'lucideTag',
