@@ -94,4 +94,20 @@ export const dashboardRoutes: Routes = [
         (m) => m.SubcategoryList
       ),
   },
+  {
+    path: 'subcategories/create',
+    title: 'Crear Subcategoría de Producto - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/subcategory/ui/forms/subcategory-form/subcategory-form').then(
+        (m) => m.SubcategoryForm
+      ),
+  },
+  {
+    path: 'subcategories/:id/edit',
+    title: 'Editar Subcategoría de Producto - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/subcategory/ui/forms/subcategory-form/subcategory-form').then(
+        (m) => m.SubcategoryForm
+      ),
+  },
 ];

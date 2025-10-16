@@ -1,0 +1,186 @@
+<main class="container mx-auto p-6 max-w-4xl">
+  <section hlmCard>
+    <header hlmCardHeader>
+      <div class="flex items-center justify-between">
+        <div class="flex-1">
+          <div class="flex items-center gap-3">
+            <h3 hlmCardTitle>{{ pageTitle() }}</h3>
+          </div>
+          <p hlmCardDescription>
+            {{ pageDescription() }}
+          </p>
+        </div>
+        <button
+          hlmBtn
+          class="cursor-pointer"
+          variant="ghost"
+          size="icon"
+          type="button"
+          (click)="onCancel()"
+          [disabled]="isSubmitting()"
+        >
+          <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+        </button>
+      </div>
+    </header>
+
+    <hlm-separator/>
+
+    @if (isLoading()) {
+      <div hlmCardContent class="space-y-6 pt-6">
+        <div class="space-y-3">
+          <hlm-skeleton class="h-4 w-24"/>
+          <hlm-skeleton class="h-10 w-full"/>
+        </div>
+        <div class="space-y-3">
+          <hlm-skeleton class="h-4 w-24"/>
+          <hlm-skeleton class="h-32 w-full"/>
+        </div>
+        <div class="space-y-3">
+          <hlm-skeleton class="h-4 w-40"/>
+          <hlm-skeleton class="h-10 w-full"/>
+        </div>
+      </div>
+    } @else {
+      @if (isInactive()) {
+        <div hlmCardContent class="pt-6">
+          <div
+            class="flex items-start gap-3 p-4 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950"
+          >
+            <ng-icon
+              hlm
+              size="base"
+              name="lucideTriangleAlert"
+              class="text-amber-600 dark:text-amber-400 mt-0.5"
+            />
+            <div class="flex-1">
+              <h4 class="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                Subcategoría Inactiva
+              </h4>
+              <p class="text-sm text-amber-800 dark:text-amber-200 mt-1">
+                Esta subcategoría está inactiva. Para poder editarla, primero debe activarla desde el
+                listado de subcategorías.
+              </p>
+              <button
+                hlmBtn
+                variant="outline"
+                size="sm"
+                class="mt-3 cursor-pointer"
+                type="button"
+                (click)="onCancel()"
+              >
+                Volver al Listado
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div hlmCardContent class="pt-6">
+        <form [formGroup]="subcategoryForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <hlm-form-field>
+            <label hlmLabel for="name" class="flex items-center justify-between">
+            <span>
+              Nombre
+              <span class="text-destructive ml-1">*</span>
+            </span>
+              <span class="text-xs text-muted-foreground font-normal">
+              {{ nameCharCount() }}/100
+            </span>
+            </label>
+            <input
+              hlmInput
+              id="name"
+              formControlName="name"
+              type="text"
+              placeholder="Ej: Laptops Gamer"
+              maxlength="100"
+              class="w-full"
+            />
+            @if (getNameError()) {
+              <hlm-error>{{ getNameError() }}</hlm-error>
+            } @else {
+              <hlm-hint
+              >Ingresa un nombre único para la subcategoría dentro de la categoría (máximo 100
+                caracteres)
+              </hlm-hint>
+            }
+          </hlm-form-field>
+
+          <hlm-form-field>
+            <label hlmLabel for="description" class="flex items-center justify-between">
+              <span>Descripción (Opcional)</span>
+              <span class="text-xs text-muted-foreground font-normal">
+              {{ descriptionCharCount() }} caracteres
+            </span>
+            </label>
+            <textarea
+              hlmInput
+              id="description"
+              formControlName="description"
+              placeholder="Describe la subcategoría en detalle..."
+              rows="5"
+              class="w-full"
+            ></textarea>
+            <hlm-hint>Proporciona una descripción detallada de la subcategoría</hlm-hint>
+          </hlm-form-field>
+
+          <div class="space-y-2">
+            <label hlmLabel for="category" class="flex items-center justify-between">
+            <span>
+              Categoría de Producto
+              <span class="text-destructive ml-1">*</span>
+            </span>
+            </label>
+            <app-product-category-autocomplete
+              placeholder="Busca una categoría..."
+              [initialCategoryId]="selectedCategoryId()"
+              (categorySelected)="onCategorySelected($event)"
+            />
+            @if (getCategoryError()) {
+              <p class="text-sm font-medium text-destructive">{{ getCategoryError() }}</p>
+            } @else {
+              <p class="text-sm text-muted-foreground">
+                Selecciona la categoría padre a la que pertenece esta subcategoría (escribe al menos 3
+                caracteres para buscar)
+              </p>
+            }
+          </div>
+
+          <div class="flex items-center gap-3 justify-end pt-4">
+            <button
+              class="cursor-pointer"
+              hlmBtn
+              variant="outline"
+              type="button"
+              (click)="onCancel()"
+              [disabled]="isSubmitting()"
+            >
+              Cancelar
+            </button>
+            <button
+              hlmBtn
+              type="submit"
+              [disabled]="
+              subcategoryForm.invalid ||
+              isSubmitting() ||
+              selectedCategoryId() === null ||
+              isInactive() ||
+              (isEditMode() && !hasChanges())
+            "
+              class="flex items-center gap-2 cursor-pointer"
+            >
+              @if (isSubmitting()) {
+                <hlm-spinner size="sm"/>
+                <span>{{ isEditMode() ? 'Guardando...' : 'Creando...' }}</span>
+              } @else {
+                <ng-icon hlm size="sm" name="lucideSave"/>
+                <span>{{ isEditMode() ? 'Guardar Cambios' : 'Crear Subcategoría' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  </section>
+</main>
