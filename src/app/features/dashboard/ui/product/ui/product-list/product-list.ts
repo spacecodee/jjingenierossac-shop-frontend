@@ -38,7 +38,10 @@ import { SortDirection } from '@shared/data/types/sort-direction.type';
 import { DateFormatterService } from '@shared/services/date-formatter.service';
 import { PaginationHelperService } from '@shared/services/pagination-helper.service';
 import { SearchListHelperService } from '@shared/services/search-list-helper.service';
+import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
+import { BrnTooltipImports } from '@spartan-ng/brain/tooltip';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -52,7 +55,10 @@ import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSeparator } from '@spartan-ng/helm/separator';
 import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmTableImports } from '@spartan-ng/helm/table';
+import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { toast } from 'ngx-sonner';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -70,6 +76,11 @@ import { map } from 'rxjs/operators';
     ...HlmPaginationImports,
     ...HlmIconImports,
     ...HlmInputImports,
+    ...BrnAlertDialogImports,
+    ...HlmAlertDialogImports,
+    ...BrnTooltipImports,
+    ...HlmTooltipImports,
+    ...HlmSwitchImports,
     HlmLabel,
     NgIcon,
     HlmSpinner,
@@ -409,5 +420,140 @@ export class ProductList implements OnInit, OnDestroy {
     this.isLoading.set(true);
 
     this.reloadFromPageZero();
+  }
+
+  onActivateAttempt(product: ProductResponse): void {
+    if (!product.isActive) {
+      this.productToToggle.set(product);
+      this.toggleAction.set('activate');
+      this.productIdBeingToggled.set(product.productId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onDeactivateAttempt(product: ProductResponse): void {
+    if (product.isActive) {
+      this.productToToggle.set(product);
+      this.toggleAction.set('deactivate');
+      this.productIdBeingToggled.set(product.productId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onDeleteAttempt(product: ProductResponse): void {
+    if (!product.isActive) {
+      this.productToDelete.set(product);
+      this.productToToggle.set(product);
+      this.toggleAction.set('delete');
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onCancelToggle(): void {
+    this.productToToggle.set(null);
+    this.toggleAction.set(null);
+    this.productIdBeingToggled.set(null);
+  }
+
+  onConfirmToggle(closeDialog: () => void): void {
+    const product = this.productToToggle();
+    const action = this.toggleAction();
+
+    if (!product || !action) {
+      return;
+    }
+
+    if (action === 'delete') {
+      this.isDeletingProduct.set(true);
+
+      this.productService.deleteProduct(product.productId).subscribe({
+        next: (response) => {
+          this.products.update((products) =>
+            products.filter((p) => p.productId !== product.productId)
+          );
+
+          this.totalElements.update((total) => Math.max(0, total - 1));
+
+          toast.success('Producto eliminado', {
+            description: response.message,
+          });
+
+          this.isDeletingProduct.set(false);
+          this.productToDelete.set(null);
+          this.toggleAction.set(null);
+          this.productIdBeingToggled.set(null);
+          closeDialog();
+
+          if (this.products().length === 0 && this.currentPage() > 0) {
+            this.router
+            .navigate([], {
+              relativeTo: this.route,
+              queryParams: { page: this.currentPage() - 1 },
+              queryParamsHandling: 'merge',
+            })
+            .then((r) => !r && undefined);
+          }
+        },
+        error: (error: ApiErrorResponse) => {
+          this.isDeletingProduct.set(false);
+          this.productToDelete.set(null);
+          this.toggleAction.set(null);
+          this.productIdBeingToggled.set(null);
+          closeDialog();
+
+          toast.error('Error al eliminar producto', {
+            description: error.message,
+          });
+        },
+      });
+
+      return;
+    }
+
+    this.isTogglingProduct.set(true);
+
+    const productCall =
+      action === 'activate'
+        ? this.productService.activateProduct(product.productId)
+        : this.productService.deactivateProduct(product.productId);
+
+    const newState = action === 'activate';
+    const successMessage = action === 'activate' ? 'Producto activado' : 'Producto desactivado';
+    const errorMessage =
+      action === 'activate' ? 'Error al activar producto' : 'Error al desactivar producto';
+
+    productCall.subscribe({
+      next: (response) => {
+        this.products.update((products) =>
+          products.map((p) =>
+            p.productId === product.productId ? { ...p, isActive: newState } : p
+          )
+        );
+
+        toast.success(successMessage, {
+          description: response.message,
+        });
+
+        this.isTogglingProduct.set(false);
+        this.productToToggle.set(null);
+        this.toggleAction.set(null);
+        this.productIdBeingToggled.set(null);
+        closeDialog();
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isTogglingProduct.set(false);
+        this.productToToggle.set(null);
+        this.toggleAction.set(null);
+        this.productIdBeingToggled.set(null);
+        closeDialog();
+
+        toast.error(errorMessage, {
+          description: error.message,
+        });
+      },
+    });
   }
 }

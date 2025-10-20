@@ -282,6 +282,7 @@
               </div>
             </th>
             <th hlmTh>Estado</th>
+            <th hlmTh class="text-center">Estado (Cambiar)</th>
             <th
               hlmTh
               (click)="onSort('createdAt')"
@@ -381,6 +382,22 @@
                     <span hlmBadge variant="outline"> Inactivo </span>
                   }
                 </td>
+                <td hlmTd class="text-center">
+                  <div class="flex items-center justify-center">
+                    <hlm-switch
+                      [checked]="
+                    productIdBeingToggled() === product.productId
+                      ? !product.isActive
+                      : product.isActive
+                  "
+                      (checkedChange)="
+                    $event ? onActivateAttempt(product) : onDeactivateAttempt(product)
+                  "
+                      [disabled]="false"
+                      [attr.aria-label]="product.isActive ? 'Desactivar producto' : 'Activar producto'"
+                    />
+                  </div>
+                </td>
                 <td hlmTd>{{ product.createdAt | date : 'dd/MM/yyyy HH:mm' }}</td>
                 <td hlmTd>{{ product.updatedAt | date : 'dd/MM/yyyy HH:mm' }}</td>
                 <td hlmTd class="text-center">
@@ -395,6 +412,30 @@
                       <ng-icon hlm size="sm" name="lucidePencil"/>
                       <span>Editar</span>
                     </button>
+
+                    <hlm-tooltip>
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="sm"
+                        hlmTooltipTrigger
+                        [disabled]="product.isActive"
+                        (click)="onDeleteAttempt(product)"
+                        class="flex items-center gap-2 cursor-pointer"
+                        [class.opacity-50]="product.isActive"
+                        [class.cursor-not-allowed]="product.isActive"
+                      >
+                        <ng-icon hlm size="sm" name="lucideTrash2"/>
+                        <span>Eliminar</span>
+                      </button>
+                      <span *brnTooltipContent class="text-xs">
+                    @if (product.isActive) {
+                      Debe desactivar el producto antes de eliminarlo
+                    } @else {
+                      Eliminar producto
+                    }
+                  </span>
+                    </hlm-tooltip>
                   </div>
                 </td>
               </tr>
@@ -489,3 +530,88 @@
     }
   </section>
 </main>
+
+<hlm-alert-dialog>
+  <button id="toggle-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
+  <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+    <hlm-alert-dialog-header>
+      <h3 hlmAlertDialogTitle>
+        @if (toggleAction() === 'activate') {
+          Activar Producto
+        } @else if (toggleAction() ===
+        'deactivate') {
+          Desactivar Producto
+        } @else {
+          Eliminar Producto
+        }
+      </h3>
+      <p hlmAlertDialogDescription>
+        @if (toggleAction() === 'activate') {
+          ¿Está seguro de que desea activar el producto
+          <strong>{{ productToToggle()?.name }}</strong
+          >? @if (productToToggle()) {
+            <br/>
+            <br/>
+            @if (!productToToggle()!.subcategory.subcategoryIsActive) {
+              <span class="text-red-600 font-medium">
+          ⚠️ La subcategoría de este producto está inactiva. Debe activarla primero.
+        </span>
+            } @else if (!productToToggle()!.subcategory.category.categoryIsActive) {
+              <span class="text-red-600 font-medium">
+          ⚠️ La categoría padre de este producto está inactiva. Debe activarla primero.
+        </span>
+            } @else {
+              El producto se hará visible y disponible para venta en el catálogo público.
+            }
+          }
+        } @else if (toggleAction() === 'deactivate') {
+          ¿Está seguro de que desea desactivar el
+            producto
+          <strong>{{ productToToggle()?.name }}</strong
+          >?
+          <br/>
+          <br/>
+          El producto se ocultará del catálogo público y no estará disponible para reservas.
+        } @else {
+          ¿Está seguro de que desea eliminar permanentemente el producto
+          <strong>{{ productToDelete()?.name }}</strong
+          >?
+          <br/>
+          <br/>
+          <span class="text-red-600 font-medium"> Esta acción no se puede deshacer. </span>
+        }
+      </p>
+    </hlm-alert-dialog-header>
+    <hlm-alert-dialog-footer>
+      <button hlmAlertDialogCancel (click)="ctx.close()" class="cursor-pointer">Cancelar</button>
+      <button
+        hlmAlertDialogAction
+        (click)="onConfirmToggle(ctx.close)"
+        [disabled]="isTogglingProduct() || isDeletingProduct()"
+        class="cursor-pointer"
+        [class.bg-green-600]="toggleAction() === 'activate'"
+        [class.hover:bg-green-700]="toggleAction() === 'activate'"
+        [class.bg-orange-600]="toggleAction() === 'deactivate'"
+        [class.hover:bg-orange-700]="toggleAction() === 'deactivate'"
+        [class.bg-red-600]="toggleAction() === 'delete'"
+        [class.hover:bg-red-700]="toggleAction() === 'delete'"
+      >
+        @if (isTogglingProduct() || isDeletingProduct()) {
+          <span class="flex items-center gap-2">
+          <span class="animate-spin">⏳</span>
+          Procesando...
+        </span>
+        } @else {
+          @if (toggleAction() === 'activate') {
+            Activar
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Desactivar
+          } @else {
+            Eliminar
+          }
+        }
+      </button>
+    </hlm-alert-dialog-footer>
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>
