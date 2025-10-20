@@ -1,0 +1,9 @@
+<hlm-autocomplete
+  [searchPlaceholderText]="placeholder()"
+  [filteredOptions]="productNames()"
+  [search]="productSearch()"
+  [disabled]="disabled()"
+  (searchChange)="onProductSearchChange($event)"
+  (valueChange)="onProductSelect($event)"
+  class="w-full"
+/>

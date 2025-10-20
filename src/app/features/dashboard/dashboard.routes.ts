@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { unsavedChangesGuard } from '@core/guards/unsaved-changes.guard';
 
 export const dashboardRoutes: Routes = [
   {
@@ -116,6 +117,24 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import('@features/dashboard/ui/product/ui/product-list/product-list').then(
         (m) => m.ProductList
+      ),
+  },
+  {
+    path: 'products/create',
+    title: 'Crear Producto - J&J Ingenieros SAC',
+    canDeactivate: [unsavedChangesGuard],
+    loadComponent: () =>
+      import('@features/dashboard/ui/product/ui/forms/product-form/product-form').then(
+        (m) => m.ProductForm
+      ),
+  },
+  {
+    path: 'products/:id/edit',
+    title: 'Editar Producto - J&J Ingenieros SAC',
+    canDeactivate: [unsavedChangesGuard],
+    loadComponent: () =>
+      import('@features/dashboard/ui/product/ui/forms/product-form/product-form').then(
+        (m) => m.ProductForm
       ),
   },
 ];

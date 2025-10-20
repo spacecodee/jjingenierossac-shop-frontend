@@ -1,10 +1,14 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
+import { CreateProductRequest } from '@features/dashboard/data/models/create-product-request.interface';
 import { ProductResponse } from '@features/dashboard/data/models/product-response.interface';
+import { ProductSelectResponse } from '@features/dashboard/data/models/product-select-response.interface';
 import { SearchProductsParams } from '@features/dashboard/data/models/search-products-params.interface';
+import { UpdateProductRequest } from '@features/dashboard/data/models/update-product-request.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
+import { ApiPlainResponse } from '@shared/data/models/api-plain-response.interface';
 import { HttpErrorHandlerService } from '@shared/services/http-error-handler.service';
 import { HttpParamsBuilderService } from '@shared/services/http-params-builder.service';
 import { catchError, Observable } from 'rxjs';
@@ -36,4 +40,96 @@ export class Product {
     .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
+  getProductsForSelect(search?: string): Observable<ApiDataResponse<ProductSelectResponse[]>> {
+    let httpParams = new HttpParams();
+
+    if (search !== undefined && search !== null && search.trim() !== '') {
+      httpParams = httpParams.set('search', search.trim());
+    }
+
+    return this.http
+    .get<ApiDataResponse<ProductSelectResponse[]>>(`${ this.apiUrl }/for-select`, {
+      params: httpParams,
+    })
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  createProduct(request: CreateProductRequest): Observable<ApiDataResponse<ProductResponse>> {
+    const formData = new FormData();
+
+    formData.append('name', request.name.trim());
+    formData.append('price', request.price.toString());
+    formData.append('stockQuantity', request.stockQuantity.toString());
+    formData.append('subcategoryId', request.subcategoryId.toString());
+
+    if (request.brand) {
+      formData.append('brand', request.brand.trim());
+    }
+
+    if (request.description) {
+      formData.append('description', request.description.trim());
+    }
+
+    if (request.sku) {
+      formData.append('sku', request.sku.trim());
+    }
+
+    if (request.image) {
+      formData.append('image', request.image, request.image.name);
+    }
+
+    return this.http
+    .post<ApiDataResponse<ProductResponse>>(this.apiUrl, formData)
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  updateProduct(
+    productId: number,
+    updateRequest: UpdateProductRequest
+  ): Observable<ApiDataResponse<ProductResponse>> {
+    const formData = new FormData();
+
+    formData.append('name', updateRequest.name.trim());
+    formData.append('price', updateRequest.price.toString());
+    formData.append('stockQuantity', updateRequest.stockQuantity.toString());
+    formData.append('subcategoryId', updateRequest.subcategoryId.toString());
+
+    if (updateRequest.brand) {
+      formData.append('brand', updateRequest.brand.trim());
+    }
+
+    if (updateRequest.description) {
+      formData.append('description', updateRequest.description.trim());
+    }
+
+    if (updateRequest.sku) {
+      formData.append('sku', updateRequest.sku.trim());
+    }
+
+    if (updateRequest.image) {
+      formData.append('image', updateRequest.image, updateRequest.image.name);
+    }
+
+    return this.http
+    .put<ApiDataResponse<ProductResponse>>(`${ this.apiUrl }/${ productId }`, formData)
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  activateProduct(id: number): Observable<ApiPlainResponse> {
+    return this.http
+    .put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/activate`, {})
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  deactivateProduct(id: number): Observable<ApiPlainResponse> {
+    return this.http
+    .put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/deactivate`, {})
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  deleteProduct(id: number): Observable<ApiPlainResponse> {
+    return this.http
+    .delete<ApiPlainResponse>(`${ this.apiUrl }/${ id }`)
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
 }

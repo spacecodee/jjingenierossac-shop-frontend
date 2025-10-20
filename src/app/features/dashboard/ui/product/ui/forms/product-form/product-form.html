@@ -1,0 +1,424 @@
+<main class="container mx-auto p-6 max-w-5xl">
+  <section hlmCard>
+    <header hlmCardHeader>
+      <div class="flex items-center justify-between">
+        <div class="flex-1">
+          <div class="flex items-center gap-3">
+            <h3 hlmCardTitle>{{ pageTitle() }}</h3>
+          </div>
+          <p hlmCardDescription>
+            {{ pageDescription() }}
+          </p>
+        </div>
+        <button
+          hlmBtn
+          class="cursor-pointer"
+          variant="ghost"
+          size="icon"
+          type="button"
+          (click)="onCancel()"
+          [disabled]="isSubmitting()"
+        >
+          <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+        </button>
+      </div>
+    </header>
+
+    <hlm-separator/>
+
+    @if (isLoading()) {
+      <div hlmCardContent class="space-y-6 pt-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-3">
+            <hlm-skeleton class="h-4 w-24"/>
+            <hlm-skeleton class="h-10 w-full"/>
+          </div>
+          <div class="space-y-3">
+            <hlm-skeleton class="h-4 w-24"/>
+            <hlm-skeleton class="h-10 w-full"/>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <hlm-skeleton class="h-4 w-24"/>
+          <hlm-skeleton class="h-32 w-full"/>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-3">
+            <hlm-skeleton class="h-4 w-24"/>
+            <hlm-skeleton class="h-10 w-full"/>
+          </div>
+          <div class="space-y-3">
+            <hlm-skeleton class="h-4 w-24"/>
+            <hlm-skeleton class="h-10 w-full"/>
+          </div>
+        </div>
+      </div>
+    } @else {
+      @if (isInactive()) {
+        <div hlmCardContent class="pt-6">
+          <div
+            class="flex items-start gap-3 p-4 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950"
+          >
+            <ng-icon
+              hlm
+              size="base"
+              name="lucideTriangleAlert"
+              class="text-amber-600 dark:text-amber-400 mt-0.5"
+            />
+            <div class="flex-1">
+              <h4 class="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                Producto Inactivo
+              </h4>
+              <p class="text-sm text-amber-800 dark:text-amber-200 mt-1">
+                Este producto está inactivo. Para poder editarlo, primero debe activarlo desde el
+                listado de productos.
+              </p>
+              <button
+                hlmBtn
+                variant="outline"
+                size="sm"
+                class="mt-3 cursor-pointer"
+                type="button"
+                (click)="onCancel()"
+              >
+                Volver al Listado
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+      @if (isSubcategoryInactive() || isCategoryInactive()) {
+        <div hlmCardContent class="pt-6">
+          @if (isCategoryInactive()) {
+            <div
+              class="flex items-start gap-3 p-4 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950 mb-4"
+            >
+              <ng-icon
+                hlm
+                size="base"
+                name="lucideTriangleAlert"
+                class="text-amber-600 dark:text-amber-400 mt-0.5"
+              />
+              <div class="flex-1">
+                <h4 class="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                  Categoría Inactiva
+                </h4>
+                <p class="text-sm text-amber-800 dark:text-amber-200 mt-1">
+                  La categoría padre está inactiva. No se puede activar el producto mientras la jerarquía
+                  esté inactiva.
+                </p>
+              </div>
+            </div>
+          }
+          @if (isSubcategoryInactive()) {
+            <div
+              class="flex items-start gap-3 p-4 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950"
+            >
+              <ng-icon
+                hlm
+                size="base"
+                name="lucideTriangleAlert"
+                class="text-amber-600 dark:text-amber-400 mt-0.5"
+              />
+              <div class="flex-1">
+                <h4 class="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                  Subcategoría Inactiva
+                </h4>
+                <p class="text-sm text-amber-800 dark:text-amber-200 mt-1">
+                  La subcategoría de este producto está inactiva. Considere reasignar a una subcategoría
+                  activa.
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <div hlmCardContent class="pt-6">
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <hlm-form-field>
+              <label hlmLabel for="name" class="flex items-center justify-between">
+              <span>
+                Nombre del Producto
+                <span class="text-destructive ml-1">*</span>
+              </span>
+                <span class="text-xs text-muted-foreground font-normal">
+                {{ nameCharCount() }}/255
+              </span>
+              </label>
+              <input
+                hlmInput
+                id="name"
+                formControlName="name"
+                type="text"
+                placeholder="Ej: Laptop HP Pavilion 15"
+                maxlength="255"
+                class="w-full"
+              />
+              @if (getNameError()) {
+                <hlm-error>{{ getNameError() }}</hlm-error>
+              } @else {
+                <hlm-hint>Nombre único del producto (máximo 255 caracteres)</hlm-hint>
+              }
+            </hlm-form-field>
+
+            <hlm-form-field>
+              <label hlmLabel for="brand" class="flex items-center justify-between">
+                <span>Marca (Opcional)</span>
+                <span class="text-xs text-muted-foreground font-normal">
+                {{ brandCharCount() }}/100
+              </span>
+              </label>
+              <input
+                hlmInput
+                id="brand"
+                formControlName="brand"
+                type="text"
+                placeholder="Ej: HP"
+                maxlength="100"
+                class="w-full"
+              />
+              @if (getBrandError()) {
+                <hlm-error>{{ getBrandError() }}</hlm-error>
+              } @else {
+                <hlm-hint>Marca del fabricante (máximo 100 caracteres)</hlm-hint>
+              }
+            </hlm-form-field>
+          </div>
+
+          <hlm-form-field>
+            <label hlmLabel for="description" class="flex items-center justify-between">
+              <span>Descripción (Opcional)</span>
+              <span class="text-xs text-muted-foreground font-normal">
+              {{ descriptionCharCount() }} caracteres
+            </span>
+            </label>
+            <textarea
+              hlmInput
+              id="description"
+              formControlName="description"
+              placeholder="Describe el producto en detalle..."
+              rows="5"
+              class="w-full"
+            ></textarea>
+            <hlm-hint>Proporciona una descripción detallada del producto</hlm-hint>
+          </hlm-form-field>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <hlm-form-field>
+              <label hlmLabel for="price">
+                Precio (S/)
+                <span class="text-destructive ml-1">*</span>
+              </label>
+              <input
+                hlmInput
+                id="price"
+                formControlName="price"
+                type="number"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                class="w-full"
+              />
+              @if (getPriceError()) {
+                <hlm-error>{{ getPriceError() }}</hlm-error>
+              } @else {
+                <hlm-hint>Precio en soles (S/)</hlm-hint>
+              }
+            </hlm-form-field>
+
+            <hlm-form-field>
+              <label hlmLabel for="stockQuantity">
+                Stock
+                <span class="text-destructive ml-1">*</span>
+              </label>
+              <input
+                hlmInput
+                id="stockQuantity"
+                formControlName="stockQuantity"
+                type="number"
+                placeholder="0"
+                min="0"
+                step="1"
+                class="w-full"
+              />
+              @if (getStockQuantityError()) {
+                <hlm-error>{{ getStockQuantityError() }}</hlm-error>
+              } @else {
+                <hlm-hint>Cantidad disponible</hlm-hint>
+              }
+            </hlm-form-field>
+
+            <hlm-form-field>
+              <label hlmLabel for="sku" class="flex items-center justify-between">
+                <span>SKU (Opcional)</span>
+                <span class="text-xs text-muted-foreground font-normal">
+                {{ skuCharCount() }}/100
+              </span>
+              </label>
+              <input
+                hlmInput
+                id="sku"
+                formControlName="sku"
+                type="text"
+                placeholder="Ej: HP-PAV15-001"
+                maxlength="100"
+                class="w-full"
+              />
+              @if (getSkuError()) {
+                <hlm-error>{{ getSkuError() }}</hlm-error>
+              } @else {
+                <hlm-hint>Código de identificación</hlm-hint>
+              }
+            </hlm-form-field>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label hlmLabel for="category" class="flex items-center justify-between">
+              <span>
+                Categoría de Producto
+                <span class="text-destructive ml-1">*</span>
+              </span>
+              </label>
+              <app-product-category-autocomplete
+                placeholder="Busca una categoría..."
+                [initialCategoryId]="selectedCategoryId()"
+                (categorySelected)="onCategorySelected($event)"
+              />
+              <p class="text-sm text-muted-foreground">
+                Selecciona la categoría del producto (escribe al menos 3 caracteres)
+              </p>
+            </div>
+
+            <div class="space-y-2">
+              <label hlmLabel for="subcategory" class="flex items-center justify-between">
+              <span>
+                Subcategoría
+                <span class="text-destructive ml-1">*</span>
+              </span>
+              </label>
+              <app-subcategory-autocomplete
+                placeholder="Busca una subcategoría..."
+                [initialSubcategoryId]="selectedSubcategoryId()"
+                [categoryId]="selectedCategoryId()"
+                (subcategorySelected)="onSubcategorySelected($event)"
+                [disabled]="selectedCategoryId() === null"
+              />
+              @if (getSubcategoryError()) {
+                <p class="text-sm font-medium text-destructive">{{ getSubcategoryError() }}</p>
+              } @else {
+                <p class="text-sm text-muted-foreground">
+                  @if (selectedCategoryId() === null) {
+                    Primero selecciona una categoría
+                  } @else {
+                    Selecciona la subcategoría del producto (escribe al menos 3 caracteres)
+                  }
+                </p>
+              }
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <label hlmLabel for="image"> Imagen del Producto (Opcional) </label>
+
+            @if (imagePreview() || currentImageUrl()) {
+              <div class="relative w-full max-w-md">
+                <img
+                  [src]="imagePreview() || currentImageUrl()"
+                  alt="Preview del producto"
+                  class="w-full h-64 object-cover rounded-lg border border-border"
+                />
+                <button
+                  hlmBtn
+                  variant="destructive"
+                  size="icon"
+                  type="button"
+                  class="absolute top-2 right-2 cursor-pointer"
+                  (click)="onRemoveImage()"
+                >
+                  <ng-icon hlm size="sm" name="lucideTrash2"/>
+                </button>
+                @if (imageFile()) {
+                  <p class="text-sm text-muted-foreground mt-2">Tamaño: {{ formatBytes(imageSize()) }}</p>
+                }
+              </div>
+            } @else {
+              <button
+                type="button"
+                class="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-border rounded-lg hover:border-primary/50 transition-colors cursor-pointer bg-transparent"
+                (click)="imageInput.click()"
+              >
+                <ng-icon hlm size="lg" name="lucideImage" class="text-muted-foreground mb-2"/>
+                <p class="text-sm text-muted-foreground">Haz clic para seleccionar una imagen</p>
+                <p class="text-xs text-muted-foreground mt-1">
+                  JPG, JPEG, PNG o WEBP (máx. {{ maxImageSizeMB }}MB)
+                </p>
+              </button>
+            }
+
+            <input
+              #imageInput
+              id="image"
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp"
+              class="hidden"
+              (change)="onImageSelect($event)"
+            />
+
+            @if (!imagePreview() && !currentImageUrl()) {
+              <button
+                hlmBtn
+                variant="outline"
+                type="button"
+                class="w-full cursor-pointer flex items-center justify-center gap-2"
+                (click)="imageInput.click()"
+              >
+                <ng-icon hlm size="sm" name="lucideUpload"/>
+                <span>Seleccionar Imagen</span>
+              </button>
+            }
+
+            <p class="text-sm text-muted-foreground">
+              La imagen se subirá automáticamente al crear o actualizar el producto
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3 justify-end pt-4">
+            <button
+              class="cursor-pointer"
+              hlmBtn
+              variant="outline"
+              type="button"
+              (click)="onCancel()"
+              [disabled]="isSubmitting()"
+            >
+              Cancelar
+            </button>
+            <button
+              hlmBtn
+              type="submit"
+              [disabled]="
+              productForm.invalid ||
+              isSubmitting() ||
+              selectedSubcategoryId() === null ||
+              isInactive() ||
+              (isEditMode() && !hasChanges())
+            "
+              class="flex items-center gap-2 cursor-pointer"
+            >
+              @if (isSubmitting()) {
+                <hlm-spinner size="sm"/>
+                <span>{{ isEditMode() ? 'Guardando...' : 'Creando...' }}</span>
+              } @else {
+                <ng-icon hlm size="sm" name="lucideSave"/>
+                <span>{{ isEditMode() ? 'Guardar Cambios' : 'Crear Producto' }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+  </section>
+</main>

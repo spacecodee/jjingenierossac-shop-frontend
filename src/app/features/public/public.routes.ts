@@ -22,4 +22,20 @@ export const publicRoutes: Routes = [
         (m) => m.PublicServiceDetail
       ),
   },
+  {
+    path: 'products',
+    title: 'Productos - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/public/ui/public-product-list/public-product-list').then(
+        (m) => m.PublicProductList
+      ),
+  },
+  {
+    path: 'products/:id',
+    title: 'Detalle del Producto - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/public/ui/public-product-detail/public-product-detail').then(
+        (m) => m.PublicProductDetail
+      ),
+  },
 ];

@@ -5,6 +5,7 @@ export interface ProductResponse {
   subcategory: SubcategoryBasicResponse;
   name: string;
   brand?: string | null;
+  description? : string | null;
   price: number;
   stockQuantity: number;
   sku?: string | null;
