@@ -12,7 +12,7 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import(
         '@app/features/dashboard/ui/dashboard-overview-component/dashboard-overview-component'
-        ).then((m) => m.DashboardOverviewComponent),
+      ).then((m) => m.DashboardOverviewComponent),
   },
   {
     path: 'service-categories',
@@ -20,7 +20,7 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import(
         '@features/dashboard/ui/service-category/ui/service-category-list/service-category-list'
-        ).then((m) => m.ServiceCategoryList),
+      ).then((m) => m.ServiceCategoryList),
   },
   {
     path: 'service-categories/create',
@@ -28,7 +28,7 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import(
         '@features/dashboard/ui/service-category/ui/forms/service-category-form/service-category-form'
-        ).then((m) => m.ServiceCategoryForm),
+      ).then((m) => m.ServiceCategoryForm),
   },
   {
     path: 'service-categories/:id/edit',
@@ -36,7 +36,7 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import(
         '@features/dashboard/ui/service-category/ui/forms/service-category-form/service-category-form'
-        ).then((m) => m.ServiceCategoryForm),
+      ).then((m) => m.ServiceCategoryForm),
   },
   {
     path: 'services',
@@ -116,6 +116,22 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import('@features/dashboard/ui/product/ui/product-list/product-list').then(
         (m) => m.ProductList
+      ),
+  },
+  {
+    path: 'products/create',
+    title: 'Crear Producto - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/product/ui/forms/product-form/product-form').then(
+        (m) => m.ProductForm
+      ),
+  },
+  {
+    path: 'products/:id/edit',
+    title: 'Editar Producto - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/product/ui/forms/product-form/product-form').then(
+        (m) => m.ProductForm
       ),
   },
 ];
