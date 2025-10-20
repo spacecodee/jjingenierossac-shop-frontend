@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { unsavedChangesGuard } from '@core/guards/unsaved-changes.guard';
 
 export const dashboardRoutes: Routes = [
   {
@@ -12,7 +13,7 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import(
         '@app/features/dashboard/ui/dashboard-overview-component/dashboard-overview-component'
-      ).then((m) => m.DashboardOverviewComponent),
+        ).then((m) => m.DashboardOverviewComponent),
   },
   {
     path: 'service-categories',
@@ -20,7 +21,7 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import(
         '@features/dashboard/ui/service-category/ui/service-category-list/service-category-list'
-      ).then((m) => m.ServiceCategoryList),
+        ).then((m) => m.ServiceCategoryList),
   },
   {
     path: 'service-categories/create',
@@ -28,7 +29,7 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import(
         '@features/dashboard/ui/service-category/ui/forms/service-category-form/service-category-form'
-      ).then((m) => m.ServiceCategoryForm),
+        ).then((m) => m.ServiceCategoryForm),
   },
   {
     path: 'service-categories/:id/edit',
@@ -36,7 +37,7 @@ export const dashboardRoutes: Routes = [
     loadComponent: () =>
       import(
         '@features/dashboard/ui/service-category/ui/forms/service-category-form/service-category-form'
-      ).then((m) => m.ServiceCategoryForm),
+        ).then((m) => m.ServiceCategoryForm),
   },
   {
     path: 'services',
@@ -121,6 +122,7 @@ export const dashboardRoutes: Routes = [
   {
     path: 'products/create',
     title: 'Crear Producto - J&J Ingenieros SAC',
+    canDeactivate: [unsavedChangesGuard],
     loadComponent: () =>
       import('@features/dashboard/ui/product/ui/forms/product-form/product-form').then(
         (m) => m.ProductForm
@@ -129,6 +131,7 @@ export const dashboardRoutes: Routes = [
   {
     path: 'products/:id/edit',
     title: 'Editar Producto - J&J Ingenieros SAC',
+    canDeactivate: [unsavedChangesGuard],
     loadComponent: () =>
       import('@features/dashboard/ui/product/ui/forms/product-form/product-form').then(
         (m) => m.ProductForm

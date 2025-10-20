@@ -84,34 +84,34 @@ export class Product {
   }
 
   updateProduct(
-    id: number,
-    request: UpdateProductRequest
+    productId: number,
+    updateRequest: UpdateProductRequest
   ): Observable<ApiDataResponse<ProductResponse>> {
     const formData = new FormData();
 
-    formData.append('name', request.name.trim());
-    formData.append('price', request.price.toString());
-    formData.append('stockQuantity', request.stockQuantity.toString());
-    formData.append('subcategoryId', request.subcategoryId.toString());
+    formData.append('name', updateRequest.name.trim());
+    formData.append('price', updateRequest.price.toString());
+    formData.append('stockQuantity', updateRequest.stockQuantity.toString());
+    formData.append('subcategoryId', updateRequest.subcategoryId.toString());
 
-    if (request.brand) {
-      formData.append('brand', request.brand.trim());
+    if (updateRequest.brand) {
+      formData.append('brand', updateRequest.brand.trim());
     }
 
-    if (request.description) {
-      formData.append('description', request.description.trim());
+    if (updateRequest.description) {
+      formData.append('description', updateRequest.description.trim());
     }
 
-    if (request.sku) {
-      formData.append('sku', request.sku.trim());
+    if (updateRequest.sku) {
+      formData.append('sku', updateRequest.sku.trim());
     }
 
-    if (request.image) {
-      formData.append('image', request.image, request.image.name);
+    if (updateRequest.image) {
+      formData.append('image', updateRequest.image, updateRequest.image.name);
     }
 
     return this.http
-    .put<ApiDataResponse<ProductResponse>>(`${ this.apiUrl }/${ id }`, formData)
+    .put<ApiDataResponse<ProductResponse>>(`${ this.apiUrl }/${ productId }`, formData)
     .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 

@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CanComponentDeactivate } from '@core/guards/unsaved-changes.guard';
 import { CreateProductRequest } from '@features/dashboard/data/models/create-product-request.interface';
 import { ProductResponse } from '@features/dashboard/data/models/product-response.interface';
 import { UpdateProductRequest } from '@features/dashboard/data/models/update-product-request.interface';
@@ -60,7 +61,7 @@ import { toast } from 'ngx-sonner';
   templateUrl: './product-form.html',
   styleUrl: './product-form.css',
 })
-export class ProductForm implements OnInit {
+export class ProductForm implements OnInit, CanComponentDeactivate {
   private readonly fb = inject(FormBuilder);
   private readonly productService = inject(Product);
   private readonly router = inject(Router);
@@ -86,6 +87,7 @@ export class ProductForm implements OnInit {
   readonly imagePreview = signal<string | null>(null);
   readonly imageSize = signal<number>(0);
   readonly currentImageUrl = signal<string | null>(null);
+  readonly savedSuccessfully = signal<boolean>(false);
 
   readonly originalName = signal<string>('');
   readonly originalBrand = signal<string>('');
@@ -99,6 +101,10 @@ export class ProductForm implements OnInit {
   private readonly formChanged = signal<number>(0);
 
   readonly hasChanges = computed(() => {
+    if (this.savedSuccessfully()) {
+      return false;
+    }
+
     if (!this.isEditMode()) {
       return true;
     }
@@ -333,12 +339,10 @@ export class ProductForm implements OnInit {
     this.imageSize.set(0);
     this.currentImageUrl.set(null);
 
-    const fileInput = document.getElementById('image') as HTMLInputElement;
+    const fileInput = document.getElementById('image-upload') as HTMLInputElement;
     if (fileInput) {
       fileInput.value = '';
     }
-
-    this.formChanged.update((v) => v + 1);
   }
 
   formatBytes(bytes: number): string {
@@ -368,7 +372,7 @@ export class ProductForm implements OnInit {
     this.isSubmitting.set(true);
 
     const formValue = this.productForm.value;
-    const request: CreateProductRequest | UpdateProductRequest = {
+    const baseRequest = {
       name: formValue.name.trim(),
       brand: formValue.brand?.trim() || undefined,
       description: formValue.description?.trim() || undefined,
@@ -380,9 +384,9 @@ export class ProductForm implements OnInit {
     };
 
     if (this.isEditMode()) {
-      this.updateProduct(request as UpdateProductRequest);
+      this.updateProduct(baseRequest as UpdateProductRequest);
     } else {
-      this.createProduct(request as CreateProductRequest);
+      this.createProduct(baseRequest as CreateProductRequest);
     }
   }
 
@@ -399,6 +403,7 @@ export class ProductForm implements OnInit {
         toast.success('Producto creado exitosamente', {
           description: response.message,
         });
+        this.savedSuccessfully.set(true);
         this.router.navigate(['/dashboard/products']).then((r) => !r && undefined);
       },
       error: (error: ApiErrorResponse) => {
@@ -432,6 +437,7 @@ export class ProductForm implements OnInit {
         toast.success('Producto actualizado exitosamente', {
           description: response.message,
         });
+        this.savedSuccessfully.set(true);
         this.router.navigate(['/dashboard/products']).then((r) => !r && undefined);
       },
       error: (error: ApiErrorResponse) => {
