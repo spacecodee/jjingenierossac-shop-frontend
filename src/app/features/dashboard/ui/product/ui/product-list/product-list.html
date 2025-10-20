@@ -573,12 +573,37 @@
           <br/>
           El producto se ocultará del catálogo público y no estará disponible para reservas.
         } @else {
+          <span class="text-red-600 dark:text-red-500 font-semibold">
           ¿Está seguro de que desea eliminar permanentemente el producto
           <strong>{{ productToDelete()?.name }}</strong
           >?
+        </span>
           <br/>
           <br/>
-          <span class="text-red-600 font-medium"> Esta acción no se puede deshacer. </span>
+          <span class="text-red-600 dark:text-red-500 font-medium">
+          ADVERTENCIA: La eliminación es permanente e irreversible.
+        </span>
+          <br/>
+          <br/>
+          <span class="block text-sm">
+          <strong>¿Consideró estas alternativas?</strong>
+          <ul class="list-disc list-inside mt-2 space-y-1">
+            <li>
+              <strong>Desactivar:</strong> Oculta el producto del catálogo pero preserva historial
+              (recomendado en 95% de casos)
+            </li>
+            <li><strong>Actualizar:</strong> Corregir información errónea en lugar de eliminar</li>
+          </ul>
+        </span>
+          <br/>
+          <span class="block text-sm">
+          <strong>Solo elimine si:</strong>
+          <ul class="list-disc list-inside mt-2 space-y-1">
+            <li>El producto fue creado por error</li>
+            <li>El producto es duplicado sin uso</li>
+            <li>El producto es dato de prueba</li>
+          </ul>
+        </span>
         }
       </p>
     </hlm-alert-dialog-header>
