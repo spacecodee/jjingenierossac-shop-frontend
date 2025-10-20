@@ -30,4 +30,12 @@ export const publicRoutes: Routes = [
         (m) => m.PublicProductList
       ),
   },
+  {
+    path: 'products/:id',
+    title: 'Detalle del Producto - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/public/ui/public-product-detail/public-product-detail').then(
+        (m) => m.PublicProductDetail
+      ),
+  },
 ];

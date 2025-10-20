@@ -6,6 +6,7 @@ import {
   OnDestroy,
   OnInit,
   signal,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -30,6 +31,9 @@ import {
 import {
   ProductCategoryAutocomplete
 } from '@shared/components/product-category-autocomplete/product-category-autocomplete';
+import {
+  ProductSubcategoryAutocomplete
+} from '@shared/components/product-subcategory-autocomplete/product-subcategory-autocomplete';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { SortDirection } from '@shared/data/types/sort-direction.type';
 import { PaginationHelperService } from '@shared/services/pagination-helper.service';
@@ -58,6 +62,7 @@ type ProductSortField = 'price' | 'name' | 'createdAt';
     ...BrnSelectImports,
     ...HlmSelectImports,
     ProductCategoryAutocomplete,
+    ProductSubcategoryAutocomplete,
     ...HlmBadgeImports,
     ...HlmPaginationImports,
     ...HlmIconImports,
@@ -95,6 +100,10 @@ export class PublicProductList implements OnInit, OnDestroy {
   private readonly searchSubject = new Subject<string>();
   private searchSubscription?: Subscription;
   private queryParamsSubscription?: Subscription;
+
+  readonly subcategoryAutocomplete =
+    viewChild<ProductSubcategoryAutocomplete>('subcategoryAutocomplete');
+  readonly categoryAutocomplete = viewChild<ProductCategoryAutocomplete>('categoryAutocomplete');
 
   readonly Math = Math;
 
@@ -151,11 +160,16 @@ export class PublicProductList implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    this.route.queryParamMap
-    .pipe(map((params) => params.get('category')))
-    .subscribe((categoryId) => {
+    this.route.queryParamMap.subscribe((params) => {
+      const categoryId = params.get('categoryId');
+      const subcategoryId = params.get('subcategoryId');
+
       if (categoryId && !Number.isNaN(+categoryId) && +categoryId > 0) {
         this.handleCategoryFromUrl(+categoryId);
+      }
+
+      if (subcategoryId && !Number.isNaN(+subcategoryId) && +subcategoryId > 0) {
+        this.handleSubcategoryFromUrl(+subcategoryId);
       }
     });
 
@@ -263,12 +277,14 @@ export class PublicProductList implements OnInit, OnDestroy {
     this.selectedSubcategoryId.set(null);
     this.minPrice.set(undefined);
     this.maxPrice.set(undefined);
+    this.categoryAutocomplete()?.reset();
+    this.subcategoryAutocomplete()?.reset();
     this.isLoading.set(true);
 
     this.router
     .navigate([], {
       relativeTo: this.route,
-      queryParams: { category: null },
+      queryParams: { categoryId: null, subcategoryId: null },
       queryParamsHandling: 'merge',
     })
     .then((r) => !r && undefined);
@@ -285,10 +301,11 @@ export class PublicProductList implements OnInit, OnDestroy {
     if (previousValue !== categoryId) {
       this.selectedCategoryId.set(categoryId);
       this.selectedSubcategoryId.set(null);
+      this.subcategoryAutocomplete()?.reset();
       this.router
       .navigate([], {
         relativeTo: this.route,
-        queryParams: { category: categoryId },
+        queryParams: { categoryId: categoryId, subcategoryId: null },
         queryParamsHandling: 'merge',
       })
       .then((r) => !r && undefined);
@@ -334,6 +351,11 @@ export class PublicProductList implements OnInit, OnDestroy {
     this.showFilters.set(true);
     this.isLoading.set(true);
     this.loadProducts();
+  }
+
+  handleSubcategoryFromUrl(subcategoryId: number): void {
+    this.selectedSubcategoryId.set(subcategoryId);
+    this.showFilters.set(true);
   }
 
   goToPage(page: number): void {

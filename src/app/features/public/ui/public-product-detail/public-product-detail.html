@@ -1,0 +1,207 @@
+<div class="min-h-screen bg-background py-8">
+  <div class="container mx-auto px-4 max-w-6xl">
+    <div class="mb-6">
+      <button
+        hlmBtn
+        variant="ghost"
+        size="sm"
+        (click)="onBackToCatalog()"
+        class="flex items-center gap-2 cursor-pointer"
+      >
+        <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+        <span>Volver al catálogo</span>
+      </button>
+    </div>
+
+    @if (isLoading()) {
+      <div hlmCard class="w-full">
+        <div hlmCardContent class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-4">
+              <hlm-skeleton class="w-full aspect-square rounded-lg"/>
+            </div>
+            <div class="space-y-4">
+              <hlm-skeleton class="h-8 w-3/4"/>
+              <hlm-skeleton class="h-6 w-1/4"/>
+              <hlm-skeleton class="h-10 w-1/3"/>
+              <div class="space-y-2">
+                <hlm-skeleton class="h-4 w-full"/>
+                <hlm-skeleton class="h-4 w-full"/>
+                <hlm-skeleton class="h-4 w-3/4"/>
+              </div>
+              <hlm-skeleton class="h-12 w-full"/>
+              <hlm-skeleton class="h-12 w-full"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else if (error()) {
+      <div hlmCard class="w-full border-destructive">
+        <div hlmCardHeader>
+          <h3 hlmCardTitle class="text-destructive flex items-center gap-2">
+            <ng-icon hlm size="base" name="lucidePackage"/>
+            <span>Producto no disponible</span>
+          </h3>
+          <p hlmCardDescription class="text-destructive">
+            {{ error() }}
+          </p>
+        </div>
+        <div hlmCardContent class="space-y-4">
+          <p class="text-muted-foreground">
+            El producto que buscas no está disponible o no existe. Por favor, verifica el enlace o
+            regresa al catálogo para explorar otros productos.
+          </p>
+        </div>
+        <div hlmCardFooter class="flex gap-3">
+          <button hlmBtn variant="outline" (click)="onRetry()" class="flex items-center gap-2">
+            <ng-icon hlm size="sm" name="lucideRefreshCw"/>
+            <span>Reintentar</span>
+          </button>
+          <button hlmBtn (click)="onBackToCatalog()" class="flex items-center gap-2">
+            <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+            <span>Volver al catálogo</span>
+          </button>
+        </div>
+      </div>
+    } @else if (product()) {
+      <nav hlmBreadcrumb class="mb-6">
+        <ol hlmBreadcrumbList>
+          <li hlmBreadcrumbItem>
+            <a hlmBreadcrumbLink link="/">Inicio</a>
+          </li>
+          <li hlmBreadcrumbSeparator></li>
+          <li hlmBreadcrumbItem>
+            <button hlmBreadcrumbLink (click)="onViewCategory()">
+              {{ product()!.category.name }}
+            </button>
+          </li>
+          <li hlmBreadcrumbSeparator></li>
+          <li hlmBreadcrumbItem>
+            <button hlmBreadcrumbLink (click)="onViewSubcategory()">
+              {{ product()!.subcategory.name }}
+            </button>
+          </li>
+          <li hlmBreadcrumbSeparator></li>
+          <li hlmBreadcrumbItem>
+            <span hlmBreadcrumbPage>{{ product()!.name }}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <article hlmCard class="w-full">
+        <div hlmCardContent class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-4">
+              <div class="relative aspect-square rounded-lg overflow-hidden bg-muted">
+                <img
+                  [src]="product()!.imageUrl"
+                  [alt]="product()!.name"
+                  class="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+
+              <div class="flex items-center justify-between text-sm text-muted-foreground">
+                @if (product()!.sku) {
+                  <div class="flex items-center gap-2">
+                    <ng-icon hlm size="sm" name="lucideBarcode"/>
+                    <span>SKU: {{ product()!.sku }}</span>
+                  </div>
+                }
+                @if (product()!.brand) {
+                  <div class="flex items-center gap-2">
+                    <ng-icon hlm size="sm" name="lucideTag"/>
+                    <span>{{ product()!.brand }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div class="space-y-3">
+                <h1 class="text-3xl font-bold tracking-tight">
+                  {{ product()!.name }}
+                </h1>
+
+                <div class="flex items-center gap-3">
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="sm"
+                    (click)="onViewCategory()"
+                    class="flex items-center gap-2 px-0 hover:underline cursor-pointer"
+                  >
+                    <ng-icon hlm size="sm" name="lucideLayers"/>
+                    <span>{{ product()!.category.name }}</span>
+                  </button>
+                  <span class="text-muted-foreground">/</span>
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="sm"
+                    (click)="onViewSubcategory()"
+                    class="flex items-center gap-2 px-0 hover:underline cursor-pointer"
+                  >
+                    <ng-icon hlm size="sm" name="lucideBox"/>
+                    <span>{{ product()!.subcategory.name }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <hlm-separator/>
+
+              <div class="space-y-3">
+                <div class="text-4xl font-bold text-primary">
+                  {{ product()!.price | currency : 'PEN' : 'symbol-narrow' : '1.2-2' }}
+                </div>
+
+                <span hlmBadge [variant]="getStockStatus().variant" class="text-sm">
+                <ng-icon hlm size="sm" name="lucidePackage" class="mr-1"/>
+                  {{ getStockStatus().label }}
+              </span>
+              </div>
+
+              <hlm-separator/>
+
+              <div class="space-y-3">
+                <h2 class="text-lg font-semibold">Descripción del Producto</h2>
+                <div class="prose prose-sm max-w-none space-y-2">
+                  @for (paragraph of getFormattedDescription(); track $index) {
+                    <p class="text-muted-foreground leading-relaxed">{{ paragraph }}</p>
+                  }
+                </div>
+              </div>
+
+              <hlm-separator/>
+
+              <div class="flex flex-col gap-3">
+                <button
+                  hlmBtn
+                  size="lg"
+                  [disabled]="isOutOfStock()"
+                  (click)="onAddToCart()"
+                  class="w-full flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <ng-icon hlm size="sm" name="lucideShoppingCart"/>
+                  <span>{{ isOutOfStock() ? 'Agotado' : 'Agregar al Carrito' }}</span>
+                </button>
+
+                <button
+                  hlmBtn
+                  variant="outline"
+                  size="lg"
+                  [disabled]="isOutOfStock()"
+                  (click)="onReserveProduct()"
+                  class="w-full flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <ng-icon hlm size="sm" name="lucidePackage"/>
+                  <span>Reservar Producto</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+</div>

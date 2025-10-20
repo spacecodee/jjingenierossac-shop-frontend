@@ -29,4 +29,10 @@ export class PublicProductApi {
     })
     .pipe(catchError(this.errorHandler.handleError));
   }
+
+  getPublicProductById(id: number): Observable<ApiDataResponse<PublicProductResponse>> {
+    return this.http
+    .get<ApiDataResponse<PublicProductResponse>>(`${ this.apiUrl }/${ id }`)
+    .pipe(catchError(this.errorHandler.handleError));
+  }
 }

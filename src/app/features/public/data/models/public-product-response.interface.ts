@@ -10,4 +10,6 @@ export interface PublicProductResponse {
   stockQuantity: number;
   subcategory: PublicSubcategoryResponse;
   category: PublicCategoryResponse;
+  description?: string;
+  sku?: string;
 }

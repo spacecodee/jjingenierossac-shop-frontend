@@ -99,9 +99,22 @@
               <div class="flex flex-col gap-2">
                 <div hlmLabel class="text-sm font-medium">Categoría de Producto</div>
                 <app-product-category-autocomplete
+                  #categoryAutocomplete
                   placeholder="Buscar categoría..."
                   [initialCategoryId]="selectedCategoryId()"
                   (categorySelected)="onCategorySelected($event)"
+                />
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div hlmLabel class="text-sm font-medium">Subcategoría de Producto</div>
+                <app-product-subcategory-autocomplete
+                  #subcategoryAutocomplete
+                  placeholder="Buscar subcategoría..."
+                  [initialSubcategoryId]="selectedSubcategoryId()"
+                  [categoryId]="selectedCategoryId()"
+                  [disabled]="!selectedCategoryId()"
+                  (subcategorySelected)="onSubcategorySelected($event)"
                 />
               </div>
 
@@ -130,21 +143,21 @@
                   (input)="onMaxPriceChange($any($event.target).value)"
                 />
               </div>
+            </div>
 
-              <div class="flex items-end">
-                @if (hasFiltersApplied()) {
-                  <button
-                    hlmBtn
-                    variant="outline"
-                    size="sm"
-                    (click)="onClearFilters()"
-                    class="w-full cursor-pointer"
-                  >
-                    <ng-icon hlm size="sm" name="lucideX"/>
-                    <span>Limpiar filtros</span>
-                  </button>
-                }
-              </div>
+            <div class="flex justify-end">
+              @if (hasFiltersApplied()) {
+                <button
+                  hlmBtn
+                  variant="outline"
+                  size="sm"
+                  (click)="onClearFilters()"
+                  class="cursor-pointer"
+                >
+                  <ng-icon hlm size="sm" name="lucideX"/>
+                  <span>Limpiar filtros</span>
+                </button>
+              }
             </div>
           </div>
         </div>
