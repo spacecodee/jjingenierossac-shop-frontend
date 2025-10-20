@@ -1,8 +1,9 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
 import { CreateProductRequest } from '@features/dashboard/data/models/create-product-request.interface';
 import { ProductResponse } from '@features/dashboard/data/models/product-response.interface';
+import { ProductSelectResponse } from '@features/dashboard/data/models/product-select-response.interface';
 import { SearchProductsParams } from '@features/dashboard/data/models/search-products-params.interface';
 import { UpdateProductRequest } from '@features/dashboard/data/models/update-product-request.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
@@ -36,6 +37,20 @@ export class Product {
   findProductById(id: number): Observable<ApiDataResponse<ProductResponse>> {
     return this.http
     .get<ApiDataResponse<ProductResponse>>(`${ this.apiUrl }/${ id }`)
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  getProductsForSelect(search?: string): Observable<ApiDataResponse<ProductSelectResponse[]>> {
+    let httpParams = new HttpParams();
+
+    if (search !== undefined && search !== null && search.trim() !== '') {
+      httpParams = httpParams.set('search', search.trim());
+    }
+
+    return this.http
+    .get<ApiDataResponse<ProductSelectResponse[]>>(`${ this.apiUrl }/for-select`, {
+      params: httpParams,
+    })
     .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
