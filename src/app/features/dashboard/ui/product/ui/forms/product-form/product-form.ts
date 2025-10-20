@@ -71,6 +71,8 @@ export class ProductForm implements OnInit {
   readonly productId = signal<number | null>(null);
   readonly isEditMode = computed(() => this.productId() !== null);
   readonly isInactive = signal<boolean>(false);
+  readonly isSubcategoryInactive = signal<boolean>(false);
+  readonly isCategoryInactive = signal<boolean>(false);
   readonly productForm: FormGroup;
 
   readonly nameCharCount = signal<number>(0);
@@ -216,10 +218,27 @@ export class ProductForm implements OnInit {
         this.descriptionCharCount.set((product.description || '').length);
         this.skuCharCount.set((product.sku || '').length);
 
+        this.isSubcategoryInactive.set(!product.subcategory.subcategoryIsActive);
+        this.isCategoryInactive.set(!product.subcategory.category.categoryIsActive);
+
         if (product.isActive) {
           toast.success('Producto cargado', {
             description: response.message || 'Los datos del producto se han cargado correctamente',
           });
+
+          if (this.isSubcategoryInactive()) {
+            toast.warning('Subcategoría inactiva', {
+              description:
+                'La subcategoría de este producto está inactiva. Considere reasignar a una subcategoría activa.',
+            });
+          }
+
+          if (this.isCategoryInactive()) {
+            toast.warning('Categoría inactiva', {
+              description:
+                'La categoría padre está inactiva. No se puede activar el producto mientras la jerarquía esté inactiva.',
+            });
+          }
         } else {
           this.isInactive.set(true);
           this.productForm.disable();
@@ -312,6 +331,7 @@ export class ProductForm implements OnInit {
     this.imageFile.set(null);
     this.imagePreview.set(null);
     this.imageSize.set(0);
+    this.currentImageUrl.set(null);
 
     const fileInput = document.getElementById('image') as HTMLInputElement;
     if (fileInput) {
