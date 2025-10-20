@@ -1,0 +1,345 @@
+<div class="py-8">
+  <div class="container mx-auto space-y-6 px-4">
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="space-y-1">
+        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Catálogo de Productos</h1>
+        <p class="text-muted-foreground">
+          Explora nuestra amplia selección de equipos eléctricos y maquinaria industrial
+        </p>
+      </div>
+
+      <div class="flex gap-2">
+        <button
+          hlmBtn
+          variant="outline"
+          size="icon"
+          class="cursor-pointer"
+          (click)="onRefresh()"
+          [disabled]="isRefreshing()"
+        >
+          @if (isRefreshing()) {
+            <hlm-spinner size="sm"/>
+          } @else {
+            <ng-icon hlm size="sm" name="lucideRefreshCw"/>
+          }
+        </button>
+
+        <button
+          hlmBtn
+          variant="outline"
+          class="cursor-pointer"
+          (click)="toggleFilters()"
+          [class.bg-accent]="showFilters()"
+          [class.text-accent-foreground]="showFilters()"
+        >
+          <ng-icon hlm size="sm" name="lucideSlidersHorizontal"/>
+          <span>Filtros</span>
+          @if (hasFiltersApplied()) {
+            <span hlmBadge variant="secondary" class="ml-2">{{
+                (searchTerm() ? 1 : 0) +
+                (selectedCategoryId() !== null ? 1 : 0) +
+                (selectedSubcategoryId() !== null ? 1 : 0) +
+                (minPrice() !== undefined ? 1 : 0) +
+                (maxPrice() !== undefined ? 1 : 0)
+              }}</span>
+          }
+        </button>
+      </div>
+    </header>
+
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="relative flex flex-1 items-center">
+        <ng-icon hlm size="sm" name="lucideSearch" class="absolute left-3 text-muted-foreground"/>
+        <input
+          hlmInput
+          type="text"
+          placeholder="Buscar productos..."
+          [value]="searchInputValue()"
+          (input)="onSearchInput($any($event.target).value)"
+          class="w-full pl-10 pr-10"
+        />
+        @if (searchInputValue()) {
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon"
+            (click)="onClearSearch()"
+            class="absolute right-1"
+          >
+            <ng-icon hlm size="sm" name="lucideX"/>
+          </button>
+        }
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-medium whitespace-nowrap">Ordenar por:</span>
+        <brn-select
+          [value]="sortField().concat(':', sortDirection())"
+          (valueChange)="onSortChange($event)"
+        >
+          <hlm-select-trigger class="min-w-[180px]">
+            <hlm-select-value/>
+          </hlm-select-trigger>
+          <hlm-select-content>
+            <hlm-option value="createdAt:DESC">Más recientes</hlm-option>
+            <hlm-option value="price:ASC">Menor precio</hlm-option>
+            <hlm-option value="price:DESC">Mayor precio</hlm-option>
+            <hlm-option value="name:ASC">Nombre A-Z</hlm-option>
+            <hlm-option value="name:DESC">Nombre Z-A</hlm-option>
+          </hlm-select-content>
+        </brn-select>
+      </div>
+    </div>
+
+    @if (showFilters()) {
+      <div class="w-full">
+        <div hlmCard class="w-full">
+          <div hlmCardContent class="space-y-4 pt-6">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div class="flex flex-col gap-2">
+                <div hlmLabel class="text-sm font-medium">Categoría de Producto</div>
+                <app-product-category-autocomplete
+                  placeholder="Buscar categoría..."
+                  [initialCategoryId]="selectedCategoryId()"
+                  (categorySelected)="onCategorySelected($event)"
+                />
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div hlmLabel class="text-sm font-medium">Precio Mínimo</div>
+                <input
+                  hlmInput
+                  type="number"
+                  placeholder="$0.00"
+                  step="0.01"
+                  min="0"
+                  [value]="minPrice() ?? ''"
+                  (input)="onMinPriceChange($any($event.target).value)"
+                />
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div hlmLabel class="text-sm font-medium">Precio Máximo</div>
+                <input
+                  hlmInput
+                  type="number"
+                  placeholder="$0.00"
+                  step="0.01"
+                  min="0"
+                  [value]="maxPrice() ?? ''"
+                  (input)="onMaxPriceChange($any($event.target).value)"
+                />
+              </div>
+
+              <div class="flex items-end">
+                @if (hasFiltersApplied()) {
+                  <button
+                    hlmBtn
+                    variant="outline"
+                    size="sm"
+                    (click)="onClearFilters()"
+                    class="w-full cursor-pointer"
+                  >
+                    <ng-icon hlm size="sm" name="lucideX"/>
+                    <span>Limpiar filtros</span>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="min-h-[400px]">
+      @if (isLoading() && !isRefreshing()) {
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          @for (_ of [1, 2, 3, 4, 5, 6, 7, 8]; track $index) {
+            <div hlmCard class="space-y-3 p-4">
+              <hlm-skeleton class="aspect-square w-full rounded-md"/>
+              <hlm-skeleton class="h-4 w-24"/>
+              <hlm-skeleton class="h-6 w-full"/>
+              <hlm-skeleton class="h-4 w-20"/>
+              <hlm-skeleton class="mt-2 h-9 w-full"/>
+            </div>
+          }
+        </div>
+      } @else if (displayedProducts().length === 0) {
+        <div class="flex min-h-[400px] items-center justify-center">
+          <div class="flex flex-col items-center space-y-3 text-center">
+            <ng-icon hlm name="lucidePackage" class="size-16 text-muted-foreground"/>
+            <h3 class="text-xl font-semibold">No se encontraron productos</h3>
+            <p class="max-w-md text-muted-foreground">
+              @if (hasFiltersApplied()) {
+                Intenta ajustar los filtros de búsqueda para encontrar lo
+                  que necesitas.
+              } @else {
+                No hay productos disponibles en este momento.
+              }
+            </p>
+            @if (hasFiltersApplied()) {
+              <button hlmBtn variant="outline" (click)="onClearFilters()" class="mt-2 cursor-pointer">
+                Limpiar filtros
+              </button>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          @for (product of displayedProducts(); track product.productId) {
+            <article
+              hlmCard
+              class="group flex flex-col overflow-hidden transition-shadow hover:shadow-lg"
+            >
+              @if (product.imageUrl) {
+                <div class="aspect-square overflow-hidden bg-muted">
+                  <img
+                    [src]="product.imageUrl"
+                    [alt]="product.name"
+                    class="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+              } @else {
+                <div class="aspect-square flex items-center justify-center bg-muted">
+                  <ng-icon hlm name="lucidePackage" class="size-16 text-muted-foreground"/>
+                </div>
+              }
+
+              <div class="flex flex-1 flex-col p-4">
+                <div class="mb-2 flex items-center justify-between gap-2">
+              <span hlmBadge variant="secondary" class="text-xs">
+                {{ product.category.name }}
+              </span>
+                  @if (product.stockQuantity <= 5 && product.stockQuantity > 0) {
+                    <span hlmBadge variant="destructive" class="text-xs">
+                Solo {{ product.stockQuantity }}
+              </span>
+                  } @else if (product.stockQuantity === 0) {
+                    <span hlmBadge variant="outline" class="text-xs"> Agotado </span>
+                  }
+                </div>
+
+                @if (product.brand) {
+                  <p class="mb-1 text-xs text-muted-foreground">{{ product.brand }}</p>
+                }
+
+                <h3 class="mb-2 line-clamp-2 text-base font-semibold leading-tight">
+                  {{ product.name }}
+                </h3>
+
+                <p class="mb-3 text-lg font-bold text-primary">
+                  {{ formatPrice(product.price) }}
+                </p>
+
+                <div class="mt-auto flex gap-2">
+                  <a
+                    hlmBtn
+                    variant="outline"
+                    size="sm"
+                    [routerLink]="['/public/products', product.productId]"
+                    class="flex-1 cursor-pointer"
+                  >
+                    <ng-icon hlm size="sm" name="lucideTag"/>
+                    <span>Ver detalle</span>
+                  </a>
+                  <button
+                    hlmBtn
+                    variant="default"
+                    size="sm"
+                    class="flex-1 cursor-pointer"
+                    [disabled]="product.stockQuantity === 0"
+                  >
+                    <ng-icon hlm size="sm" name="lucideShoppingCart"/>
+                    <span>Reservar</span>
+                  </button>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </div>
+
+    @if (totalPages() > 1 && !isLoading()) {
+      <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+        <div class="text-sm text-muted-foreground">
+        <span class="whitespace-nowrap">
+          Mostrando {{ currentPage() * pageSize() + 1 }} -
+          {{ Math.min((currentPage() + 1) * pageSize(), totalElements()) }} de
+          {{ totalElements() }} productos
+        </span>
+        </div>
+
+        <nav hlmPagination class="flex flex-1 justify-center">
+          <ul hlmPaginationContent>
+            <li hlmPaginationItem>
+              <hlm-pagination-previous
+                iconOnly="true"
+                class="cursor-pointer"
+                [link]="currentPage() > 0 ? '.' : undefined"
+                [queryParams]="{ page: currentPage() - 1 }"
+                queryParamsHandling="merge"
+                [class.pointer-events-none]="currentPage() === 0"
+                [class.opacity-50]="currentPage() === 0"
+                [class.cursor-not-allowed]="currentPage() === 0"
+              />
+            </li>
+
+            @for (page of pageNumbers(); track page) {
+              @if (page === 'ellipsis') {
+                <li hlmPaginationItem>
+                  <hlm-pagination-ellipsis/>
+                </li>
+              } @else {
+                <li hlmPaginationItem>
+                  <button
+                    hlmPaginationLink
+                    class="cursor-pointer"
+                    [link]="currentPage() !== +page ? '.' : undefined"
+                    [queryParams]="{ page: +page }"
+                    queryParamsHandling="merge"
+                    [isActive]="currentPage() === +page"
+                  >
+                    {{ $any(page) + 1 }}
+                  </button>
+                </li>
+              }
+            }
+
+            <li hlmPaginationItem>
+              <hlm-pagination-next
+                iconOnly="true"
+                class="cursor-pointer"
+                [link]="currentPage() < totalPages() - 1 ? '.' : undefined"
+                [queryParams]="{ page: currentPage() + 1 }"
+                queryParamsHandling="merge"
+                [class.pointer-events-none]="currentPage() >= totalPages() - 1"
+                [class.opacity-50]="currentPage() >= totalPages() - 1"
+                [class.cursor-not-allowed]="currentPage() >= totalPages() - 1"
+              ></hlm-pagination-next>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <div hlmLabel class="whitespace-nowrap text-sm">Por página:</div>
+          <brn-select
+            [value]="pageSize().toString()"
+            (valueChange)="$event && onPageSizeChange(+$event)"
+          >
+            <hlm-select-trigger class="w-20">
+              <hlm-select-value/>
+            </hlm-select-trigger>
+            <hlm-select-content>
+              <hlm-option value="12">12</hlm-option>
+              <hlm-option value="20">20</hlm-option>
+              <hlm-option value="40">40</hlm-option>
+              <hlm-option value="60">60</hlm-option>
+            </hlm-select-content>
+          </brn-select>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -554,11 +554,11 @@
             <br/>
             @if (!productToToggle()!.subcategory.subcategoryIsActive) {
               <span class="text-red-600 font-medium">
-          ⚠️ La subcategoría de este producto está inactiva. Debe activarla primero.
+          La subcategoría de este producto está inactiva. Debe activarla primero.
         </span>
             } @else if (!productToToggle()!.subcategory.category.categoryIsActive) {
               <span class="text-red-600 font-medium">
-          ⚠️ La categoría padre de este producto está inactiva. Debe activarla primero.
+          La categoría padre de este producto está inactiva. Debe activarla primero.
         </span>
             } @else {
               El producto se hará visible y disponible para venta en el catálogo público.
