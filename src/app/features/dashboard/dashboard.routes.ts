@@ -153,4 +153,12 @@ export const dashboardRoutes: Routes = [
         (m) => m.SupplierForm
       ),
   },
+  {
+    path: 'suppliers/:id/edit',
+    title: 'Editar Proveedor - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/supplier/ui/forms/supplier-form/supplier-form').then(
+        (m) => m.SupplierForm
+      ),
+  },
 ];

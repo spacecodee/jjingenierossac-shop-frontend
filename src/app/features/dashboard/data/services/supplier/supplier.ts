@@ -4,6 +4,7 @@ import { environment } from '@environments/environment';
 import { CreateSupplierRequest } from '@features/dashboard/data/models/create-supplier-request.interface';
 import { SearchSuppliersParams } from '@features/dashboard/data/models/search-suppliers-params.interface';
 import { SupplierResponse } from '@features/dashboard/data/models/supplier-response.interface';
+import { UpdateSupplierRequest } from '@features/dashboard/data/models/update-supplier-request.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
 import { HttpErrorHandlerService } from '@shared/services/http-error-handler.service';
@@ -31,9 +32,24 @@ export class Supplier {
     .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
+  getSupplierById(id: number): Observable<ApiDataResponse<SupplierResponse>> {
+    return this.http
+    .get<ApiDataResponse<SupplierResponse>>(`${ this.apiUrl }/${ id }`)
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
   createSupplier(request: CreateSupplierRequest): Observable<ApiDataResponse<SupplierResponse>> {
     return this.http
     .post<ApiDataResponse<SupplierResponse>>(this.apiUrl, request)
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  updateSupplier(
+    id: number,
+    request: UpdateSupplierRequest
+  ): Observable<ApiDataResponse<SupplierResponse>> {
+    return this.http
+    .put<ApiDataResponse<SupplierResponse>>(`${ this.apiUrl }/${ id }`, request)
     .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 }
