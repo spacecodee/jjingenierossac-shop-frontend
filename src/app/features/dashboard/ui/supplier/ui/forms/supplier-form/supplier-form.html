@@ -1,0 +1,226 @@
+<main class="container mx-auto p-6 max-w-4xl">
+  <section hlmCard>
+    <header hlmCardHeader>
+      <div class="flex items-center justify-between">
+        <div class="flex-1">
+          <h3 hlmCardTitle>{{ pageTitle() }}</h3>
+          <p hlmCardDescription>
+            {{ pageDescription() }}
+          </p>
+        </div>
+        <button
+          hlmBtn
+          class="cursor-pointer"
+          variant="ghost"
+          size="icon"
+          type="button"
+          (click)="onCancel()"
+          [disabled]="isSubmitting()"
+        >
+          <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+        </button>
+      </div>
+    </header>
+
+    <hlm-separator/>
+
+    <div hlmCardContent class="pt-6">
+      <form [formGroup]="supplierForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <hlm-form-field>
+          <label hlmLabel for="name" class="flex items-center justify-between">
+            <span>
+              Nombre
+              <span class="text-destructive ml-1">*</span>
+            </span>
+            <span class="text-xs text-muted-foreground font-normal">
+              {{ nameCharCount() }}/150
+            </span>
+          </label>
+          <input
+            hlmInput
+            id="name"
+            formControlName="name"
+            type="text"
+            placeholder="Ej: Distribuidora Tech S.A.C."
+            maxlength="150"
+            class="w-full"
+          />
+          @if (getNameError()) {
+            <hlm-error>{{ getNameError() }}</hlm-error>
+          } @else {
+            <hlm-hint>Ingresa el nombre comercial del proveedor (máximo 150 caracteres)</hlm-hint>
+          }
+        </hlm-form-field>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <hlm-form-field>
+            <label hlmLabel for="taxId" class="flex items-center justify-between">
+              <span>RUC / Tax ID (Opcional)</span>
+              <span class="text-xs text-muted-foreground font-normal">
+                {{ taxIdCharCount() }}/20
+              </span>
+            </label>
+            <input
+              hlmInput
+              id="taxId"
+              formControlName="taxId"
+              type="text"
+              placeholder="Ej: 20456789012"
+              maxlength="20"
+              class="w-full"
+            />
+            @if (getTaxIdError()) {
+              <hlm-error>{{ getTaxIdError() }}</hlm-error>
+            } @else {
+              <hlm-hint>Identificador fiscal del proveedor (RUC en Perú)</hlm-hint>
+            }
+          </hlm-form-field>
+
+          <hlm-form-field>
+            <label hlmLabel for="contactPerson" class="flex items-center justify-between">
+              <span>Persona de Contacto (Opcional)</span>
+              <span class="text-xs text-muted-foreground font-normal">
+                {{ contactPersonCharCount() }}/100
+              </span>
+            </label>
+            <input
+              hlmInput
+              id="contactPerson"
+              formControlName="contactPerson"
+              type="text"
+              placeholder="Ej: Juan Pérez Gómez"
+              maxlength="100"
+              class="w-full"
+            />
+            @if (getContactPersonError()) {
+              <hlm-error>{{ getContactPersonError() }}</hlm-error>
+            } @else {
+              <hlm-hint>Nombre completo del representante comercial</hlm-hint>
+            }
+          </hlm-form-field>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <hlm-form-field>
+            <label hlmLabel for="email" class="flex items-center justify-between">
+              <span>Email (Opcional)</span>
+              <span class="text-xs text-muted-foreground font-normal">
+                {{ emailCharCount() }}/255
+              </span>
+            </label>
+            <input
+              hlmInput
+              id="email"
+              formControlName="email"
+              type="email"
+              placeholder="Ej: ventas@distribuidoratech.com"
+              maxlength="255"
+              class="w-full"
+            />
+            @if (getEmailError()) {
+              <hlm-error>{{ getEmailError() }}</hlm-error>
+            } @else {
+              <hlm-hint>Correo electrónico de contacto</hlm-hint>
+            }
+          </hlm-form-field>
+
+          <hlm-form-field>
+            <label hlmLabel for="phoneNumber" class="flex items-center justify-between">
+              <span>Teléfono (Opcional)</span>
+              <span class="text-xs text-muted-foreground font-normal">
+                {{ phoneNumberCharCount() }}/20
+              </span>
+            </label>
+            <input
+              hlmInput
+              id="phoneNumber"
+              formControlName="phoneNumber"
+              type="text"
+              placeholder="Ej: +51 987654321"
+              maxlength="20"
+              class="w-full"
+            />
+            @if (getPhoneNumberError()) {
+              <hlm-error>{{ getPhoneNumberError() }}</hlm-error>
+            } @else {
+              <hlm-hint>Número telefónico con código de país</hlm-hint>
+            }
+          </hlm-form-field>
+        </div>
+
+        <hlm-form-field>
+          <label hlmLabel for="address" class="flex items-center justify-between">
+            <span>Dirección (Opcional)</span>
+            <span class="text-xs text-muted-foreground font-normal">
+              {{ addressCharCount() }}/500
+            </span>
+          </label>
+          <textarea
+            hlmInput
+            id="address"
+            formControlName="address"
+            placeholder="Ej: Av. Industrial 123, Cercado de Lima, Lima 15001, Perú"
+            rows="3"
+            maxlength="500"
+            class="w-full"
+          ></textarea>
+          @if (getAddressError()) {
+            <hlm-error>{{ getAddressError() }}</hlm-error>
+          } @else {
+            <hlm-hint>Dirección física completa del proveedor</hlm-hint>
+          }
+        </hlm-form-field>
+
+        <hlm-form-field>
+          <label hlmLabel for="website" class="flex items-center justify-between">
+            <span>Sitio Web (Opcional)</span>
+            <span class="text-xs text-muted-foreground font-normal">
+              {{ websiteCharCount() }}/255
+            </span>
+          </label>
+          <input
+            hlmInput
+            id="website"
+            formControlName="website"
+            type="url"
+            placeholder="Ej: https://www.distribuidoratech.com"
+            maxlength="255"
+            class="w-full"
+          />
+          @if (getWebsiteError()) {
+            <hlm-error>{{ getWebsiteError() }}</hlm-error>
+          } @else {
+            <hlm-hint>URL del sitio web corporativo (debe comenzar con http:// o https://)</hlm-hint>
+          }
+        </hlm-form-field>
+
+        <div class="flex items-center gap-3 justify-end pt-4">
+          <button
+            class="cursor-pointer"
+            hlmBtn
+            variant="outline"
+            type="button"
+            (click)="onCancel()"
+            [disabled]="isSubmitting()"
+          >
+            Cancelar
+          </button>
+          <button
+            hlmBtn
+            type="submit"
+            [disabled]="supplierForm.invalid || isSubmitting()"
+            class="flex items-center gap-2 cursor-pointer"
+          >
+            @if (isSubmitting()) {
+              <hlm-spinner size="sm"/>
+              <span>Creando...</span>
+            } @else {
+              <ng-icon hlm size="sm" name="lucideSave"/>
+              <span>Crear Proveedor</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+</main>

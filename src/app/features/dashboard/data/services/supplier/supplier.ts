@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
+import { CreateSupplierRequest } from '@features/dashboard/data/models/create-supplier-request.interface';
 import { SearchSuppliersParams } from '@features/dashboard/data/models/search-suppliers-params.interface';
 import { SupplierResponse } from '@features/dashboard/data/models/supplier-response.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
@@ -27,6 +28,12 @@ export class Supplier {
     .get<ApiDataResponse<ApiPaginatedResponse<SupplierResponse>>>(`${ this.apiUrl }/search`, {
       params: httpParams,
     })
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  createSupplier(request: CreateSupplierRequest): Observable<ApiDataResponse<SupplierResponse>> {
+    return this.http
+    .post<ApiDataResponse<SupplierResponse>>(this.apiUrl, request)
     .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 }
