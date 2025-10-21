@@ -259,8 +259,56 @@ export class SupplierForm implements OnInit {
 
     this.isSubmitting.set(true);
 
+    if (this.isEditMode()) {
+      const request = this.buildUpdateRequest();
+      this.updateSupplier(request);
+    } else {
+      const request = this.buildCreateRequest();
+      this.createSupplier(request);
+    }
+  }
+
+  private buildUpdateRequest(): UpdateSupplierRequest {
     const formValue = this.supplierForm.value;
-    const request: UpdateSupplierRequest = {
+    const request: UpdateSupplierRequest = {};
+
+    const currentName = formValue.name?.trim() || '';
+    const currentTaxId = formValue.taxId?.trim() || '';
+    const currentContactPerson = formValue.contactPerson?.trim() || '';
+    const currentEmail = formValue.email?.trim() || '';
+    const currentPhoneNumber = formValue.phoneNumber?.trim() || '';
+    const currentAddress = formValue.address?.trim() || '';
+    const currentWebsite = formValue.website?.trim() || '';
+
+    if (currentName !== this.originalName()) {
+      request.name = currentName;
+    }
+    if (currentTaxId !== this.originalTaxId()) {
+      request.taxId = currentTaxId || undefined;
+    }
+    if (currentContactPerson !== this.originalContactPerson()) {
+      request.contactPerson = currentContactPerson || undefined;
+    }
+    if (currentEmail !== this.originalEmail()) {
+      request.email = currentEmail || undefined;
+    }
+    if (currentPhoneNumber !== this.originalPhoneNumber()) {
+      request.phoneNumber = currentPhoneNumber || undefined;
+    }
+    if (currentAddress !== this.originalAddress()) {
+      request.address = currentAddress || undefined;
+    }
+    if (currentWebsite !== this.originalWebsite()) {
+      request.website = currentWebsite || undefined;
+    }
+
+    return request;
+  }
+
+  private buildCreateRequest(): CreateSupplierRequest {
+    const formValue = this.supplierForm.value;
+
+    return {
       name: formValue.name.trim(),
       taxId: formValue.taxId?.trim() || undefined,
       contactPerson: formValue.contactPerson?.trim() || undefined,
@@ -269,12 +317,6 @@ export class SupplierForm implements OnInit {
       address: formValue.address?.trim() || undefined,
       website: formValue.website?.trim() || undefined,
     };
-
-    if (this.isEditMode()) {
-      this.updateSupplier(request);
-    } else {
-      this.createSupplier(request);
-    }
   }
 
   private createSupplier(request: CreateSupplierRequest): void {
@@ -313,8 +355,27 @@ export class SupplierForm implements OnInit {
       error: (error: ApiErrorResponse) => {
         this.isSubmitting.set(false);
 
+        if (error.status === 404) {
+          toast.error('Proveedor no encontrado', {
+            description: 'El proveedor que intenta editar ya no existe',
+          });
+          this.router.navigate(['/dashboard/suppliers']).then((r) => !r && undefined);
+          return;
+        }
+
         if (error.status === 409) {
           this.supplierForm.get('name')?.setErrors({ duplicate: true });
+          toast.error('Nombre duplicado', {
+            description: error.message || 'Ya existe otro proveedor con este nombre',
+          });
+          return;
+        }
+
+        if (error.status === 422) {
+          toast.error('Error de validación', {
+            description: error.message || 'Los datos ingresados no son válidos',
+          });
+          return;
         }
 
         toast.error('Error al actualizar proveedor', {

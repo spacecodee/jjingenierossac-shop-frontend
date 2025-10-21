@@ -1,5 +1,5 @@
 export interface UpdateSupplierRequest {
-  name: string;
+  name?: string;
   taxId?: string;
   contactPerson?: string;
   email?: string;
