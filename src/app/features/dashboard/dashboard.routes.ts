@@ -137,4 +137,12 @@ export const dashboardRoutes: Routes = [
         (m) => m.ProductForm
       ),
   },
+  {
+    path: 'suppliers',
+    title: 'Proveedores - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/supplier/ui/supplier-list/supplier-list').then(
+        (m) => m.SupplierList
+      ),
+  },
 ];

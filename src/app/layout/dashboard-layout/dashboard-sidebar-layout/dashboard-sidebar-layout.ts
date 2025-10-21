@@ -12,6 +12,7 @@ import {
   lucideShoppingCart,
   lucideSun,
   lucideTag,
+  lucideTruck,
   lucideUsers,
   lucideWrench,
 } from '@ng-icons/lucide';
@@ -35,6 +36,7 @@ import { toast } from 'ngx-sonner';
       lucideTag,
       lucideWrench,
       lucideUsers,
+      lucideTruck,
       lucideSettings,
       lucideMoon,
       lucideSun,
@@ -85,6 +87,11 @@ export class DashboardSidebarLayout {
       label: 'Servicios',
       route: '/dashboard/services',
       icon: 'lucideWrench',
+    },
+    {
+      label: 'Proveedores',
+      route: '/dashboard/suppliers',
+      icon: 'lucideTruck',
     },
     {
       label: 'Clientes',
