@@ -1,9 +1,10 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
 import { CreateSupplierRequest } from '@features/dashboard/data/models/create-supplier-request.interface';
 import { SearchSuppliersParams } from '@features/dashboard/data/models/search-suppliers-params.interface';
 import { SupplierResponse } from '@features/dashboard/data/models/supplier-response.interface';
+import { SupplierSelectResponse } from '@features/dashboard/data/models/supplier-select-response.interface';
 import { UpdateSupplierRequest } from '@features/dashboard/data/models/update-supplier-request.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
@@ -41,6 +42,27 @@ export class Supplier {
   createSupplier(request: CreateSupplierRequest): Observable<ApiDataResponse<SupplierResponse>> {
     return this.http
     .post<ApiDataResponse<SupplierResponse>>(this.apiUrl, request)
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  getSuppliersForSelect(
+    name?: string,
+    taxId?: string
+  ): Observable<ApiDataResponse<SupplierSelectResponse[]>> {
+    let httpParams = new HttpParams();
+
+    if (name !== undefined && name !== null && name.trim() !== '') {
+      httpParams = httpParams.set('name', name.trim());
+    }
+
+    if (taxId !== undefined && taxId !== null && taxId.trim() !== '') {
+      httpParams = httpParams.set('taxId', taxId.trim());
+    }
+
+    return this.http
+    .get<ApiDataResponse<SupplierSelectResponse[]>>(`${ this.apiUrl }/for-select`, {
+      params: httpParams,
+    })
     .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
