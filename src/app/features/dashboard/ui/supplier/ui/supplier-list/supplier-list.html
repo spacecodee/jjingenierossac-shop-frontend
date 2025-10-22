@@ -383,7 +383,9 @@
                       ? !supplier.isActive
                       : supplier.isActive
                   "
-                      (checkedChange)="$event ? onActivateAttempt(supplier) : null"
+                      (checkedChange)="
+                    $event ? onActivateAttempt(supplier) : onDeactivateAttempt(supplier)
+                  "
                       [disabled]="false"
                       [aria-label]="supplier.isActive ? 'Proveedor activo' : 'Activar proveedor'"
                     />
@@ -509,15 +511,31 @@
     <button id="toggle-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
     <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
       <hlm-alert-dialog-header>
-        <h3 hlmAlertDialogTitle>@if (toggleAction() === 'activate') {
-          Confirmar Activación
-        }</h3>
+        <h3 hlmAlertDialogTitle>
+          @if (toggleAction() === 'activate') {
+            Confirmar Activación
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Confirmar Desactivación
+          }
+        </h3>
         <p hlmAlertDialogDescription>
           @if (toggleAction() === 'activate') {
             ¿Está seguro de que desea activar este proveedor?
+          } @else if (toggleAction() === 'deactivate') {
+            ¿Está seguro de que desea desactivar este proveedor?
           }
           @if (supplierToToggle()) {
             <span class="block mt-2 font-medium">{{ supplierToToggle()!.name }}</span>
+          }
+          @if (toggleAction() === 'activate') {
+            <span class="block mt-3 text-sm text-muted-foreground">
+            El proveedor volverá a estar disponible en el sistema y podrá ser asignado a nuevos productos.
+          </span>
+          } @else if (toggleAction() === 'deactivate') {
+            <span class="block mt-3 text-sm text-muted-foreground">
+            El proveedor dejará de estar disponible para nuevas asignaciones. Los productos ya asociados mantendrán la referencia al proveedor. Podrá reactivarlo posteriormente si lo necesita.
+          </span>
           }
         </p>
       </hlm-alert-dialog-header>
@@ -532,13 +550,20 @@
         </button>
         <button
           hlmAlertDialogAction
+          [variant]="toggleAction() === 'deactivate' ? 'destructive' : 'default'"
           (click)="onConfirmToggle(ctx.close)"
           [disabled]="isTogglingSupplier()"
           class="cursor-pointer"
         >
           @if (isTogglingSupplier()) {
             <hlm-spinner size="sm" class="mr-2"/>
-          } Activar
+          }
+          @if (toggleAction() === 'activate') {
+            Activar
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Desactivar
+          }
         </button>
       </hlm-alert-dialog-footer>
     </hlm-alert-dialog-content>

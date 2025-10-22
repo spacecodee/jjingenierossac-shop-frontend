@@ -177,7 +177,7 @@ export class SupplierList implements OnInit, OnDestroy {
   readonly updatedBefore = signal<Date | undefined>(undefined);
 
   readonly supplierToToggle = signal<SupplierResponse | null>(null);
-  readonly toggleAction = signal<'activate' | null>(null);
+  readonly toggleAction = signal<'activate' | 'deactivate' | null>(null);
   readonly supplierIdBeingToggled = signal<number | null>(null);
   readonly isTogglingSupplier = signal<boolean>(false);
 
@@ -470,6 +470,16 @@ export class SupplierList implements OnInit, OnDestroy {
     }
   }
 
+  onDeactivateAttempt(supplier: SupplierResponse): void {
+    if (supplier.isActive) {
+      this.supplierToToggle.set(supplier);
+      this.toggleAction.set('deactivate');
+      this.supplierIdBeingToggled.set(supplier.supplierId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
   onCancelToggle(): void {
     this.supplierToToggle.set(null);
     this.toggleAction.set(null);
@@ -486,15 +496,21 @@ export class SupplierList implements OnInit, OnDestroy {
 
     this.isTogglingSupplier.set(true);
 
-    this.supplierService.activateSupplier(supplier.supplierId).subscribe({
+    const toggleObservable =
+      action === 'activate'
+        ? this.supplierService.activateSupplier(supplier.supplierId)
+        : this.supplierService.deactivateSupplier(supplier.supplierId);
+
+    toggleObservable.subscribe({
       next: (response) => {
+        const newState = action === 'activate';
         this.suppliers.update((suppliers) =>
           suppliers.map((s) =>
-            s.supplierId === supplier.supplierId ? { ...s, isActive: true } : s
+            s.supplierId === supplier.supplierId ? { ...s, isActive: newState } : s
           )
         );
 
-        toast.success('Proveedor activado', {
+        toast.success(action === 'activate' ? 'Proveedor activado' : 'Proveedor desactivado', {
           description: response.message,
         });
 
@@ -513,15 +529,22 @@ export class SupplierList implements OnInit, OnDestroy {
 
         if (error.status === 404) {
           toast.error('Proveedor no encontrado', {
-            description: 'El proveedor que intenta activar no existe',
+            description: `El proveedor que intenta ${
+              action === 'activate' ? 'activar' : 'desactivar'
+            } no existe`,
           });
           this.loadSuppliers();
           return;
         }
 
-        toast.error('Error al activar proveedor', {
-          description: error.message || 'No se pudo activar el proveedor',
-        });
+        toast.error(
+          action === 'activate' ? 'Error al activar proveedor' : 'Error al desactivar proveedor',
+          {
+            description:
+              error.message ||
+              `No se pudo ${ action === 'activate' ? 'activar' : 'desactivar' } el proveedor`,
+          }
+        );
       },
     });
   }

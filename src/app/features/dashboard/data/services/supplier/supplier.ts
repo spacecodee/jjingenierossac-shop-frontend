@@ -20,7 +20,7 @@ export class Supplier {
   private readonly http = inject(HttpClient);
   private readonly httpParamsBuilder = inject(HttpParamsBuilderService);
   private readonly errorHandler = inject(HttpErrorHandlerService);
-  private readonly apiUrl = `${ environment.apiUrl }/supplier`;
+  private readonly apiUrl = `${environment.apiUrl}/supplier`;
 
   searchSuppliers(
     params: SearchSuppliersParams = {}
@@ -28,22 +28,22 @@ export class Supplier {
     const httpParams = this.httpParamsBuilder.buildSearchParams(params);
 
     return this.http
-    .get<ApiDataResponse<ApiPaginatedResponse<SupplierResponse>>>(`${ this.apiUrl }/search`, {
-      params: httpParams,
-    })
-    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+      .get<ApiDataResponse<ApiPaginatedResponse<SupplierResponse>>>(`${this.apiUrl}/search`, {
+        params: httpParams,
+      })
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   getSupplierById(id: number): Observable<ApiDataResponse<SupplierResponse>> {
     return this.http
-    .get<ApiDataResponse<SupplierResponse>>(`${ this.apiUrl }/${ id }`)
-    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+      .get<ApiDataResponse<SupplierResponse>>(`${this.apiUrl}/${id}`)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   createSupplier(request: CreateSupplierRequest): Observable<ApiDataResponse<SupplierResponse>> {
     return this.http
-    .post<ApiDataResponse<SupplierResponse>>(this.apiUrl, request)
-    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+      .post<ApiDataResponse<SupplierResponse>>(this.apiUrl, request)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   getSuppliersForSelect(
@@ -61,10 +61,10 @@ export class Supplier {
     }
 
     return this.http
-    .get<ApiDataResponse<SupplierSelectResponse[]>>(`${ this.apiUrl }/for-select`, {
-      params: httpParams,
-    })
-    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+      .get<ApiDataResponse<SupplierSelectResponse[]>>(`${this.apiUrl}/for-select`, {
+        params: httpParams,
+      })
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   updateSupplier(
@@ -72,13 +72,19 @@ export class Supplier {
     request: UpdateSupplierRequest
   ): Observable<ApiDataResponse<SupplierResponse>> {
     return this.http
-    .put<ApiDataResponse<SupplierResponse>>(`${ this.apiUrl }/${ id }`, request)
-    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+      .put<ApiDataResponse<SupplierResponse>>(`${this.apiUrl}/${id}`, request)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
   activateSupplier(id: number): Observable<ApiPlainResponse> {
     return this.http
-    .put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/activate`, {})
-    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+      .put<ApiPlainResponse>(`${this.apiUrl}/${id}/activate`, {})
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  deactivateSupplier(id: number): Observable<ApiPlainResponse> {
+    return this.http
+      .put<ApiPlainResponse>(`${this.apiUrl}/${id}/deactivate`, {})
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 }
