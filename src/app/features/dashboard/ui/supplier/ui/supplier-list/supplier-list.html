@@ -413,6 +413,35 @@
                       </button>
                       <span *brnTooltipContent class="text-xs">Editar proveedor</span>
                     </hlm-tooltip>
+
+                    <hlm-tooltip>
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="sm"
+                        hlmTooltipTrigger
+                        [disabled]="supplier.isActive"
+                        (click)="onDeleteAttempt(supplier)"
+                        class="flex items-center gap-2 cursor-pointer"
+                        [class.cursor-not-allowed]="supplier.isActive"
+                        [class.opacity-50]="supplier.isActive"
+                        [attr.aria-label]="
+                      supplier.isActive
+                        ? 'No se puede eliminar un proveedor activo'
+                        : 'Eliminar proveedor'
+                    "
+                      >
+                        <ng-icon hlm size="sm" name="lucideTrash2"/>
+                        <span>Eliminar</span>
+                      </button>
+                      @if (supplier.isActive) {
+                        <span *brnTooltipContent class="text-xs">
+                    Debe desactivar el proveedor antes de eliminarlo
+                  </span>
+                      } @else {
+                        <span *brnTooltipContent class="text-xs"> Eliminar proveedor </span>
+                      }
+                    </hlm-tooltip>
                   </div>
                 </td>
               </tr>
@@ -517,24 +546,40 @@
           } @else if (toggleAction() ===
           'deactivate') {
             Confirmar Desactivación
+          } @else if (toggleAction() === 'delete') {
+            Eliminar Proveedor
           }
         </h3>
         <p hlmAlertDialogDescription>
           @if (toggleAction() === 'activate') {
             ¿Está seguro de que desea activar este proveedor?
           } @else if (toggleAction() === 'deactivate') {
-            ¿Está seguro de que desea desactivar este proveedor?
+            ¿Está seguro de que desea desactivar este
+              proveedor?
+          } @else if (toggleAction() === 'delete') {
+            <span class="text-red-600 dark:text-red-500 font-semibold">
+            ¿Está seguro de que desea eliminar este proveedor de forma permanente?
+          </span>
           }
           @if (supplierToToggle()) {
             <span class="block mt-2 font-medium">{{ supplierToToggle()!.name }}</span>
           }
           @if (toggleAction() === 'activate') {
             <span class="block mt-3 text-sm text-muted-foreground">
-            El proveedor volverá a estar disponible en el sistema y podrá ser asignado a nuevos productos.
+            El proveedor volverá a estar disponible en el sistema y podrá ser asignado a nuevos
+            productos.
           </span>
           } @else if (toggleAction() === 'deactivate') {
             <span class="block mt-3 text-sm text-muted-foreground">
-            El proveedor dejará de estar disponible para nuevas asignaciones. Los productos ya asociados mantendrán la referencia al proveedor. Podrá reactivarlo posteriormente si lo necesita.
+            El proveedor dejará de estar disponible para nuevas asignaciones. Los productos ya
+            asociados mantendrán la referencia al proveedor. Podrá reactivarlo posteriormente si lo
+            necesita.
+          </span>
+          }
+          @if (toggleAction() === 'delete') {
+            <span class="block mt-3 text-sm text-red-600 dark:text-red-500">
+            Esta acción es irreversible y no se puede deshacer. El proveedor se eliminará
+            permanentemente del sistema.
           </span>
           }
         </p>
@@ -544,18 +589,22 @@
           hlmAlertDialogCancel
           class="cursor-pointer"
           (click)="onCancelToggle(); ctx.close()"
-          [disabled]="isTogglingSupplier()"
+          [disabled]="isTogglingSupplier() || isDeletingSupplier()"
         >
           Cancelar
         </button>
         <button
           hlmAlertDialogAction
-          [variant]="toggleAction() === 'deactivate' ? 'destructive' : 'default'"
+          [variant]="
+            toggleAction() === 'delete' || toggleAction() === 'deactivate'
+              ? 'destructive'
+              : 'default'
+          "
           (click)="onConfirmToggle(ctx.close)"
-          [disabled]="isTogglingSupplier()"
+          [disabled]="isTogglingSupplier() || isDeletingSupplier()"
           class="cursor-pointer"
         >
-          @if (isTogglingSupplier()) {
+          @if (isTogglingSupplier() || isDeletingSupplier()) {
             <hlm-spinner size="sm" class="mr-2"/>
           }
           @if (toggleAction() === 'activate') {
@@ -563,6 +612,8 @@
           } @else if (toggleAction() ===
           'deactivate') {
             Desactivar
+          } @else if (toggleAction() === 'delete') {
+            Eliminar
           }
         </button>
       </hlm-alert-dialog-footer>

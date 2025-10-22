@@ -87,4 +87,10 @@ export class Supplier {
       .put<ApiPlainResponse>(`${this.apiUrl}/${id}/deactivate`, {})
       .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
+
+  deleteSupplier(id: number): Observable<ApiPlainResponse> {
+    return this.http
+      .delete<ApiPlainResponse>(`${this.apiUrl}/${id}`)
+      .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
 }

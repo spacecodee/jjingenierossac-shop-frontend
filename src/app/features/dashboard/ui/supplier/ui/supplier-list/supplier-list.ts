@@ -177,9 +177,12 @@ export class SupplierList implements OnInit, OnDestroy {
   readonly updatedBefore = signal<Date | undefined>(undefined);
 
   readonly supplierToToggle = signal<SupplierResponse | null>(null);
-  readonly toggleAction = signal<'activate' | 'deactivate' | null>(null);
+  readonly toggleAction = signal<'activate' | 'deactivate' | 'delete' | null>(null);
   readonly supplierIdBeingToggled = signal<number | null>(null);
   readonly isTogglingSupplier = signal<boolean>(false);
+
+  readonly supplierToDelete = signal<SupplierResponse | null>(null);
+  readonly isDeletingSupplier = signal<boolean>(false);
 
   get activeFilterValue(): ActiveFilterType {
     return this.activeFilter();
@@ -494,6 +497,54 @@ export class SupplierList implements OnInit, OnDestroy {
       return;
     }
 
+    if (action === 'delete') {
+      this.isDeletingSupplier.set(true);
+
+      this.supplierService.deleteSupplier(supplier.supplierId).subscribe({
+        next: (response) => {
+          this.suppliers.update((suppliers) =>
+            suppliers.filter((s) => s.supplierId !== supplier.supplierId)
+          );
+
+          toast.success('Proveedor eliminado', {
+            description: response.message,
+          });
+
+          this.isDeletingSupplier.set(false);
+          this.supplierToDelete.set(null);
+          this.toggleAction.set(null);
+          closeDialog();
+        },
+        error: (error: ApiErrorResponse) => {
+          this.isDeletingSupplier.set(false);
+          this.supplierToDelete.set(null);
+          this.toggleAction.set(null);
+          closeDialog();
+
+          if (error.status === 400) {
+            toast.error('No se puede eliminar proveedor activo', {
+              description: 'Debe desactivar el proveedor antes de eliminarlo',
+            });
+            return;
+          }
+
+          if (error.status === 404) {
+            toast.error('Proveedor no encontrado', {
+              description: 'El proveedor que intenta eliminar no existe',
+            });
+            this.loadSuppliers();
+            return;
+          }
+
+          toast.error('Error al eliminar proveedor', {
+            description: error.message,
+          });
+        },
+      });
+
+      return;
+    }
+
     this.isTogglingSupplier.set(true);
 
     const toggleObservable =
@@ -547,5 +598,15 @@ export class SupplierList implements OnInit, OnDestroy {
         );
       },
     });
+  }
+
+  onDeleteAttempt(supplier: SupplierResponse): void {
+    if (!supplier.isActive) {
+      this.supplierToDelete.set(supplier);
+      this.supplierToToggle.set(supplier);
+      this.toggleAction.set('delete');
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
   }
 }
