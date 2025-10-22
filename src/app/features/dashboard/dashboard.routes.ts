@@ -137,4 +137,28 @@ export const dashboardRoutes: Routes = [
         (m) => m.ProductForm
       ),
   },
+  {
+    path: 'suppliers',
+    title: 'Proveedores - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/supplier/ui/supplier-list/supplier-list').then(
+        (m) => m.SupplierList
+      ),
+  },
+  {
+    path: 'suppliers/create',
+    title: 'Crear Proveedor - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/supplier/ui/forms/supplier-form/supplier-form').then(
+        (m) => m.SupplierForm
+      ),
+  },
+  {
+    path: 'suppliers/:id/edit',
+    title: 'Editar Proveedor - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/supplier/ui/forms/supplier-form/supplier-form').then(
+        (m) => m.SupplierForm
+      ),
+  },
 ];
