@@ -37,8 +37,10 @@ import { SortDirection } from '@shared/data/types/sort-direction.type';
 import { DateFormatterService } from '@shared/services/date-formatter.service';
 import { PaginationHelperService } from '@shared/services/pagination-helper.service';
 import { SearchListHelperService } from '@shared/services/search-list-helper.service';
+import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
 import { BrnTooltipImports } from '@spartan-ng/brain/tooltip';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -52,8 +54,10 @@ import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSeparator } from '@spartan-ng/helm/separator';
 import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmSwitch } from '@spartan-ng/helm/switch';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
+import { toast } from 'ngx-sonner';
 import { debounceTime, distinctUntilChanged, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -62,6 +66,8 @@ import { map } from 'rxjs/operators';
   imports: [
     ...HlmCardImports,
     ...HlmButtonImports,
+    ...BrnAlertDialogImports,
+    ...HlmAlertDialogImports,
     ...BrnTooltipImports,
     ...HlmTooltipImports,
     ...BrnSelectImports,
@@ -76,6 +82,7 @@ import { map } from 'rxjs/operators';
     HlmLabel,
     NgIcon,
     HlmSpinner,
+    HlmSwitch,
     HlmSeparator,
     HlmSkeleton,
     FormsModule,
@@ -168,6 +175,11 @@ export class SupplierList implements OnInit, OnDestroy {
   readonly createdBefore = signal<Date | undefined>(undefined);
   readonly updatedAfter = signal<Date | undefined>(undefined);
   readonly updatedBefore = signal<Date | undefined>(undefined);
+
+  readonly supplierToToggle = signal<SupplierResponse | null>(null);
+  readonly toggleAction = signal<'activate' | null>(null);
+  readonly supplierIdBeingToggled = signal<number | null>(null);
+  readonly isTogglingSupplier = signal<boolean>(false);
 
   get activeFilterValue(): ActiveFilterType {
     return this.activeFilter();
@@ -446,5 +458,71 @@ export class SupplierList implements OnInit, OnDestroy {
     this.isLoading.set(true);
 
     this.reloadFromPageZero();
+  }
+
+  onActivateAttempt(supplier: SupplierResponse): void {
+    if (!supplier.isActive) {
+      this.supplierToToggle.set(supplier);
+      this.toggleAction.set('activate');
+      this.supplierIdBeingToggled.set(supplier.supplierId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onCancelToggle(): void {
+    this.supplierToToggle.set(null);
+    this.toggleAction.set(null);
+    this.supplierIdBeingToggled.set(null);
+  }
+
+  onConfirmToggle(closeDialog: () => void): void {
+    const supplier = this.supplierToToggle();
+    const action = this.toggleAction();
+
+    if (!supplier || !action) {
+      return;
+    }
+
+    this.isTogglingSupplier.set(true);
+
+    this.supplierService.activateSupplier(supplier.supplierId).subscribe({
+      next: (response) => {
+        this.suppliers.update((suppliers) =>
+          suppliers.map((s) =>
+            s.supplierId === supplier.supplierId ? { ...s, isActive: true } : s
+          )
+        );
+
+        toast.success('Proveedor activado', {
+          description: response.message,
+        });
+
+        this.isTogglingSupplier.set(false);
+        this.supplierToToggle.set(null);
+        this.toggleAction.set(null);
+        this.supplierIdBeingToggled.set(null);
+        closeDialog();
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isTogglingSupplier.set(false);
+        this.supplierToToggle.set(null);
+        this.toggleAction.set(null);
+        this.supplierIdBeingToggled.set(null);
+        closeDialog();
+
+        if (error.status === 404) {
+          toast.error('Proveedor no encontrado', {
+            description: 'El proveedor que intenta activar no existe',
+          });
+          this.loadSuppliers();
+          return;
+        }
+
+        toast.error('Error al activar proveedor', {
+          description: error.message || 'No se pudo activar el proveedor',
+        });
+      },
+    });
   }
 }

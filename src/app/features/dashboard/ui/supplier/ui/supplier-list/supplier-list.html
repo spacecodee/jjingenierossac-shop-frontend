@@ -328,6 +328,7 @@
             <th hlmTh>Email</th>
             <th hlmTh>Teléfono</th>
             <th hlmTh>Estado</th>
+            <th hlmTh class="text-center">Activar</th>
             <th
               hlmTh
               (click)="onSort('createdAt')"
@@ -373,6 +374,20 @@
                   } @else {
                     <span hlmBadge variant="outline"> Inactivo </span>
                   }
+                </td>
+                <td hlmTd class="text-center">
+                  <div class="flex items-center justify-center">
+                    <hlm-switch
+                      [checked]="
+                    supplierIdBeingToggled() === supplier.supplierId
+                      ? !supplier.isActive
+                      : supplier.isActive
+                  "
+                      (checkedChange)="$event ? onActivateAttempt(supplier) : null"
+                      [disabled]="false"
+                      [aria-label]="supplier.isActive ? 'Proveedor activo' : 'Activar proveedor'"
+                    />
+                  </div>
                 </td>
                 <td hlmTd>
                   {{ supplier.createdAt | date : 'dd/MM/yyyy HH:mm' }}
@@ -489,4 +504,43 @@
       </div>
     }
   </section>
+
+  <hlm-alert-dialog>
+    <button id="toggle-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
+    <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+      <hlm-alert-dialog-header>
+        <h3 hlmAlertDialogTitle>@if (toggleAction() === 'activate') {
+          Confirmar Activación
+        }</h3>
+        <p hlmAlertDialogDescription>
+          @if (toggleAction() === 'activate') {
+            ¿Está seguro de que desea activar este proveedor?
+          }
+          @if (supplierToToggle()) {
+            <span class="block mt-2 font-medium">{{ supplierToToggle()!.name }}</span>
+          }
+        </p>
+      </hlm-alert-dialog-header>
+      <hlm-alert-dialog-footer>
+        <button
+          hlmAlertDialogCancel
+          class="cursor-pointer"
+          (click)="onCancelToggle(); ctx.close()"
+          [disabled]="isTogglingSupplier()"
+        >
+          Cancelar
+        </button>
+        <button
+          hlmAlertDialogAction
+          (click)="onConfirmToggle(ctx.close)"
+          [disabled]="isTogglingSupplier()"
+          class="cursor-pointer"
+        >
+          @if (isTogglingSupplier()) {
+            <hlm-spinner size="sm" class="mr-2"/>
+          } Activar
+        </button>
+      </hlm-alert-dialog-footer>
+    </hlm-alert-dialog-content>
+  </hlm-alert-dialog>
 </main>

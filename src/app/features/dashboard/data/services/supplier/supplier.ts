@@ -8,6 +8,7 @@ import { SupplierSelectResponse } from '@features/dashboard/data/models/supplier
 import { UpdateSupplierRequest } from '@features/dashboard/data/models/update-supplier-request.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
+import { ApiPlainResponse } from '@shared/data/models/api-plain-response.interface';
 import { HttpErrorHandlerService } from '@shared/services/http-error-handler.service';
 import { HttpParamsBuilderService } from '@shared/services/http-params-builder.service';
 import { catchError, Observable } from 'rxjs';
@@ -72,6 +73,12 @@ export class Supplier {
   ): Observable<ApiDataResponse<SupplierResponse>> {
     return this.http
     .put<ApiDataResponse<SupplierResponse>>(`${ this.apiUrl }/${ id }`, request)
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  activateSupplier(id: number): Observable<ApiPlainResponse> {
+    return this.http
+    .put<ApiPlainResponse>(`${ this.apiUrl }/${ id }/activate`, {})
     .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 }
