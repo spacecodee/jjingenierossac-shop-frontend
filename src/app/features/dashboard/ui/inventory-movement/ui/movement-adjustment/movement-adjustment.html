@@ -156,9 +156,15 @@
         >
           <div class="flex items-start gap-3">
             @if (isNegativeStock()) {
-              <ng-icon hlm name="lucideTriangleAlert" class="text-white mt-0.5" size="lg"/>
+              <ng-icon
+                hlm
+                name="lucideTriangleAlert"
+                class="mt-0.5"
+                size="lg"
+                style="color: white"
+              />
             } @else {
-              <ng-icon hlm name="lucideInfo" class="mt-0.5 text-white" size="lg"/>
+              <ng-icon hlm name="lucideInfo" class="mt-0.5" size="lg" style="color: white !important"/>
             }
             <div class="flex-1">
               <h3
