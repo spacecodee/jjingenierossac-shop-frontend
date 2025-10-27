@@ -178,8 +178,8 @@
 
     <div hlmCardContent class="flex-1 overflow-hidden flex flex-col min-h-0">
       <div class="overflow-x-auto flex-1">
-        <table hlm class="w-full">
-          <thead hlmThead>
+        <table hlmTable>
+          <thead hlmTHead>
           <tr hlmTr>
             <th
               hlmTh
@@ -241,7 +241,7 @@
             <th hlmTh class="text-right">Acciones</th>
           </tr>
           </thead>
-          <tbody hlmTbody>
+          <tbody hlmTBody>
             @if (isLoading()) {
               @for (_ of [1, 2, 3, 4, 5]; track $index) {
                 <tr hlmTr>
