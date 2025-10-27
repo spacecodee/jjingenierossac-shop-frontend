@@ -135,9 +135,6 @@ export class MovementList implements OnInit, OnDestroy {
   readonly isLoading = signal<boolean>(true);
   readonly isRefreshing = signal<boolean>(false);
 
-  readonly selectedMovement = signal<StockMovementResponse | null>(null);
-  readonly isDetailModalOpen = signal<boolean>(false);
-
   readonly selectedProductId = signal<number | null>(null);
   readonly selectedSupplierId = signal<number | null>(null);
   readonly selectedMovementType = signal<MovementType | null>(null);
@@ -443,12 +440,6 @@ export class MovementList implements OnInit, OnDestroy {
   }
 
   onViewDetail(movement: StockMovementResponse): void {
-    this.selectedMovement.set(movement);
-    this.isDetailModalOpen.set(true);
-  }
-
-  onCloseDetailModal(): void {
-    this.isDetailModalOpen.set(false);
-    this.selectedMovement.set(null);
+    this.router.navigate(['/dashboard/inventory-movements', movement.movementId]);
   }
 }

@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
 import { SearchStockMovementsParams } from '@features/dashboard/data/models/search-stock-movements-params.interface';
+import { StockMovementDetailResponse } from '@features/dashboard/data/models/stock-movement-detail-response.interface';
 import { StockMovementResponse } from '@features/dashboard/data/models/stock-movement-response.interface';
 import { ApiDataResponse } from '@shared/data/models/api-data-response.interface';
 import { ApiPaginatedResponse } from '@shared/data/models/api-paginated-response.interface';
@@ -30,9 +31,9 @@ export class StockMovementService {
     .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 
-  getMovementById(id: number): Observable<ApiDataResponse<StockMovementResponse>> {
+  getMovementById(id: number): Observable<ApiDataResponse<StockMovementDetailResponse>> {
     return this.http
-    .get<ApiDataResponse<StockMovementResponse>>(`${ this.apiUrl }/${ id }`)
+    .get<ApiDataResponse<StockMovementDetailResponse>>(`${ this.apiUrl }/${ id }`)
     .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 }

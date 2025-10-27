@@ -169,4 +169,12 @@ export const dashboardRoutes: Routes = [
         (m) => m.MovementList
       ),
   },
+  {
+    path: 'inventory-movements/:id',
+    title: 'Detalle del Movimiento - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/inventory-movement/ui/movement-detail/movement-detail').then(
+        (m) => m.MovementDetail
+      ),
+  },
 ];
