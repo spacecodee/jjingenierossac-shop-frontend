@@ -1,0 +1,9 @@
+<hlm-autocomplete
+  [searchPlaceholderText]="placeholder()"
+  [filteredOptions]="supplierNames()"
+  [search]="supplierSearch()"
+  [disabled]="disabled()"
+  (searchChange)="onSupplierSearchChange($event)"
+  (valueChange)="onSupplierSelect($event)"
+  class="w-full"
+/>
