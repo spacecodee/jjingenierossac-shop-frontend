@@ -1,15 +1,6 @@
 import { DatePipe, registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
-import {
-  Component,
-  computed,
-  inject,
-  LOCALE_ID,
-  numberAttribute,
-  OnDestroy,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { Component, computed, inject, LOCALE_ID, numberAttribute, OnDestroy, OnInit, signal, } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -117,6 +108,7 @@ export class MovementList implements OnInit, OnDestroy {
 
   readonly Math = Math;
   readonly MovementType = MovementType;
+  readonly QuantityType = QuantityType;
 
   readonly movements = signal<StockMovementResponse[]>([]);
   readonly isLoading = signal<boolean>(true);
@@ -124,6 +116,9 @@ export class MovementList implements OnInit, OnDestroy {
 
   readonly selectedMovement = signal<StockMovementResponse | null>(null);
   readonly isDetailModalOpen = signal<boolean>(false);
+
+  readonly selectedMovementType = signal<string>('');
+  readonly selectedQuantityTypeValue = signal<string>('');
 
   private readonly _pageQuery = toSignal(
     this.route.queryParamMap.pipe(
@@ -149,23 +144,14 @@ export class MovementList implements OnInit, OnDestroy {
   readonly showFilters = signal<boolean>(false);
   readonly showDateFilters = signal<boolean>(false);
 
-  readonly selectedMovementTypes = signal<MovementType[]>([]);
-  readonly selectedProductId = signal<number | undefined>(undefined);
-  readonly selectedSupplierId = signal<number | undefined>(undefined);
-  readonly selectedUserId = signal<number | undefined>(undefined);
-  readonly selectedQuantityType = signal<QuantityType | undefined>(undefined);
-
   readonly dateFrom = signal<Date | undefined>(undefined);
   readonly dateTo = signal<Date | undefined>(undefined);
 
   readonly hasFiltersApplied = computed(() => {
     return (
       this.searchTerm() !== '' ||
-      this.selectedMovementTypes().length > 0 ||
-      this.selectedProductId() !== undefined ||
-      this.selectedSupplierId() !== undefined ||
-      this.selectedUserId() !== undefined ||
-      this.selectedQuantityType() !== undefined ||
+      this.selectedMovementType() !== '' ||
+      this.selectedQuantityTypeValue() !== '' ||
       this.dateFrom() !== undefined ||
       this.dateTo() !== undefined
     );
@@ -216,24 +202,12 @@ export class MovementList implements OnInit, OnDestroy {
       params.search = this.searchTerm();
     }
 
-    if (this.selectedMovementTypes().length > 0) {
-      params.movementType = this.selectedMovementTypes();
+    if (this.selectedMovementType() && this.selectedMovementType() !== '') {
+      params.movementType = [this.selectedMovementType() as MovementType];
     }
 
-    if (this.selectedProductId()) {
-      params.productId = this.selectedProductId();
-    }
-
-    if (this.selectedSupplierId()) {
-      params.supplierId = this.selectedSupplierId();
-    }
-
-    if (this.selectedUserId()) {
-      params.userId = this.selectedUserId();
-    }
-
-    if (this.selectedQuantityType()) {
-      params.quantityType = this.selectedQuantityType();
+    if (this.selectedQuantityTypeValue() && this.selectedQuantityTypeValue() !== '') {
+      params.quantityType = this.selectedQuantityTypeValue() as QuantityType;
     }
 
     const dateParams = this.dateFormatter.formatDateRangeParams({
@@ -298,11 +272,8 @@ export class MovementList implements OnInit, OnDestroy {
   onClearFilters(): void {
     this.searchInputValue.set('');
     this.searchTerm.set('');
-    this.selectedMovementTypes.set([]);
-    this.selectedProductId.set(undefined);
-    this.selectedSupplierId.set(undefined);
-    this.selectedUserId.set(undefined);
-    this.selectedQuantityType.set(undefined);
+    this.selectedMovementType.set('');
+    this.selectedQuantityTypeValue.set('');
     this.dateFrom.set(undefined);
     this.dateTo.set(undefined);
     this.isLoading.set(true);
@@ -326,6 +297,18 @@ export class MovementList implements OnInit, OnDestroy {
 
   onDateToChange(date: Date): void {
     this.dateTo.set(date);
+    this.isLoading.set(true);
+    this.reloadFromPageZero();
+  }
+
+  onMovementTypeChange(value: string): void {
+    this.selectedMovementType.set(value);
+    this.isLoading.set(true);
+    this.reloadFromPageZero();
+  }
+
+  onQuantityTypeChange(value: string): void {
+    this.selectedQuantityTypeValue.set(value);
     this.isLoading.set(true);
     this.reloadFromPageZero();
   }

@@ -106,6 +106,51 @@
         }
       </div>
 
+      @if (showFilters()) {
+        <div class="space-y-4 pt-4 border-t">
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-3">
+              <span class="text-sm font-medium">Tipo de Movimiento</span>
+              <brn-select
+                class="inline-block"
+                placeholder="Selecciona tipo de movimiento"
+                [(ngModel)]="selectedMovementType"
+                (ngModelChange)="onMovementTypeChange($event)"
+              >
+                <hlm-select-trigger class="w-full">
+                  <hlm-select-value/>
+                </hlm-select-trigger>
+                <hlm-select-content>
+                  <hlm-option value="">Todos los tipos</hlm-option>
+                  <hlm-option [value]="MovementType.STOCK_IN">Entrada de Stock</hlm-option>
+                  <hlm-option [value]="MovementType.STOCK_OUT">Salida de Stock</hlm-option>
+                  <hlm-option [value]="MovementType.INITIAL">Stock Inicial</hlm-option>
+                  <hlm-option [value]="MovementType.ADJUSTMENT">Ajuste de Inventario</hlm-option>
+                </hlm-select-content>
+              </brn-select>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <span class="text-sm font-medium">Tipo de Cantidad</span>
+              <brn-select
+                class="inline-block"
+                placeholder="Selecciona tipo de cantidad"
+                [(ngModel)]="selectedQuantityTypeValue"
+                (ngModelChange)="onQuantityTypeChange($event)"
+              >
+                <hlm-select-trigger class="w-full">
+                  <hlm-select-value/>
+                </hlm-select-trigger>
+                <hlm-select-content>
+                  <hlm-option value="">Todos</hlm-option>
+                  <hlm-option [value]="QuantityType.POSITIVE">Positivos (+)</hlm-option>
+                  <hlm-option [value]="QuantityType.NEGATIVE">Negativos (-)</hlm-option>
+                </hlm-select-content>
+              </brn-select>
+            </div>
+          </div>
+        </div>
+      }
       @if (showDateFilters()) {
         <div class="pt-4 border-t mt-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -320,104 +365,88 @@
       </div>
     </div>
 
-    <hlm-separator class="my-4"/>
-
-    <footer hlmCardFooter class="flex-shrink-0">
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-muted-foreground">Elementos por página:</span>
-          <brn-select
-            class="inline-block"
-            [(ngModel)]="pageSize"
-            (ngModelChange)="onPageSizeChange($event)"
-          >
-            <hlm-select-trigger class="w-20">
-              <hlm-select-value/>
-            </hlm-select-trigger>
-            <hlm-select-content>
-              <hlm-option [value]="10">10</hlm-option>
-              <hlm-option [value]="20">20</hlm-option>
-              <hlm-option [value]="50">50</hlm-option>
-            </hlm-select-content>
-          </brn-select>
-          <span class="text-sm text-muted-foreground">
-            Mostrando {{ Math.min(currentPage() * pageSize() + 1, totalElements()) }} -
+    @if (!isLoading() && totalPages() > 0) {
+      <hlm-separator class="my-4"/>
+      <div hlmCardContent class="flex-shrink-0">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-sm text-muted-foreground">
+            Mostrando {{ currentPage() * pageSize() + 1 }} -
             {{ Math.min((currentPage() + 1) * pageSize(), totalElements()) }} de
-            {{ totalElements() }} movimientos
-          </span>
-        </div>
+            {{ totalElements() }} resultados
+          </div>
 
-        @if (totalPages() > 1) {
-          <nav hlmPagination class="mx-auto sm:mx-0">
-            <ul hlmPaginationContent>
-              <li hlmPaginationItem>
-                <button
-                  hlmPaginationLink
-                  link="first"
-                  size="default"
-                  [disabled]="isFirst()"
-                  (click)="goToPage(0)"
-                >
-                  <ng-icon hlm size="sm" name="lucideChevronsLeft"/>
-                </button>
-              </li>
-              <li hlmPaginationItem>
-                <button
-                  hlmPaginationLink
-                  link="previous"
-                  size="default"
-                  [disabled]="isFirst()"
-                  (click)="goToPage(currentPage() - 1)"
-                >
-                  <ng-icon hlm size="sm" name="lucideChevronLeft"/>
-                </button>
-              </li>
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium">Tamaño:</span>
+              <brn-select
+                class="inline-block"
+                placeholder="Selecciona tamaño"
+                [value]="pageSize().toString()"
+                (valueChange)="onPageSizeChange(+$event!)"
+              >
+                <hlm-select-trigger class="w-20">
+                  <hlm-select-value/>
+                </hlm-select-trigger>
+                <hlm-select-content>
+                  <hlm-option value="5">5</hlm-option>
+                  <hlm-option value="10">10</hlm-option>
+                  <hlm-option value="20">20</hlm-option>
+                  <hlm-option value="30">30</hlm-option>
+                  <hlm-option value="50">50</hlm-option>
+                </hlm-select-content>
+              </brn-select>
+            </div>
 
-              @for (pageNumber of pageNumbers(); track $index) {
-                @if (pageNumber === 'ellipsis') {
-                  <li hlmPaginationItem>
-                    <span hlmPaginationEllipsis>...</span>
-                  </li>
-                } @else {
-                  <li hlmPaginationItem>
-                    <button
-                      hlmPaginationLink
-                      size="default"
-                      [isActive]="pageNumber === currentPage()"
-                      (click)="goToPage(+pageNumber)"
-                    >
-                      {{ +pageNumber + 1 }}
-                    </button>
-                  </li>
+            <nav hlmPagination>
+              <ul hlmPaginationContent>
+                <li hlmPaginationItem>
+                  <hlm-pagination-previous
+                    text="Anterior"
+                    class="cursor-pointer"
+                    [link]="currentPage() > 0 ? '.' : undefined"
+                    [queryParams]="{ page: currentPage() - 1 }"
+                    queryParamsHandling="merge"
+                    [class.pointer-events-none]="currentPage() === 0"
+                    [class.opacity-50]="currentPage() === 0"
+                    [class.cursor-not-allowed]="currentPage() === 0"
+                  />
+                </li>
+                @for (page of pageNumbers(); track $index) {
+                  @if (page === 'ellipsis') {
+                    <li hlmPaginationItem>
+                      <hlm-pagination-ellipsis/>
+                    </li>
+                  } @else {
+                    <li hlmPaginationItem>
+                      <a
+                        hlmPaginationLink
+                        [link]="currentPage() !== +page ? '.' : undefined"
+                        [queryParams]="{ page: +page }"
+                        queryParamsHandling="merge"
+                        [isActive]="currentPage() === +page"
+                      >
+                        {{ +page + 1 }}
+                      </a>
+                    </li>
+                  }
                 }
-              }
-
-              <li hlmPaginationItem>
-                <button
-                  hlmPaginationLink
-                  link="next"
-                  size="default"
-                  [disabled]="isLast()"
-                  (click)="goToPage(currentPage() + 1)"
-                >
-                  <ng-icon hlm size="sm" name="lucideChevronRight"/>
-                </button>
-              </li>
-              <li hlmPaginationItem>
-                <button
-                  hlmPaginationLink
-                  link="last"
-                  size="default"
-                  [disabled]="isLast()"
-                  (click)="goToPage(totalPages() - 1)"
-                >
-                  <ng-icon hlm size="sm" name="lucideChevronsRight"/>
-                </button>
-              </li>
-            </ul>
-          </nav>
-        }
+                <li hlmPaginationItem>
+                  <hlm-pagination-next
+                    text="Siguiente"
+                    class="cursor-pointer"
+                    [link]="currentPage() < totalPages() - 1 ? '.' : undefined"
+                    [queryParams]="{ page: currentPage() + 1 }"
+                    queryParamsHandling="merge"
+                    [class.pointer-events-none]="currentPage() >= totalPages() - 1"
+                    [class.opacity-50]="currentPage() >= totalPages() - 1"
+                    [class.cursor-not-allowed]="currentPage() >= totalPages() - 1"
+                  />
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
       </div>
-    </footer>
+    }
   </section>
 </main>
