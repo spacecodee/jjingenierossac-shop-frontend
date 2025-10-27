@@ -1,0 +1,110 @@
+<div hlmCard class="p-6">
+  <header class="mb-4">
+    <div class="flex items-center gap-3">
+      <button
+        hlmBtn
+        class="cursor-pointer"
+        variant="ghost"
+        size="icon"
+        type="button"
+        (click)="onCancel()"
+        [disabled]="isSubmitting()"
+      >
+        <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+      </button>
+      <div>
+        <h1 class="text-2xl font-semibold mb-1">Registrar Entrada de Stock</h1>
+        <p class="text-sm text-slate-600">
+          Registra una entrada de productos y actualiza el inventario
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <section class="mt-4">
+    <form class="space-y-4" (ngSubmit)="submit()" autocomplete="off">
+      <div class="w-full">
+        <span class="block text-sm font-medium mb-2">Producto</span>
+        <app-product-autocomplete
+          [placeholder]="'Busca un producto...'"
+          [initialProductId]="selectedProductId()"
+          [disabled]="isSubmitting()"
+          (productSelected)="onProductSelected($event)"
+        ></app-product-autocomplete>
+      </div>
+
+      <div class="w-full">
+        <span class="block text-sm font-medium mb-2">Proveedor</span>
+        <app-supplier-autocomplete
+          [placeholder]="'Busca un proveedor...'"
+          [initialSupplierId]="selectedSupplierId()"
+          [disabled]="isSubmitting()"
+          (supplierSelected)="onSupplierSelected($event)"
+        ></app-supplier-autocomplete>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="quantity-input" class="block text-sm font-medium mb-2">Cantidad</label>
+          <input
+            id="quantity-input"
+            hlmInput
+            type="number"
+            min="1"
+            [disabled]="isSubmitting()"
+            [ngModel]="quantity()"
+            (ngModelChange)="onQuantityChange($event)"
+            class="w-full"
+            name="quantity"
+          />
+        </div>
+
+        <div>
+          <label for="notes-input" class="block text-sm font-medium mb-2">Notas (opcional)</label>
+          <textarea
+            id="notes-input"
+            hlmInput
+            [disabled]="isSubmitting()"
+            [ngModel]="notes()"
+            (ngModelChange)="onNotesChange($event)"
+            class="w-full resize-none"
+            name="notes"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 mt-4">
+        <button
+          hlmBtn
+          type="button"
+          variant="outline"
+          (click)="onCancel()"
+          [disabled]="isSubmitting()"
+        >
+          Cancelar
+        </button>
+        <button
+          hlmBtn
+          type="button"
+          variant="ghost"
+          class="cursor-pointer"
+          (click)="submit(true)"
+          [disabled]="isSubmitting() || !isValid()"
+        >
+          Registrar y agregar otra
+        </button>
+        <button
+          hlmBtn
+          type="button"
+          class="cursor-pointer"
+          (click)="submit(false)"
+          [disabled]="isSubmitting() || !isValid()"
+        >
+          <ng-icon name="lucidePlus" class="mr-2"></ng-icon>
+          Registrar Entrada
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

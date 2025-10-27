@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MovementType } from '@features/dashboard/data/models/movement-type.enum';
 import { QuantityType } from '@features/dashboard/data/models/quantity-type.enum';
 import { SearchStockMovementsParams } from '@features/dashboard/data/models/search-stock-movements-params.interface';
@@ -22,6 +22,7 @@ import { StockMovementService } from '@features/dashboard/data/services/stock-mo
 import { StockMovementSortField } from '@features/dashboard/data/types/stock-movement-sort-field.type';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucidePlus,
   lucideCalendar,
   lucideChevronLeft,
   lucideChevronRight,
@@ -83,10 +84,12 @@ import { map } from 'rxjs/operators';
     SupplierAutocomplete,
     MovementTypeSelect,
     QuantityTypeSelect,
+    RouterLink,
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'es-PE' },
     provideIcons({
+      lucidePlus,
       lucideSearch,
       lucideX,
       lucideSlidersHorizontal,

@@ -170,6 +170,14 @@ export const dashboardRoutes: Routes = [
       ),
   },
   {
+    path: 'inventory-movements/create',
+    title: 'Registrar Entrada de Stock - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/inventory-movement/ui/movement-create/movement-create').then(
+        (m) => m.MovementCreate
+      ),
+  },
+  {
     path: 'inventory-movements/:id',
     title: 'Detalle del Movimiento - J&J Ingenieros SAC',
     loadComponent: () =>

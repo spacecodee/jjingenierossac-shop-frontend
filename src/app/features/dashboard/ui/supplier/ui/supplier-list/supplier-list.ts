@@ -30,6 +30,7 @@ import {
   lucideSearch,
   lucideSlidersHorizontal,
   lucideX,
+  lucideTrash2,
 } from '@ng-icons/lucide';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { ActiveFilterType } from '@shared/data/types/active-filter.type';
@@ -103,6 +104,7 @@ import { map } from 'rxjs/operators';
       lucideChevronsLeft,
       lucideChevronsRight,
       lucidePencil,
+      lucideTrash2
     }),
     provideHlmDatePickerConfig({
       formatDate: (date: Date) => {
