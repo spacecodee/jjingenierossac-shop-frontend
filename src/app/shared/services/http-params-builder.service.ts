@@ -10,7 +10,11 @@ export class HttpParamsBuilderService {
 
     for (const [key, value] of Object.entries(params)) {
       if (value !== undefined && value !== null) {
-        if (typeof value === 'boolean' || typeof value === 'number') {
+        if (Array.isArray(value)) {
+          if (value.length > 0) {
+            httpParams = httpParams.set(key, value.join(','));
+          }
+        } else if (typeof value === 'boolean' || typeof value === 'number') {
           httpParams = httpParams.set(key, value.toString());
         } else if (typeof value === 'string' && value.trim() !== '') {
           httpParams = httpParams.set(key, value);

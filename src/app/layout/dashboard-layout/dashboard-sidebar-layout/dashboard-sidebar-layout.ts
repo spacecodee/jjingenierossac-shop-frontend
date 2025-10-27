@@ -4,6 +4,7 @@ import { AuthService } from '@core/services/auth/auth.service';
 import { ThemeService } from '@core/services/theme/theme';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
+  lucideHistory,
   lucideHouse,
   lucideLogOut,
   lucideMoon,
@@ -41,6 +42,7 @@ import { toast } from 'ngx-sonner';
       lucideMoon,
       lucideSun,
       lucideLogOut,
+      lucideHistory,
     }),
   ],
 })
@@ -92,6 +94,11 @@ export class DashboardSidebarLayout {
       label: 'Proveedores',
       route: '/dashboard/suppliers',
       icon: 'lucideTruck',
+    },
+    {
+      label: 'Historial de Movimientos',
+      route: '/dashboard/inventory-movements',
+      icon: 'lucideHistory',
     },
     {
       label: 'Clientes',
