@@ -22,16 +22,17 @@ import { StockMovementService } from '@features/dashboard/data/services/stock-mo
 import { StockMovementSortField } from '@features/dashboard/data/types/stock-movement-sort-field.type';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucidePlus,
   lucideCalendar,
   lucideChevronLeft,
   lucideChevronRight,
   lucideChevronsLeft,
   lucideChevronsRight,
   lucideEye,
+  lucidePlus,
   lucideRefreshCw,
   lucideSearch,
   lucideSlidersHorizontal,
+  lucideWrench,
   lucideX,
 } from '@ng-icons/lucide';
 import { MovementTypeSelect } from '@shared/components/movement-type-select/movement-type-select';
@@ -100,6 +101,7 @@ import { map } from 'rxjs/operators';
       lucideChevronsLeft,
       lucideChevronsRight,
       lucideEye,
+      lucideWrench,
     }),
     provideHlmDatePickerConfig({
       formatDate: (date: Date) => {
@@ -443,6 +445,8 @@ export class MovementList implements OnInit, OnDestroy {
   }
 
   onViewDetail(movement: StockMovementResponse): void {
-    this.router.navigate(['/dashboard/inventory-movements', movement.movementId]).then(r => !r && undefined);
+    this.router
+    .navigate(['/dashboard/inventory-movements', movement.movementId])
+    .then((r) => !r && undefined);
   }
 }

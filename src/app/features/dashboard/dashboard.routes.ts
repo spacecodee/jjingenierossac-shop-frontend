@@ -178,6 +178,14 @@ export const dashboardRoutes: Routes = [
       ),
   },
   {
+    path: 'inventory-movements/adjustment',
+    title: 'Realizar Ajuste de Inventario - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import(
+        '@features/dashboard/ui/inventory-movement/ui/movement-adjustment/movement-adjustment'
+        ).then((m) => m.MovementAdjustment),
+  },
+  {
     path: 'inventory-movements/:id',
     title: 'Detalle del Movimiento - J&J Ingenieros SAC',
     loadComponent: () =>

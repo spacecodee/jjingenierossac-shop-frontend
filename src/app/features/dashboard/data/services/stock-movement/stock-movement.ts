@@ -1,6 +1,9 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
+import {
+  CreateStockAdjustmentRequest
+} from '@features/dashboard/data/models/create-stock-adjustment-request.interface';
 import { CreateStockEntryRequest } from '@features/dashboard/data/models/create-stock-entry-request.interface';
 import { SearchStockMovementsParams } from '@features/dashboard/data/models/search-stock-movements-params.interface';
 import {
@@ -46,6 +49,14 @@ export class StockMovementService {
   ): Observable<ApiDataResponse<StockMovementCreatedResponse>> {
     return this.http
     .post<ApiDataResponse<StockMovementCreatedResponse>>(`${ this.apiUrl }`, request)
+    .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
+  }
+
+  createStockAdjustment(
+    request: CreateStockAdjustmentRequest
+  ): Observable<ApiDataResponse<StockMovementCreatedResponse>> {
+    return this.http
+    .post<ApiDataResponse<StockMovementCreatedResponse>>(`${ this.apiUrl }/adjustment`, request)
     .pipe(catchError((error: HttpErrorResponse) => this.errorHandler.handleError(error)));
   }
 }
