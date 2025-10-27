@@ -39,13 +39,13 @@ export class ProductAutocomplete implements OnInit, OnDestroy {
   readonly productNames = computed(() => this.products().map((p) => p.name));
 
   ngOnInit(): void {
+    this.loadProducts();
+
     this.productSearchSubscription = this.productSearchSubject
-    .pipe(debounceTime(300))
+    .pipe(debounceTime(500))
     .subscribe((searchTerm) => {
-      if (searchTerm.length >= 2) {
+      if (searchTerm.length >= 2 || searchTerm.length === 0) {
         this.loadProducts(searchTerm);
-      } else if (searchTerm.length === 0) {
-        this.products.set([]);
       }
     });
 
@@ -60,10 +60,6 @@ export class ProductAutocomplete implements OnInit, OnDestroy {
   }
 
   loadProducts(search?: string): void {
-    if (!search || search.trim().length < 2) {
-      return;
-    }
-
     this.isLoadingProducts.set(true);
     this.productService.getProductsForSelect(search).subscribe({
       next: (response) => {

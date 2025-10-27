@@ -1,0 +1,15 @@
+<brn-select
+  [placeholder]="placeholder()"
+  [ngModel]="value() ?? 'ALL'"
+  (ngModelChange)="onValueChange($event)"
+  [disabled]="disabled()"
+>
+  <hlm-select-trigger class="w-full">
+    <hlm-select-value/>
+  </hlm-select-trigger>
+  <hlm-select-content>
+    <hlm-option value="ALL">Todos</hlm-option>
+    <hlm-option [value]="QuantityType.POSITIVE">Positivo</hlm-option>
+    <hlm-option [value]="QuantityType.NEGATIVE">Negativo</hlm-option>
+  </hlm-select-content>
+</brn-select>

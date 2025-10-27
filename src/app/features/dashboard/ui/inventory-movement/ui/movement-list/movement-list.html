@@ -107,46 +107,40 @@
       </div>
 
       @if (showFilters()) {
-        <div class="space-y-4 pt-4 border-t">
-          <div class="flex flex-col gap-4">
+        <div class="pt-4 border-t mt-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="flex flex-col gap-3">
+              <span class="text-sm font-medium">Producto</span>
+              <app-product-autocomplete
+                [placeholder]="'Buscar producto...'"
+                (productSelected)="onProductSelect($event)"
+              />
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <span class="text-sm font-medium">Proveedor</span>
+              <app-supplier-autocomplete
+                [placeholder]="'Buscar proveedor...'"
+                (supplierSelected)="onSupplierSelect($event)"
+              />
+            </div>
+
             <div class="flex flex-col gap-3">
               <span class="text-sm font-medium">Tipo de Movimiento</span>
-              <brn-select
-                class="inline-block"
-                placeholder="Selecciona tipo de movimiento"
-                [(ngModel)]="selectedMovementType"
-                (ngModelChange)="onMovementTypeChange($event)"
-              >
-                <hlm-select-trigger class="w-full">
-                  <hlm-select-value/>
-                </hlm-select-trigger>
-                <hlm-select-content>
-                  <hlm-option value="">Todos los tipos</hlm-option>
-                  <hlm-option [value]="MovementType.STOCK_IN">Entrada de Stock</hlm-option>
-                  <hlm-option [value]="MovementType.STOCK_OUT">Salida de Stock</hlm-option>
-                  <hlm-option [value]="MovementType.INITIAL">Stock Inicial</hlm-option>
-                  <hlm-option [value]="MovementType.ADJUSTMENT">Ajuste de Inventario</hlm-option>
-                </hlm-select-content>
-              </brn-select>
+              <app-movement-type-select
+                [placeholder]="'Seleccionar tipo'"
+                [value]="selectedMovementType()"
+                (valueChange)="onMovementTypeChange($event)"
+              />
             </div>
 
             <div class="flex flex-col gap-3">
               <span class="text-sm font-medium">Tipo de Cantidad</span>
-              <brn-select
-                class="inline-block"
-                placeholder="Selecciona tipo de cantidad"
-                [(ngModel)]="selectedQuantityTypeValue"
-                (ngModelChange)="onQuantityTypeChange($event)"
-              >
-                <hlm-select-trigger class="w-full">
-                  <hlm-select-value/>
-                </hlm-select-trigger>
-                <hlm-select-content>
-                  <hlm-option value="">Todos</hlm-option>
-                  <hlm-option [value]="QuantityType.POSITIVE">Positivos (+)</hlm-option>
-                  <hlm-option [value]="QuantityType.NEGATIVE">Negativos (-)</hlm-option>
-                </hlm-select-content>
-              </brn-select>
+              <app-quantity-type-select
+                [placeholder]="'Seleccionar tipo'"
+                [value]="selectedQuantityType()"
+                (valueChange)="onQuantityTypeChange($event)"
+              />
             </div>
           </div>
         </div>

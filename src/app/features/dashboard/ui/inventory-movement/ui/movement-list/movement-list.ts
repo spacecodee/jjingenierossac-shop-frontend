@@ -1,6 +1,16 @@
 import { DatePipe, registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
-import { Component, computed, inject, LOCALE_ID, numberAttribute, OnDestroy, OnInit, signal, } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  LOCALE_ID,
+  numberAttribute,
+  OnDestroy,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -23,6 +33,10 @@ import {
   lucideSlidersHorizontal,
   lucideX,
 } from '@ng-icons/lucide';
+import { MovementTypeSelect } from '@shared/components/movement-type-select/movement-type-select';
+import { ProductAutocomplete } from '@shared/components/product-autocomplete/product-autocomplete';
+import { QuantityTypeSelect } from '@shared/components/quantity-type-select/quantity-type-select';
+import { SupplierAutocomplete } from '@shared/components/supplier-autocomplete/supplier-autocomplete';
 import { ApiErrorResponse } from '@shared/data/models/api-error-response.interface';
 import { SortDirection } from '@shared/data/types/sort-direction.type';
 import { DateFormatterService } from '@shared/services/date-formatter.service';
@@ -65,6 +79,10 @@ import { map } from 'rxjs/operators';
     HlmSkeleton,
     FormsModule,
     DatePipe,
+    ProductAutocomplete,
+    SupplierAutocomplete,
+    MovementTypeSelect,
+    QuantityTypeSelect,
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'es-PE' },
@@ -107,8 +125,11 @@ export class MovementList implements OnInit, OnDestroy {
   private queryParamsSubscription?: Subscription;
 
   readonly Math = Math;
-  readonly MovementType = MovementType;
-  readonly QuantityType = QuantityType;
+
+  readonly productAutocomplete = viewChild<ProductAutocomplete>(ProductAutocomplete);
+  readonly supplierAutocomplete = viewChild<SupplierAutocomplete>(SupplierAutocomplete);
+  readonly movementTypeSelect = viewChild<MovementTypeSelect>(MovementTypeSelect);
+  readonly quantityTypeSelect = viewChild<QuantityTypeSelect>(QuantityTypeSelect);
 
   readonly movements = signal<StockMovementResponse[]>([]);
   readonly isLoading = signal<boolean>(true);
@@ -117,8 +138,10 @@ export class MovementList implements OnInit, OnDestroy {
   readonly selectedMovement = signal<StockMovementResponse | null>(null);
   readonly isDetailModalOpen = signal<boolean>(false);
 
-  readonly selectedMovementType = signal<string>('');
-  readonly selectedQuantityTypeValue = signal<string>('');
+  readonly selectedProductId = signal<number | null>(null);
+  readonly selectedSupplierId = signal<number | null>(null);
+  readonly selectedMovementType = signal<MovementType | null>(null);
+  readonly selectedQuantityType = signal<QuantityType | null>(null);
 
   private readonly _pageQuery = toSignal(
     this.route.queryParamMap.pipe(
@@ -150,8 +173,10 @@ export class MovementList implements OnInit, OnDestroy {
   readonly hasFiltersApplied = computed(() => {
     return (
       this.searchTerm() !== '' ||
-      this.selectedMovementType() !== '' ||
-      this.selectedQuantityTypeValue() !== '' ||
+      this.selectedProductId() !== null ||
+      this.selectedSupplierId() !== null ||
+      this.selectedMovementType() !== null ||
+      this.selectedQuantityType() !== null ||
       this.dateFrom() !== undefined ||
       this.dateTo() !== undefined
     );
@@ -202,12 +227,20 @@ export class MovementList implements OnInit, OnDestroy {
       params.search = this.searchTerm();
     }
 
-    if (this.selectedMovementType() && this.selectedMovementType() !== '') {
+    if (this.selectedProductId() !== null) {
+      params.productId = this.selectedProductId() as number;
+    }
+
+    if (this.selectedSupplierId() !== null) {
+      params.supplierId = this.selectedSupplierId() as number;
+    }
+
+    if (this.selectedMovementType() !== null) {
       params.movementType = [this.selectedMovementType() as MovementType];
     }
 
-    if (this.selectedQuantityTypeValue() && this.selectedQuantityTypeValue() !== '') {
-      params.quantityType = this.selectedQuantityTypeValue() as QuantityType;
+    if (this.selectedQuantityType() !== null) {
+      params.quantityType = this.selectedQuantityType() as QuantityType;
     }
 
     const dateParams = this.dateFormatter.formatDateRangeParams({
@@ -272,12 +305,19 @@ export class MovementList implements OnInit, OnDestroy {
   onClearFilters(): void {
     this.searchInputValue.set('');
     this.searchTerm.set('');
-    this.selectedMovementType.set('');
-    this.selectedQuantityTypeValue.set('');
+    this.selectedProductId.set(null);
+    this.selectedSupplierId.set(null);
+    this.selectedMovementType.set(null);
+    this.selectedQuantityType.set(null);
     this.dateFrom.set(undefined);
     this.dateTo.set(undefined);
-    this.isLoading.set(true);
 
+    this.productAutocomplete()?.reset();
+    this.supplierAutocomplete()?.reset();
+    this.movementTypeSelect()?.reset();
+    this.quantityTypeSelect()?.reset();
+
+    this.isLoading.set(true);
     this.reloadFromPageZero();
   }
 
@@ -301,14 +341,26 @@ export class MovementList implements OnInit, OnDestroy {
     this.reloadFromPageZero();
   }
 
-  onMovementTypeChange(value: string): void {
-    this.selectedMovementType.set(value);
+  onProductSelect(productId: number | null): void {
+    this.selectedProductId.set(productId);
     this.isLoading.set(true);
     this.reloadFromPageZero();
   }
 
-  onQuantityTypeChange(value: string): void {
-    this.selectedQuantityTypeValue.set(value);
+  onSupplierSelect(supplierId: number | null): void {
+    this.selectedSupplierId.set(supplierId);
+    this.isLoading.set(true);
+    this.reloadFromPageZero();
+  }
+
+  onMovementTypeChange(movementType: MovementType | null): void {
+    this.selectedMovementType.set(movementType);
+    this.isLoading.set(true);
+    this.reloadFromPageZero();
+  }
+
+  onQuantityTypeChange(quantityType: QuantityType | null): void {
+    this.selectedQuantityType.set(quantityType);
     this.isLoading.set(true);
     this.reloadFromPageZero();
   }
