@@ -114,7 +114,6 @@ export class ProductAutocomplete implements OnInit, OnDestroy {
 
   reset(): void {
     this.productSearch.set('');
-    this.products.set([]);
     this.productSelected.emit(null);
   }
 }

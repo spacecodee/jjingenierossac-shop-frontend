@@ -113,7 +113,6 @@ export class SupplierAutocomplete implements OnInit, OnDestroy {
 
   reset(): void {
     this.supplierSearch.set('');
-    this.suppliers.set([]);
     this.supplierSelected.emit(null);
   }
 }
