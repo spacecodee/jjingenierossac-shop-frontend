@@ -334,7 +334,13 @@
                   </td>
                   <td hlmTd>
                     @if (movement.notes) {
-                      <span class="text-sm">{{ movement.notes }}</span>
+                      <span class="text-sm">
+                  {{
+                          movement.notes.length > 15
+                            ? movement.notes.substring(0, 15) + '...'
+                            : movement.notes
+                        }}
+                </span>
                     } @else {
                       <span class="text-muted-foreground">—</span>
                     }

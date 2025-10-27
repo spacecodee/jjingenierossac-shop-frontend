@@ -440,6 +440,6 @@ export class MovementList implements OnInit, OnDestroy {
   }
 
   onViewDetail(movement: StockMovementResponse): void {
-    this.router.navigate(['/dashboard/inventory-movements', movement.movementId]);
+    this.router.navigate(['/dashboard/inventory-movements', movement.movementId]).then(r => !r && undefined);
   }
 }
