@@ -193,4 +193,20 @@ export const dashboardRoutes: Routes = [
         (m) => m.MovementDetail
       ),
   },
+  {
+    path: 'customers',
+    title: 'Clientes - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/customer/ui/customer-list/customer-list').then(
+        (m) => m.CustomerList
+      ),
+  },
+  {
+    path: 'customers/:id',
+    title: 'Detalle del Cliente - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/customer/ui/customer-detail/customer-detail').then(
+        (m) => m.CustomerDetail
+      ),
+  },
 ];

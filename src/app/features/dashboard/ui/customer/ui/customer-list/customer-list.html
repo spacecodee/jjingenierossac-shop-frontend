@@ -1,0 +1,492 @@
+<main class="flex flex-col min-h-full">
+  <section hlmCard class="flex flex-col overflow-visible">
+    <header hlmCardHeader>
+      <div class="flex items-start justify-between gap-4 flex-col sm:flex-row">
+        <div class="flex-1">
+          <h1 hlmCardTitle class="text-2xl font-bold">Clientes</h1>
+          <p hlmCardDescription class="text-sm text-muted-foreground mt-1">
+            Gestiona los clientes registrados en el sistema
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            hlmBtn
+            variant="outline"
+            size="sm"
+            (click)="refreshList()"
+            [disabled]="isRefreshing()"
+            class="flex items-center gap-2 cursor-pointer"
+          >
+            @if (isRefreshing()) {
+              <hlm-spinner size="sm"/>
+            } @else {
+              <ng-icon hlm size="sm" name="lucideRefreshCw"/>
+            }
+            <span>Actualizar</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <hlm-separator class="my-4"/>
+
+    <div hlmCardContent class="flex-shrink-0">
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <ng-icon
+              hlm
+              size="sm"
+              name="lucideSearch"
+              class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+            />
+            <input
+              hlmInput
+              type="text"
+              placeholder="Buscar por nombre, email, usuario o teléfono (mín. 3 caracteres)..."
+              [value]="searchInputValue()"
+              (input)="onSearchInput($event)"
+              class="pl-10 pr-10"
+            />
+            @if (searchInputValue()) {
+              <button
+                hlmBtn
+                variant="ghost"
+                size="sm"
+                (click)="clearSearch()"
+                class="absolute right-2 top-1/2 -translate-y-1/2"
+              >
+                <ng-icon hlm size="sm" name="lucideX"/>
+              </button>
+            }
+          </div>
+
+          <button
+            hlmBtn
+            variant="outline"
+            size="default"
+            (click)="toggleFilters()"
+            class="flex items-center gap-2 cursor-pointer"
+          >
+            <ng-icon hlm size="sm" name="lucideSlidersHorizontal"/>
+            <span>Filtros</span>
+            @if (hasFiltersApplied()) {
+              <span class="text-xs text-primary">●</span>
+            }
+          </button>
+
+          <button
+            hlmBtn
+            variant="outline"
+            size="default"
+            (click)="toggleDateFilters()"
+            class="flex items-center gap-2 cursor-pointer"
+          >
+            <ng-icon hlm size="sm" name="lucideCalendar"/>
+            <span>Filtros de Fechas</span>
+            @if (dateFrom() || dateTo()) {
+              <span class="text-xs text-primary">●</span>
+            }
+          </button>
+        </div>
+
+        @if (hasFiltersApplied()) {
+          <div class="flex items-center gap-2">
+            <button
+              hlmBtn
+              variant="ghost"
+              size="sm"
+              (click)="clearFilters()"
+              class="flex items-center gap-2 cursor-pointer"
+            >
+              <ng-icon hlm size="sm" name="lucideX"></ng-icon>
+              <span>Limpiar filtros</span>
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (showFilters()) {
+        <div class="space-y-4 pt-4 border-t">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="flex flex-col gap-3">
+              <span class="text-sm font-medium">Estado de Cuenta</span>
+              <hlm-radio-group
+                class="flex flex-col gap-2"
+                [(ngModel)]="statusFilterValue"
+                (ngModelChange)="applyFilters()"
+              >
+                <label class="flex items-center gap-3" hlmLabel for="all-status">
+                  <hlm-radio value="ALL" id="all-status">
+                    <hlm-radio-indicator indicator/>
+                  </hlm-radio>
+                  Todos
+                </label>
+                <label class="flex items-center gap-3" hlmLabel for="active-status">
+                  <hlm-radio value="ACTIVE" id="active-status">
+                    <hlm-radio-indicator indicator/>
+                  </hlm-radio>
+                  Activos
+                </label>
+                <label class="flex items-center gap-3" hlmLabel for="inactive-status">
+                  <hlm-radio value="INACTIVE" id="inactive-status">
+                    <hlm-radio-indicator indicator/>
+                  </hlm-radio>
+                  Inactivos
+                </label>
+              </hlm-radio-group>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <span class="text-sm font-medium">Email Verificado</span>
+              <brn-select
+                class="w-full"
+                placeholder="Seleccionar..."
+                [(ngModel)]="emailVerifiedFilter"
+                (ngModelChange)="applyFilters()"
+              >
+                <hlm-select-trigger class="w-full">
+                  <hlm-select-value/>
+                </hlm-select-trigger>
+                <hlm-select-content>
+                  <hlm-option [value]="null">Todos</hlm-option>
+                  <hlm-option [value]="true">Verificados</hlm-option>
+                  <hlm-option [value]="false">No Verificados</hlm-option>
+                </hlm-select-content>
+              </brn-select>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <span class="text-sm font-medium">Último Login</span>
+              <brn-select
+                class="w-full"
+                placeholder="Seleccionar..."
+                [(ngModel)]="lastLoginFilter"
+                (ngModelChange)="applyFilters()"
+              >
+                <hlm-select-trigger class="w-full">
+                  <hlm-select-value/>
+                </hlm-select-trigger>
+                <hlm-select-content>
+                  <hlm-option [value]="null">Todos</hlm-option>
+                  <hlm-option value="LAST_7_DAYS">Últimos 7 días</hlm-option>
+                  <hlm-option value="LAST_MONTH">Último mes</hlm-option>
+                  <hlm-option value="MORE_THAN_3_MONTHS">Más de 3 meses</hlm-option>
+                  <hlm-option value="NEVER">Nunca</hlm-option>
+                </hlm-select-content>
+              </brn-select>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <span class="text-sm font-medium">Estado de Bloqueo</span>
+              <brn-select
+                class="w-full"
+                placeholder="Seleccionar..."
+                [(ngModel)]="isLockedFilter"
+                (ngModelChange)="applyFilters()"
+              >
+                <hlm-select-trigger class="w-full">
+                  <hlm-select-value/>
+                </hlm-select-trigger>
+                <hlm-select-content>
+                  <hlm-option [value]="null">Todos</hlm-option>
+                  <hlm-option [value]="true">Bloqueados</hlm-option>
+                  <hlm-option [value]="false">No Bloqueados</hlm-option>
+                </hlm-select-content>
+              </brn-select>
+            </div>
+          </div>
+        </div>
+      }
+      @if (showDateFilters()) {
+        <div class="pt-4 border-t">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-3">
+              <span class="text-sm font-medium">Registrado Desde</span>
+              <hlm-date-picker
+                buttonId="dateFrom"
+                [date]="dateFrom()"
+                (dateChange)="dateFrom.set($event); applyFilters()"
+              >
+                <span>Seleccionar fecha</span>
+              </hlm-date-picker>
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <span class="text-sm font-medium">Registrado Hasta</span>
+              <hlm-date-picker
+                buttonId="dateTo"
+                [date]="dateTo()"
+                (dateChange)="dateTo.set($event); applyFilters()"
+              >
+                <span>Seleccionar fecha</span>
+              </hlm-date-picker>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div hlmCardContent class="overflow-x-auto flex-1 pb-0">
+      @if (isLoading()) {
+        <div class="space-y-3">
+          @for (_ of [1, 2, 3, 4, 5]; track $index) {
+            <hlm-skeleton class="w-full h-16"/>
+          }
+        </div>
+      } @else if (displayedCustomers().length === 0) {
+        <div class="flex flex-col items-center justify-center py-12 text-center">
+          <ng-icon hlm size="xl" name="lucideUser" class="mb-4 text-muted-foreground"/>
+          <h3 class="text-lg font-semibold mb-2">No se encontraron clientes</h3>
+          <p class="text-sm text-muted-foreground mb-4">
+            @if (hasFiltersApplied()) {
+              Intenta ajustar los filtros de búsqueda
+            } @else {
+              No hay
+                clientes registrados en el sistema
+            }
+          </p>
+          @if (hasFiltersApplied()) {
+            <button hlmBtn variant="outline" (click)="clearFilters()">
+              <ng-icon hlm size="sm" name="lucideX" class="mr-2"/>
+              Limpiar filtros
+            </button>
+          }
+        </div>
+      } @else {
+        <table hlmTable>
+          <thead hlmTHead>
+          <tr hlmTr>
+            <th
+              hlmTh
+              (click)="onSortChange('firstName')"
+              (keydown.enter)="onSortChange('firstName')"
+              tabindex="0"
+              class="cursor-pointer select-none"
+            >
+              <div class="flex items-center gap-2">
+                Cliente @if (sortField() === 'firstName') {
+                <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
+              }
+              </div>
+            </th>
+            <th
+              hlmTh
+              (click)="onSortChange('email')"
+              (keydown.enter)="onSortChange('email')"
+              tabindex="0"
+              class="cursor-pointer select-none"
+            >
+              <div class="flex items-center gap-2">
+                Email @if (sortField() === 'email') {
+                <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
+              }
+              </div>
+            </th>
+            <th hlmTh>Usuario</th>
+            <th hlmTh>Teléfono</th>
+            <th hlmTh>Estado</th>
+            <th
+              hlmTh
+              (click)="onSortChange('lastLoginAt')"
+              (keydown.enter)="onSortChange('lastLoginAt')"
+              tabindex="0"
+              class="cursor-pointer select-none"
+            >
+              <div class="flex items-center gap-2">
+                Último Login @if (sortField() === 'lastLoginAt') {
+                <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
+              }
+              </div>
+            </th>
+            <th
+              hlmTh
+              (click)="onSortChange('createdAt')"
+              (keydown.enter)="onSortChange('createdAt')"
+              tabindex="0"
+              class="cursor-pointer select-none"
+            >
+              <div class="flex items-center gap-2">
+                Fecha de Registro @if (sortField() === 'createdAt') {
+                <span>{{ sortDirection() === 'ASC' ? '↑' : '↓' }}</span>
+              }
+              </div>
+            </th>
+            <th hlmTh class="text-center">Acciones</th>
+          </tr>
+          </thead>
+          <tbody hlmTBody>
+            @for (customer of displayedCustomers(); track customer.userId) {
+              <tr hlmTr>
+                <td hlmTd>
+                  <div class="flex flex-col">
+                    <span class="font-medium">{{ customer.fullName }}</span>
+                    <span class="text-xs text-muted-foreground">ID: #{{ customer.userId }}</span>
+                  </div>
+                </td>
+                <td hlmTd>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm">{{ customer.email }}</span>
+                    @if (customer.emailVerified) {
+                      <span hlmBadge variant="default" class="text-xs">
+                  <ng-icon hlm size="xs" name="lucideCheck"/>
+                </span>
+                    } @else {
+                      <span hlmBadge variant="destructive" class="text-xs">
+                  <ng-icon hlm size="xs" name="lucideX"/>
+                </span>
+                    }
+                  </div>
+                </td>
+                <td hlmTd>
+                  <span class="font-mono text-sm">{{ customer.username }}</span>
+                </td>
+                <td hlmTd>
+                  @if (customer.phoneNumber) {
+                    <span class="text-sm">{{ customer.phoneNumber }}</span>
+                  } @else {
+                    <span class="text-sm text-muted-foreground italic">Sin teléfono</span>
+                  }
+                </td>
+                <td hlmTd>
+                  <div class="flex flex-col gap-1">
+                    @if (customer.isActive) {
+                      <span hlmBadge [variant]="getActiveStatusBadge()">
+                  {{ getActiveStatusLabel() }}
+                </span>
+                    } @else {
+                      <span hlmBadge [variant]="getInactiveStatusBadge()">
+                  {{ getInactiveStatusLabel() }}
+                </span>
+                    }
+                    @if (customer.isLocked) {
+                      <span hlmBadge variant="destructive" class="text-xs">
+                  <ng-icon hlm size="xs" name="lucideLock" class="mr-1"/>
+                  Bloqueada
+                </span>
+                    }
+                  </div>
+                </td>
+                <td hlmTd>
+                  @if (customer.lastLoginAt) {
+                    <div class="flex flex-col">
+                      <span class="text-sm">{{ customer.lastLoginAt | date : 'dd/MM/yyyy' }}</span>
+                      <span class="text-xs text-muted-foreground">
+                  {{ formatDaysSinceLastLogin(customer.lastLoginAt) }}
+                </span>
+                    </div>
+                  } @else {
+                    <span class="text-sm italic text-muted-foreground">Nunca</span>
+                  }
+                </td>
+                <td hlmTd>{{ customer.createdAt | date : 'dd/MM/yyyy HH:mm' }}</td>
+                <td hlmTd class="text-center">
+                  <div class="flex items-center justify-center gap-2">
+                    <hlm-tooltip>
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="sm"
+                        hlmTooltipTrigger
+                        (click)="viewCustomerDetail(customer)"
+                        class="flex items-center gap-2 cursor-pointer"
+                      >
+                        <ng-icon hlm size="sm" name="lucideEye"/>
+                        <span>Ver perfil</span>
+                      </button>
+                      <span *brnTooltipContent class="text-xs">Ver perfil completo</span>
+                    </hlm-tooltip>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    @if (!isLoading() && totalPages() > 0) {
+      <hlm-separator class="my-4"/>
+      <div hlmCardContent class="flex-shrink-0">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="text-sm text-muted-foreground">
+            Mostrando {{ currentPage() * pageSize() + 1 }} -
+            {{ Math.min((currentPage() + 1) * pageSize(), totalElements()) }} de
+            {{ totalElements() }} {{ totalElements() === 1 ? 'cliente' : 'clientes' }}
+          </div>
+
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium">Tamaño:</span>
+              <brn-select
+                class="inline-block"
+                placeholder="Selecciona tamaño"
+                [value]="pageSize().toString()"
+                (valueChange)="onPageSizeChange(+$event!)"
+              >
+                <hlm-select-trigger class="w-20">
+                  <hlm-select-value/>
+                </hlm-select-trigger>
+                <hlm-select-content>
+                  <hlm-option value="5">5</hlm-option>
+                  <hlm-option value="10">10</hlm-option>
+                  <hlm-option value="20">20</hlm-option>
+                  <hlm-option value="30">30</hlm-option>
+                  <hlm-option value="50">50</hlm-option>
+                </hlm-select-content>
+              </brn-select>
+            </div>
+
+            <nav hlmPagination>
+              <ul hlmPaginationContent>
+                <li hlmPaginationItem>
+                  <hlm-pagination-previous
+                    text="Anterior"
+                    class="cursor-pointer"
+                    [link]="currentPage() > 0 ? '.' : undefined"
+                    [queryParams]="{ page: currentPage() - 1 }"
+                    queryParamsHandling="merge"
+                    [class.pointer-events-none]="currentPage() === 0"
+                    [class.opacity-50]="currentPage() === 0"
+                    [class.cursor-not-allowed]="currentPage() === 0"
+                  />
+                </li>
+                @for (page of pageNumbers(); track $index) {
+                  @if (page === 'ellipsis') {
+                    <li hlmPaginationItem>
+                      <hlm-pagination-ellipsis/>
+                    </li>
+                  } @else {
+                    <li hlmPaginationItem>
+                      <a
+                        hlmPaginationLink
+                        [link]="currentPage() !== +page ? '.' : undefined"
+                        [queryParams]="{ page: +page }"
+                        queryParamsHandling="merge"
+                        [isActive]="currentPage() === +page"
+                      >
+                        {{ +page + 1 }}
+                      </a>
+                    </li>
+                  }
+                }
+                <li hlmPaginationItem>
+                  <hlm-pagination-next
+                    text="Siguiente"
+                    class="cursor-pointer"
+                    [link]="currentPage() < totalPages() - 1 ? '.' : undefined"
+                    [queryParams]="{ page: currentPage() + 1 }"
+                    queryParamsHandling="merge"
+                    [class.pointer-events-none]="currentPage() >= totalPages() - 1"
+                    [class.opacity-50]="currentPage() >= totalPages() - 1"
+                    [class.cursor-not-allowed]="currentPage() >= totalPages() - 1"
+                  />
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    }
+  </section>
+</main>

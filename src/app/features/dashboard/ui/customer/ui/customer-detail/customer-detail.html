@@ -1,0 +1,422 @@
+<main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col min-h-full">
+  @if (isLoading()) {
+    <section hlmCard class="shadow-sm">
+      <header hlmCardHeader>
+        <div class="flex items-center gap-4">
+          <hlm-skeleton class="h-12 w-12 rounded-full"/>
+          <div class="flex-1 space-y-2">
+            <hlm-skeleton class="h-6 w-64"/>
+            <hlm-skeleton class="h-4 w-96"/>
+          </div>
+        </div>
+      </header>
+      <div hlmCardContent class="space-y-6 pt-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <hlm-skeleton class="h-48 w-full"/>
+          <hlm-skeleton class="h-48 w-full"/>
+        </div>
+        <hlm-skeleton class="h-64 w-full"/>
+      </div>
+    </section>
+  } @else if (notFound()) {
+    <section hlmCard class="shadow-sm">
+      <div hlmCardContent class="py-12 text-center">
+        <ng-icon hlm size="xl" name="lucideUser" class="mx-auto mb-4 text-muted-foreground"/>
+        <h2 class="text-2xl font-semibold mb-2">Cliente No Encontrado</h2>
+        <p class="text-muted-foreground mb-6">
+          El cliente que buscas no existe o fue eliminado del sistema.
+        </p>
+        <button hlmBtn variant="default" (click)="goBack()">
+          <ng-icon hlm size="sm" name="lucideArrowLeft" class="mr-2"/>
+          Volver al Listado
+        </button>
+      </div>
+    </section>
+  } @else if (customer(); as c) {
+    <nav hlmBreadcrumb class="mb-6">
+      <ol hlmBreadcrumbList>
+        <li hlmBreadcrumbItem>
+          <a hlmBreadcrumbLink link="/dashboard">Panel</a>
+        </li>
+        <li hlmBreadcrumbSeparator></li>
+        <li hlmBreadcrumbItem>
+          <button hlmBreadcrumbLink (click)="goBack()">Clientes</button>
+        </li>
+        <li hlmBreadcrumbSeparator></li>
+        <li hlmBreadcrumbItem>
+          <span hlmBreadcrumbPage>{{ c.fullName }}</span>
+        </li>
+      </ol>
+    </nav>
+
+    <section hlmCard class="shadow-sm">
+      <header hlmCardHeader>
+        <div class="flex items-start justify-between gap-4 flex-col sm:flex-row">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-3">
+              <button
+                hlmBtn
+                variant="ghost"
+                size="sm"
+                (click)="goBack()"
+                class="flex items-center gap-2"
+              >
+                <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+                Volver
+              </button>
+              <hlm-separator orientation="vertical" class="h-6"/>
+              <span class="text-sm text-muted-foreground">ID #{{ c.userId }}</span>
+            </div>
+            <h1 hlmCardTitle class="text-2xl font-bold mb-1">{{ c.fullName }}</h1>
+            <p hlmCardDescription class="text-sm text-muted-foreground">
+              Información completa y detallada del perfil del cliente
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            @if (c.isActive) {
+              <span hlmBadge [variant]="getActiveAccountBadgeVariant()" class="text-sm px-3 py-1">
+            {{ getActiveAccountLabel() }}
+          </span>
+            } @else {
+              <span hlmBadge [variant]="getInactiveAccountBadgeVariant()" class="text-sm px-3 py-1">
+            {{ getInactiveAccountLabel() }}
+          </span>
+            }
+            @if (c.isLocked) {
+              <span hlmBadge variant="destructive" class="text-sm px-3 py-1">
+            <ng-icon hlm size="sm" name="lucideLock" class="mr-1"/>
+            Bloqueada
+          </span>
+            }
+          </div>
+        </div>
+      </header>
+
+      <hlm-separator class="my-4"/>
+
+      <div hlmCardContent class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <section hlmCard variant="outline">
+            <header hlmCardHeader>
+              <div class="flex items-center gap-2">
+                <ng-icon hlm size="sm" name="lucideUser" class="text-primary"/>
+                <h3 hlmCardTitle class="text-lg">Información Personal</h3>
+              </div>
+            </header>
+            <div hlmCardContent class="space-y-4">
+              <div>
+                <span class="text-sm text-muted-foreground">Nombre Completo</span>
+                <p class="font-medium text-lg">{{ c.fullName }}</p>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <span class="text-sm text-muted-foreground">Nombre</span>
+                  <p class="font-medium">{{ c.firstName }}</p>
+                </div>
+                <div>
+                  <span class="text-sm text-muted-foreground">Apellido</span>
+                  <p class="font-medium">{{ c.lastName }}</p>
+                </div>
+              </div>
+              <div>
+                <span class="text-sm text-muted-foreground">Usuario</span>
+                <p class="font-medium">{{ c.username }}</p>
+              </div>
+              <div>
+              <span class="text-sm text-muted-foreground flex items-center gap-2">
+                <ng-icon hlm size="xs" name="lucideMail"/>
+                Correo Electrónico
+              </span>
+                <div class="flex items-center gap-2 mt-1">
+                  <p class="font-medium">{{ c.email }}</p>
+                  @if (c.emailVerified) {
+                    <span hlmBadge variant="default" class="text-xs">
+                  <ng-icon hlm size="xs" name="lucideCheck" class="mr-1"/>
+                  Verificado
+                </span>
+                  } @else {
+                    <span hlmBadge variant="destructive" class="text-xs">
+                  <ng-icon hlm size="xs" name="lucideX" class="mr-1"/>
+                  Pendiente
+                </span>
+                  }
+                </div>
+              </div>
+              @if (c.phoneNumber) {
+                <div>
+              <span class="text-sm text-muted-foreground flex items-center gap-2">
+                <ng-icon hlm size="xs" name="lucidePhone"/>
+                Teléfono
+              </span>
+                  <div class="flex items-center gap-2 mt-1">
+                    <p class="font-medium">{{ c.phoneNumber }}</p>
+                    <span hlmBadge variant="default" class="text-xs">
+                  <ng-icon hlm size="xs" name="lucideCheck" class="mr-1"/>
+                  Verificado
+                </span>
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+
+          <section hlmCard variant="outline">
+            <header hlmCardHeader>
+              <div class="flex items-center gap-2">
+                <ng-icon hlm size="sm" name="lucideShieldAlert" class="text-primary"/>
+                <h3 hlmCardTitle class="text-lg">Estado de Cuenta</h3>
+              </div>
+            </header>
+            <div hlmCardContent class="space-y-4">
+              <div>
+                <span class="text-sm text-muted-foreground">Estado de Cuenta</span>
+                <div class="mt-1">
+                  @if (c.isActive) {
+                    <span hlmBadge [variant]="getActiveAccountBadgeVariant()" class="text-sm">
+                  {{ getActiveAccountLabel() }}
+                </span>
+                  } @else {
+                    <span hlmBadge [variant]="getInactiveAccountBadgeVariant()" class="text-sm">
+                  {{ getInactiveAccountLabel() }}
+                </span>
+                  }
+                </div>
+              </div>
+              <div>
+                <span class="text-sm text-muted-foreground">Intentos Fallidos de Login</span>
+                <div class="flex items-center gap-2 mt-1">
+                <span
+                  hlmBadge
+                  [variant]="getFailedLoginAttemptsVariant()"
+                  class="text-base font-bold"
+                >
+                  {{ c.failedLoginAttempts }}/10
+                </span>
+                  @if (c.failedLoginAttempts >= 8) {
+                    <span class="text-xs text-destructive font-medium"> ¡Cerca del bloqueo! </span>
+                  }
+                </div>
+              </div>
+              @if (c.isLocked && c.lockedUntil) {
+                <div hlmCard variant="outline" class="border-destructive bg-destructive/5 p-3">
+                  <div class="flex items-start gap-2">
+                    <ng-icon hlm size="sm" name="lucideLock" class="text-destructive mt-0.5"/>
+                    <div>
+                      <p class="font-semibold text-sm text-destructive mb-1">
+                        Cuenta Bloqueada Temporalmente
+                      </p>
+                      <p class="text-xs text-muted-foreground">
+                        Bloqueada hasta: {{ c.lockedUntil | date : 'dd/MM/yyyy HH:mm' }}
+                      </p>
+                      <p class="text-xs text-muted-foreground mt-1">
+                        Máximo de intentos fallidos alcanzado (10/10)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              }
+              <div>
+                <span class="text-sm text-muted-foreground">Último Acceso</span>
+                @if (c.lastLoginAt) {
+                  <p class="font-medium">{{ c.lastLoginAt | date : 'dd/MM/yyyy HH:mm' }}</p>
+                  <p class="text-xs text-muted-foreground mt-1">{{ formatDaysSinceLastLogin() }}</p>
+                } @else {
+                  <p class="font-medium italic text-muted-foreground">Nunca ha ingresado</p>
+                }
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section hlmCard variant="outline">
+          <header hlmCardHeader>
+            <div class="flex items-center gap-2">
+              <ng-icon hlm size="sm" name="lucideCalendar" class="text-primary"/>
+              <h3 hlmCardTitle class="text-lg">Actividad de Cuenta</h3>
+            </div>
+          </header>
+          <div hlmCardContent>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <span class="text-sm text-muted-foreground">Fecha de Registro</span>
+                <p class="font-medium">{{ c.createdAt | date : 'dd/MM/yyyy HH:mm' }}</p>
+                <p class="text-xs text-muted-foreground mt-1">
+                  Hace {{ c.daysSinceRegistration }} días
+                </p>
+              </div>
+              <div>
+                <span class="text-sm text-muted-foreground">Última Actualización</span>
+                <p class="font-medium">{{ c.updatedAt | date : 'dd/MM/yyyy' }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-muted-foreground">Último Login</span>
+                @if (c.lastLoginAt) {
+                  <p class="font-medium">{{ c.lastLoginAt | date : 'dd/MM/yyyy' }}</p>
+                  <p class="text-xs text-muted-foreground mt-1">
+                    {{ formatDaysSinceLastLogin() }}
+                  </p>
+                } @else {
+                  <p class="font-medium italic text-muted-foreground">Nunca</p>
+                }
+              </div>
+              <div>
+                <span class="text-sm text-muted-foreground">Días Registrado</span>
+                <p class="font-medium text-lg">{{ c.daysSinceRegistration }}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section hlmCard variant="outline">
+          <header hlmCardHeader>
+            <div class="flex items-center gap-2">
+              <ng-icon hlm size="sm" name="lucideShoppingBag" class="text-primary"/>
+              <h3 hlmCardTitle class="text-lg">Estadísticas de Compras</h3>
+            </div>
+          </header>
+          <div hlmCardContent>
+            @if (c.purchaseStats.totalReservations > 0) {
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                  <span class="text-sm text-muted-foreground">Total de Reservas</span>
+                  <p class="font-bold text-3xl">{{ c.purchaseStats.totalReservations }}</p>
+                </div>
+                <div>
+                  <span class="text-sm text-muted-foreground">Completadas</span>
+                  <div class="flex items-baseline gap-2">
+                    <p class="font-bold text-3xl text-green-600">
+                      {{ c.purchaseStats.completedReservations }}
+                    </p>
+                    <span class="text-sm text-muted-foreground">
+                  ({{ getCompletionRate().toFixed(0) }}%)
+                </span>
+                  </div>
+                </div>
+                <div>
+                  <span class="text-sm text-muted-foreground">Canceladas</span>
+                  <p class="font-bold text-3xl text-red-600">
+                    {{ c.purchaseStats.cancelledReservations }}
+                  </p>
+                </div>
+                <div>
+                  <span class="text-sm text-muted-foreground">Activas</span>
+                  <p class="font-bold text-3xl text-blue-600">
+                    {{ c.purchaseStats.activeReservations }}
+                  </p>
+                </div>
+                <div>
+                  <span class="text-sm text-muted-foreground">Monto Total Gastado</span>
+                  <p class="font-bold text-3xl text-primary">
+                    {{ c.purchaseStats.totalAmountSpent | currency : 'S/ ' : 'symbol' : '1.2-2' }}
+                  </p>
+                </div>
+                <div>
+                  <span class="text-sm text-muted-foreground">Ticket Promedio</span>
+                  <p class="font-bold text-2xl">
+                    {{ c.purchaseStats.averageTicket | currency : 'S/ ' : 'symbol' : '1.2-2' }}
+                  </p>
+                </div>
+              </div>
+              <hlm-separator class="my-4"/>
+              <div>
+                <span class="text-sm text-muted-foreground">Última Compra</span>
+                <p class="font-medium">{{ formatLastPurchaseDate() }}</p>
+                @if (c.purchaseStats.lastPurchaseDate) {
+                  <p class="text-xs text-muted-foreground mt-1">
+                    {{ c.purchaseStats.lastPurchaseDate | date : 'dd/MM/yyyy HH:mm' }}
+                  </p>
+                }
+              </div>
+            } @else {
+              <div class="text-center py-8">
+                <p class="text-muted-foreground italic">
+                  Este cliente aún no ha realizado ninguna compra
+                </p>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section hlmCard variant="outline">
+          <header hlmCardHeader>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <ng-icon hlm size="sm" name="lucideClock" class="text-primary"/>
+                <h3 hlmCardTitle class="text-lg">Historial de Reservas Recientes</h3>
+              </div>
+              @if (c.recentReservations.length > 0) {
+                <span class="text-sm text-muted-foreground">
+              Últimas {{ c.recentReservations.length }} reservas
+            </span>
+              }
+            </div>
+          </header>
+          <div hlmCardContent>
+            @if (c.recentReservations.length > 0) {
+              <div class="space-y-3">
+                @for (reservation of c.recentReservations; track reservation.reservationId) {
+                  <div hlmCard variant="outline" class="p-4">
+                    <div class="flex items-start justify-between gap-4 flex-wrap">
+                      <div class="flex-1 space-y-2">
+                        <div class="flex items-center gap-3 flex-wrap">
+                    <span class="font-mono font-semibold text-primary">
+                      {{ reservation.reservationCode }}
+                    </span>
+                          <span hlmBadge [variant]="getReservationStatusBadgeVariant(reservation.status)">
+                      {{ getReservationStatusLabel(reservation.status) }}
+                    </span>
+                        </div>
+                        <div class="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                    <span>
+                      <ng-icon hlm size="xs" name="lucideCalendar" class="mr-1"/>
+                      {{ reservation.createdAt | date : 'dd/MM/yyyy HH:mm' }}
+                    </span>
+                          <span>
+                      <ng-icon hlm size="xs" name="lucideShoppingBag" class="mr-1"/>
+                            {{ reservation.itemCount }}
+                            {{ reservation.itemCount === 1 ? 'producto' : 'productos' }}
+                    </span>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <p class="text-sm text-muted-foreground">Monto</p>
+                        <p class="font-bold text-xl text-primary">
+                          {{ reservation.totalAmount | currency : 'S/ ' : 'symbol' : '1.2-2' }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="text-center py-8">
+                <p class="text-muted-foreground italic">Sin compras registradas aún</p>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section hlmCard variant="outline">
+          <header hlmCardHeader>
+            <div class="flex items-center gap-2">
+              <ng-icon hlm size="sm" name="lucideCheckCircle" class="text-primary"/>
+              <h3 hlmCardTitle class="text-lg">Información Técnica</h3>
+            </div>
+          </header>
+          <div hlmCardContent>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <span class="text-sm text-muted-foreground">ID del Usuario</span>
+                <p class="font-mono font-medium">#{{ c.userId }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-muted-foreground">Idioma del Sistema</span>
+                <p class="font-medium">{{ c.languageCode }}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  }
+</main>
