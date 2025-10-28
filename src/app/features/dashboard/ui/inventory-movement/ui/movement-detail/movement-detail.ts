@@ -63,8 +63,6 @@ export class MovementDetail implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private routeSubscription?: Subscription;
 
-  readonly MovementType = MovementType;
-
   readonly movement = signal<StockMovementDetailResponse | null>(null);
   readonly isLoading = signal<boolean>(true);
   readonly notFound = signal<boolean>(false);

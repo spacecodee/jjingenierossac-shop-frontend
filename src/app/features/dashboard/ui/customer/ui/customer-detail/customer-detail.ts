@@ -1,11 +1,8 @@
-import { CurrencyPipe, DatePipe, registerLocaleData } from '@angular/common';
+import { DatePipe, registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 import { Component, inject, LOCALE_ID, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import {
-  CustomerDetailResponse,
-  ReservationStatus,
-} from '@features/dashboard/data/models/customer-detail-response.interface';
+import { CustomerDetailResponse } from '@features/dashboard/data/models/customer-detail-response.interface';
 import { Customer } from '@features/dashboard/data/services/customer/customer';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -17,7 +14,6 @@ import {
   lucideMail,
   lucidePhone,
   lucideShieldAlert,
-  lucideShoppingBag,
   lucideUser,
   lucideX,
 } from '@ng-icons/lucide';
@@ -46,7 +42,7 @@ type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
     HlmSkeleton,
     NgIcon,
     DatePipe,
-    CurrencyPipe,
+
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'es-PE' },
@@ -59,7 +55,6 @@ type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
       lucideLock,
       lucideCalendar,
       lucideClock,
-      lucideShoppingBag,
       lucideCheck,
       lucideX,
     }),
@@ -141,30 +136,6 @@ export class CustomerDetail implements OnInit, OnDestroy {
     return 'Inactiva';
   }
 
-  getReservationStatusBadgeVariant(status: ReservationStatus): BadgeVariant {
-    const statusMap: Record<ReservationStatus, BadgeVariant> = {
-      RECEIVED: 'secondary',
-      IN_PROCESS: 'outline',
-      READY_FOR_PICKUP: 'default',
-      PAID: 'default',
-      COMPLETED: 'default',
-      CANCELLED: 'destructive',
-    };
-    return statusMap[status] || 'outline';
-  }
-
-  getReservationStatusLabel(status: ReservationStatus): string {
-    const statusLabels: Record<ReservationStatus, string> = {
-      RECEIVED: 'Recibida',
-      IN_PROCESS: 'En Proceso',
-      READY_FOR_PICKUP: 'Lista para Recoger',
-      PAID: 'Pagada',
-      COMPLETED: 'Completada',
-      CANCELLED: 'Cancelada',
-    };
-    return statusLabels[status] || status;
-  }
-
   getFailedLoginAttemptsVariant(): 'default' | 'secondary' | 'destructive' {
     const attempts = this.customer()?.failedLoginAttempts ?? 0;
     if (attempts >= 8) return 'destructive';
@@ -180,29 +151,5 @@ export class CustomerDetail implements OnInit, OnDestroy {
     if (days === 0) return 'Hoy';
     if (days === 1) return 'Hace 1 día';
     return `Hace ${ days } días`;
-  }
-
-  formatLastPurchaseDate(): string {
-    const lastPurchaseDate = this.customer()?.purchaseStats.lastPurchaseDate;
-    if (!lastPurchaseDate) {
-      return 'Sin compras';
-    }
-    const date = new Date(lastPurchaseDate);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return 'Hoy';
-    if (diffDays === 1) return 'Hace 1 día';
-    if (diffDays < 30) return `Hace ${ diffDays } días`;
-    if (diffDays < 60) return 'Hace 1 mes';
-    const months = Math.floor(diffDays / 30);
-    return `Hace ${ months } meses`;
-  }
-
-  getCompletionRate(): number {
-    const stats = this.customer()?.purchaseStats;
-    if (!stats || stats.totalReservations === 0) return 0;
-    return (stats.completedReservations / stats.totalReservations) * 100;
   }
 }

@@ -12,10 +12,10 @@
       </header>
       <div hlmCardContent class="space-y-6 pt-6">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <hlm-skeleton class="h-48 w-full"/>
-          <hlm-skeleton class="h-48 w-full"/>
+          <hlm-skeleton class="h-64 w-full"/>
+          <hlm-skeleton class="h-64 w-full"/>
         </div>
-        <hlm-skeleton class="h-64 w-full"/>
+        <hlm-skeleton class="h-32 w-full"/>
       </div>
     </section>
   } @else if (notFound()) {
@@ -26,7 +26,7 @@
         <p class="text-muted-foreground mb-6">
           El cliente que buscas no existe o fue eliminado del sistema.
         </p>
-        <button hlmBtn variant="default" (click)="goBack()">
+        <button hlmBtn variant="default" (click)="goBack()" class="cursor-pointer">
           <ng-icon hlm size="sm" name="lucideArrowLeft" class="mr-2"/>
           Volver al Listado
         </button>
@@ -40,7 +40,9 @@
         </li>
         <li hlmBreadcrumbSeparator></li>
         <li hlmBreadcrumbItem>
-          <button hlmBreadcrumbLink (click)="goBack()">Clientes</button>
+          <button hlmBreadcrumbLink [link]="null" (click)="goBack()" class="cursor-pointer">
+            Clientes
+          </button>
         </li>
         <li hlmBreadcrumbSeparator></li>
         <li hlmBreadcrumbItem>
@@ -59,7 +61,7 @@
                 variant="ghost"
                 size="sm"
                 (click)="goBack()"
-                class="flex items-center gap-2"
+                class="flex items-center gap-2 cursor-pointer"
               >
                 <ng-icon hlm size="sm" name="lucideArrowLeft"/>
                 Volver
@@ -96,7 +98,7 @@
 
       <div hlmCardContent class="space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section hlmCard variant="outline">
+          <section hlmCard class="!bg-muted/30 border-border">
             <header hlmCardHeader>
               <div class="flex items-center gap-2">
                 <ng-icon hlm size="sm" name="lucideUser" class="text-primary"/>
@@ -160,7 +162,7 @@
             </div>
           </section>
 
-          <section hlmCard variant="outline">
+          <section hlmCard class="!bg-muted/30 border-border">
             <header hlmCardHeader>
               <div class="flex items-center gap-2">
                 <ng-icon hlm size="sm" name="lucideShieldAlert" class="text-primary"/>
@@ -198,15 +200,15 @@
                 </div>
               </div>
               @if (c.isLocked && c.lockedUntil) {
-                <div hlmCard variant="outline" class="border-destructive bg-destructive/5 p-3">
+                <div class="rounded-xl border border-destructive bg-destructive/5 p-3">
                   <div class="flex items-start gap-2">
                     <ng-icon hlm size="sm" name="lucideLock" class="text-destructive mt-0.5"/>
-                    <div>
-                      <p class="font-semibold text-sm text-destructive mb-1">
+                    <div class="flex-1">
+                      <p class="text-sm font-semibold text-destructive mb-1">
                         Cuenta Bloqueada Temporalmente
                       </p>
                       <p class="text-xs text-muted-foreground">
-                        Bloqueada hasta: {{ c.lockedUntil | date : 'dd/MM/yyyy HH:mm' }}
+                        Hasta: {{ c.lockedUntil | date : 'dd/MM/yyyy HH:mm' }}
                       </p>
                       <p class="text-xs text-muted-foreground mt-1">
                         Máximo de intentos fallidos alcanzado (10/10)
@@ -215,204 +217,87 @@
                   </div>
                 </div>
               }
-              <div>
-                <span class="text-sm text-muted-foreground">Último Acceso</span>
-                @if (c.lastLoginAt) {
-                  <p class="font-medium">{{ c.lastLoginAt | date : 'dd/MM/yyyy HH:mm' }}</p>
-                  <p class="text-xs text-muted-foreground mt-1">{{ formatDaysSinceLastLogin() }}</p>
-                } @else {
-                  <p class="font-medium italic text-muted-foreground">Nunca ha ingresado</p>
-                }
-              </div>
             </div>
           </section>
         </div>
 
-        <section hlmCard variant="outline">
+        <section hlmCard class="!bg-muted/30 border-border">
           <header hlmCardHeader>
             <div class="flex items-center gap-2">
-              <ng-icon hlm size="sm" name="lucideCalendar" class="text-primary"/>
-              <h3 hlmCardTitle class="text-lg">Actividad de Cuenta</h3>
+              <ng-icon hlm size="sm" name="lucideClock" class="text-primary"/>
+              <h3 hlmCardTitle class="text-lg">Actividad y Métricas</h3>
             </div>
           </header>
           <div hlmCardContent>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div>
                 <span class="text-sm text-muted-foreground">Fecha de Registro</span>
-                <p class="font-medium">{{ c.createdAt | date : 'dd/MM/yyyy HH:mm' }}</p>
+                <p class="font-medium text-lg">{{ c.createdAt | date : 'dd/MM/yyyy' }}</p>
                 <p class="text-xs text-muted-foreground mt-1">
-                  Hace {{ c.daysSinceRegistration }} días
+                  {{ c.createdAt | date : 'HH:mm' }}
                 </p>
               </div>
               <div>
                 <span class="text-sm text-muted-foreground">Última Actualización</span>
-                <p class="font-medium">{{ c.updatedAt | date : 'dd/MM/yyyy' }}</p>
+                <p class="font-medium text-lg">{{ c.updatedAt | date : 'dd/MM/yyyy' }}</p>
+                <p class="text-xs text-muted-foreground mt-1">
+                  {{ c.updatedAt | date : 'HH:mm' }}
+                </p>
               </div>
               <div>
                 <span class="text-sm text-muted-foreground">Último Login</span>
                 @if (c.lastLoginAt) {
-                  <p class="font-medium">{{ c.lastLoginAt | date : 'dd/MM/yyyy' }}</p>
+                  <p class="font-medium text-lg">{{ c.lastLoginAt | date : 'dd/MM/yyyy' }}</p>
                   <p class="text-xs text-muted-foreground mt-1">
-                    {{ formatDaysSinceLastLogin() }}
+                    {{ c.lastLoginAt | date : 'HH:mm' }}
                   </p>
                 } @else {
-                  <p class="font-medium italic text-muted-foreground">Nunca</p>
+                  <p class="font-medium text-lg text-muted-foreground">Nunca</p>
                 }
               </div>
+              <div>
+                <span class="text-sm text-muted-foreground">Tiempo desde Último Login</span>
+                <p class="font-medium text-lg">{{ formatDaysSinceLastLogin() }}</p>
+              </div>
+            </div>
+            <hlm-separator class="my-4"/>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <span class="text-sm text-muted-foreground">Días Registrado</span>
-                <p class="font-medium text-lg">{{ c.daysSinceRegistration }}</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section hlmCard variant="outline">
-          <header hlmCardHeader>
-            <div class="flex items-center gap-2">
-              <ng-icon hlm size="sm" name="lucideShoppingBag" class="text-primary"/>
-              <h3 hlmCardTitle class="text-lg">Estadísticas de Compras</h3>
-            </div>
-          </header>
-          <div hlmCardContent>
-            @if (c.purchaseStats.totalReservations > 0) {
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div>
-                  <span class="text-sm text-muted-foreground">Total de Reservas</span>
-                  <p class="font-bold text-3xl">{{ c.purchaseStats.totalReservations }}</p>
-                </div>
-                <div>
-                  <span class="text-sm text-muted-foreground">Completadas</span>
-                  <div class="flex items-baseline gap-2">
-                    <p class="font-bold text-3xl text-green-600">
-                      {{ c.purchaseStats.completedReservations }}
-                    </p>
-                    <span class="text-sm text-muted-foreground">
-                  ({{ getCompletionRate().toFixed(0) }}%)
-                </span>
-                  </div>
-                </div>
-                <div>
-                  <span class="text-sm text-muted-foreground">Canceladas</span>
-                  <p class="font-bold text-3xl text-red-600">
-                    {{ c.purchaseStats.cancelledReservations }}
-                  </p>
-                </div>
-                <div>
-                  <span class="text-sm text-muted-foreground">Activas</span>
-                  <p class="font-bold text-3xl text-blue-600">
-                    {{ c.purchaseStats.activeReservations }}
-                  </p>
-                </div>
-                <div>
-                  <span class="text-sm text-muted-foreground">Monto Total Gastado</span>
-                  <p class="font-bold text-3xl text-primary">
-                    {{ c.purchaseStats.totalAmountSpent | currency : 'S/ ' : 'symbol' : '1.2-2' }}
-                  </p>
-                </div>
-                <div>
-                  <span class="text-sm text-muted-foreground">Ticket Promedio</span>
-                  <p class="font-bold text-2xl">
-                    {{ c.purchaseStats.averageTicket | currency : 'S/ ' : 'symbol' : '1.2-2' }}
-                  </p>
-                </div>
-              </div>
-              <hlm-separator class="my-4"/>
-              <div>
-                <span class="text-sm text-muted-foreground">Última Compra</span>
-                <p class="font-medium">{{ formatLastPurchaseDate() }}</p>
-                @if (c.purchaseStats.lastPurchaseDate) {
-                  <p class="text-xs text-muted-foreground mt-1">
-                    {{ c.purchaseStats.lastPurchaseDate | date : 'dd/MM/yyyy HH:mm' }}
-                  </p>
-                }
-              </div>
-            } @else {
-              <div class="text-center py-8">
-                <p class="text-muted-foreground italic">
-                  Este cliente aún no ha realizado ninguna compra
+                <p class="font-medium text-2xl">{{ c.daysSinceRegistration }}</p>
+                <p class="text-xs text-muted-foreground mt-1">
+                  @if (c.daysSinceRegistration === 0) {
+                    Registrado hoy
+                  } @else if (c.daysSinceRegistration === 1) {
+                    Registrado ayer
+                  } @else if (c.daysSinceRegistration < 30) {
+                    Cliente reciente
+                  } @else if (c.daysSinceRegistration < 90) {
+                    Cliente activo
+                  } @else {
+                    Cliente antiguo
+                  }
                 </p>
               </div>
-            }
-          </div>
-        </section>
-
-        <section hlmCard variant="outline">
-          <header hlmCardHeader>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <ng-icon hlm size="sm" name="lucideClock" class="text-primary"/>
-                <h3 hlmCardTitle class="text-lg">Historial de Reservas Recientes</h3>
-              </div>
-              @if (c.recentReservations.length > 0) {
-                <span class="text-sm text-muted-foreground">
-              Últimas {{ c.recentReservations.length }} reservas
-            </span>
+              @if (c.daysSinceLastLogin !== null) {
+                <div>
+                  <span class="text-sm text-muted-foreground">Días desde Último Login</span>
+                  <p class="font-medium text-2xl">{{ c.daysSinceLastLogin }}</p>
+                  <p class="text-xs text-muted-foreground mt-1">
+                    @if (c.daysSinceLastLogin === 0) {
+                      Login hoy
+                    } @else if (c.daysSinceLastLogin === 1) {
+                      Login ayer
+                    } @else if (c.daysSinceLastLogin < 7) {
+                      Cliente activo
+                    } @else if (c.daysSinceLastLogin < 30) {
+                      Cliente regular
+                    } @else {
+                      Cliente inactivo
+                    }
+                  </p>
+                </div>
               }
-            </div>
-          </header>
-          <div hlmCardContent>
-            @if (c.recentReservations.length > 0) {
-              <div class="space-y-3">
-                @for (reservation of c.recentReservations; track reservation.reservationId) {
-                  <div hlmCard variant="outline" class="p-4">
-                    <div class="flex items-start justify-between gap-4 flex-wrap">
-                      <div class="flex-1 space-y-2">
-                        <div class="flex items-center gap-3 flex-wrap">
-                    <span class="font-mono font-semibold text-primary">
-                      {{ reservation.reservationCode }}
-                    </span>
-                          <span hlmBadge [variant]="getReservationStatusBadgeVariant(reservation.status)">
-                      {{ getReservationStatusLabel(reservation.status) }}
-                    </span>
-                        </div>
-                        <div class="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                    <span>
-                      <ng-icon hlm size="xs" name="lucideCalendar" class="mr-1"/>
-                      {{ reservation.createdAt | date : 'dd/MM/yyyy HH:mm' }}
-                    </span>
-                          <span>
-                      <ng-icon hlm size="xs" name="lucideShoppingBag" class="mr-1"/>
-                            {{ reservation.itemCount }}
-                            {{ reservation.itemCount === 1 ? 'producto' : 'productos' }}
-                    </span>
-                        </div>
-                      </div>
-                      <div class="text-right">
-                        <p class="text-sm text-muted-foreground">Monto</p>
-                        <p class="font-bold text-xl text-primary">
-                          {{ reservation.totalAmount | currency : 'S/ ' : 'symbol' : '1.2-2' }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="text-center py-8">
-                <p class="text-muted-foreground italic">Sin compras registradas aún</p>
-              </div>
-            }
-          </div>
-        </section>
-
-        <section hlmCard variant="outline">
-          <header hlmCardHeader>
-            <div class="flex items-center gap-2">
-              <ng-icon hlm size="sm" name="lucideCheckCircle" class="text-primary"/>
-              <h3 hlmCardTitle class="text-lg">Información Técnica</h3>
-            </div>
-          </header>
-          <div hlmCardContent>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <span class="text-sm text-muted-foreground">ID del Usuario</span>
-                <p class="font-mono font-medium">#{{ c.userId }}</p>
-              </div>
-              <div>
-                <span class="text-sm text-muted-foreground">Idioma del Sistema</span>
-                <p class="font-medium">{{ c.languageCode }}</p>
-              </div>
             </div>
           </div>
         </section>

@@ -24,7 +24,7 @@
         <p class="text-muted-foreground mb-6">
           El movimiento de inventario que buscas no existe o fue eliminado.
         </p>
-        <button hlmBtn variant="default" (click)="goBack()">
+        <button hlmBtn variant="default" (click)="goBack()" class="cursor-pointer">
           <ng-icon hlm size="sm" name="lucideArrowLeft" class="mr-2"/>
           Volver al Historial
         </button>
@@ -41,7 +41,7 @@
                 variant="ghost"
                 size="sm"
                 (click)="goBack()"
-                class="flex items-center gap-2"
+                class="flex items-center gap-2 cursor-pointer"
               >
                 <ng-icon hlm size="sm" name="lucideArrowLeft"/>
                 Volver
@@ -70,7 +70,7 @@
 
       <div hlmCardContent class="space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section hlmCard variant="outline">
+          <section hlmCard class="!bg-muted/30 border-border">
             <header hlmCardHeader>
               <div class="flex items-center gap-2">
                 <ng-icon hlm size="sm" name="lucidePackage" class="text-primary"/>
@@ -89,7 +89,7 @@
             </div>
           </section>
 
-          <section hlmCard variant="outline">
+          <section hlmCard class="!bg-muted/30 border-border">
             <header hlmCardHeader>
               <div class="flex items-center gap-2">
                 <ng-icon hlm size="sm" name="lucideBox" class="text-primary"/>
@@ -118,7 +118,7 @@
         </div>
 
         @if (hasUser()) {
-          <section hlmCard variant="outline">
+          <section hlmCard class="!bg-muted/30 border-border">
             <header hlmCardHeader>
               <div class="flex items-center gap-2">
                 <ng-icon hlm size="sm" name="lucideUser" class="text-primary"/>
@@ -143,7 +143,7 @@
             </div>
           </section>
         } @else {
-          <section hlmCard variant="outline">
+          <section hlmCard class="!bg-muted/30 border-border">
             <header hlmCardHeader>
               <div class="flex items-center gap-2">
                 <ng-icon hlm size="sm" name="lucideUser" class="text-muted-foreground"/>
@@ -156,7 +156,7 @@
           </section>
         }
         @if (hasSupplier()) {
-          <section hlmCard variant="outline">
+          <section hlmCard class="!bg-muted/30 border-border">
             <header hlmCardHeader>
               <div class="flex items-center gap-2">
                 <ng-icon hlm size="sm" name="lucideTruck" class="text-primary"/>
@@ -184,7 +184,7 @@
           </section>
         }
         @if (hasReservation()) {
-          <section hlmCard variant="outline">
+          <section hlmCard class="!bg-muted/30 border-border">
             <header hlmCardHeader>
               <div class="flex items-center gap-2">
                 <ng-icon hlm size="sm" name="lucideShoppingCart" class="text-primary"/>
@@ -200,7 +200,7 @@
           </section>
         }
         @if (hasNotes()) {
-          <section hlmCard variant="outline">
+          <section hlmCard class="!bg-muted/30 border-border">
             <header hlmCardHeader>
               <div class="flex items-center gap-2">
                 <ng-icon hlm size="sm" name="lucideFileText" class="text-primary"/>
@@ -213,7 +213,7 @@
           </section>
         }
 
-        <section hlmCard variant="outline">
+        <section hlmCard class="!bg-muted/30 border-border">
           <header hlmCardHeader>
             <div class="flex items-center gap-2">
               <ng-icon hlm size="sm" name="lucideCalendar" class="text-primary"/>
