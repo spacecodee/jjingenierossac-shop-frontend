@@ -286,6 +286,7 @@
             <th hlmTh>Usuario</th>
             <th hlmTh>Teléfono</th>
             <th hlmTh>Estado</th>
+            <th hlmTh class="text-center">Activar/Desactivar</th>
             <th
               hlmTh
               (click)="onSortChange('lastLoginAt')"
@@ -365,6 +366,22 @@
                   Bloqueada
                 </span>
                     }
+                  </div>
+                </td>
+                <td hlmTd class="text-center">
+                  <div class="flex items-center justify-center">
+                    <hlm-switch
+                      [checked]="
+                    customerIdBeingToggled() === customer.userId
+                      ? !customer.isActive
+                      : customer.isActive
+                  "
+                      (checkedChange)="
+                    $event ? onActivateAttempt(customer) : onDeactivateAttempt(customer)
+                  "
+                      [disabled]="false"
+                      [attr.aria-label]="customer.isActive ? 'Desactivar cliente' : 'Activar cliente'"
+                    />
                   </div>
                 </td>
                 <td hlmTd>
@@ -489,4 +506,71 @@
       </div>
     }
   </section>
+
+  <hlm-alert-dialog>
+    <button id="toggle-dialog-trigger" brnAlertDialogTrigger class="hidden"></button>
+    <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+      <hlm-alert-dialog-header>
+        <h3 hlmAlertDialogTitle>
+          @if (toggleAction() === 'activate') {
+            Confirmar Activación
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Confirmar Desactivación
+          }
+        </h3>
+        <p hlmAlertDialogDescription>
+          @if (toggleAction() === 'activate') {
+            ¿Está seguro de que desea activar la cuenta de este
+              cliente?
+          } @else if (toggleAction() === 'deactivate') {
+            ¿Está seguro de que desea
+              desactivar la cuenta de este cliente?
+          }
+          @if (customerToToggle()) {
+            <span class="block mt-2 font-medium">{{ customerToToggle()!.fullName }}</span>
+            <span class="block text-sm text-muted-foreground">{{ customerToToggle()!.email }}</span>
+          }
+          @if (toggleAction() === 'activate') {
+            <span class="block mt-3 text-sm text-muted-foreground">
+            El cliente podrá iniciar sesión y realizar compras nuevamente. Volverá a tener acceso
+            completo al sistema.
+          </span>
+          } @else if (toggleAction() === 'deactivate') {
+            <span class="block mt-3 text-sm text-muted-foreground">
+            El cliente no podrá iniciar sesión ni realizar compras. Podrá reactivar la cuenta
+            posteriormente si lo necesita.
+          </span>
+          }
+        </p>
+      </hlm-alert-dialog-header>
+      <hlm-alert-dialog-footer>
+        <button
+          hlmAlertDialogCancel
+          class="cursor-pointer"
+          (click)="onCancelToggle(); ctx.close()"
+          [disabled]="isTogglingCustomer()"
+        >
+          Cancelar
+        </button>
+        <button
+          hlmAlertDialogAction
+          [variant]="toggleAction() === 'deactivate' ? 'destructive' : 'default'"
+          (click)="onConfirmToggle(ctx.close)"
+          [disabled]="isTogglingCustomer()"
+          class="cursor-pointer"
+        >
+          @if (isTogglingCustomer()) {
+            <hlm-spinner size="sm" class="mr-2"/>
+          }
+          @if (toggleAction() === 'activate') {
+            Activar
+          } @else if (toggleAction() ===
+          'deactivate') {
+            Desactivar
+          }
+        </button>
+      </hlm-alert-dialog-footer>
+    </hlm-alert-dialog-content>
+  </hlm-alert-dialog>
 </main>

@@ -38,8 +38,10 @@ import { ApiErrorResponse } from '@shared/data/models/api-error-response.interfa
 import { SortDirection } from '@shared/data/types/sort-direction.type';
 import { DateFormatterService } from '@shared/services/date-formatter.service';
 import { PaginationHelperService } from '@shared/services/pagination-helper.service';
+import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { BrnSelectImports } from '@spartan-ng/brain/select';
 import { BrnTooltipImports } from '@spartan-ng/brain/tooltip';
+import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -53,6 +55,7 @@ import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmSeparator } from '@spartan-ng/helm/separator';
 import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { HlmSpinner } from '@spartan-ng/helm/spinner';
+import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { HlmTooltipImports } from '@spartan-ng/helm/tooltip';
 import { toast } from 'ngx-sonner';
@@ -75,6 +78,9 @@ import { map } from 'rxjs/operators';
     ...HlmInputImports,
     ...BrnTooltipImports,
     ...HlmTooltipImports,
+    ...BrnAlertDialogImports,
+    ...HlmAlertDialogImports,
+    ...HlmSwitchImports,
     HlmLabel,
     NgIcon,
     HlmSpinner,
@@ -391,5 +397,86 @@ export class CustomerList implements OnInit, OnDestroy {
     }
     const years = Math.floor(diffDays / 365);
     return years === 1 ? 'Hace 1 año' : `Hace ${ years } años`;
+  }
+
+  readonly customerToToggle = signal<CustomerResponse | null>(null);
+  readonly toggleAction = signal<'activate' | 'deactivate' | null>(null);
+  readonly customerIdBeingToggled = signal<number | null>(null);
+  readonly isTogglingCustomer = signal<boolean>(false);
+
+  onActivateAttempt(customer: CustomerResponse): void {
+    if (!customer.isActive) {
+      this.customerToToggle.set(customer);
+      this.toggleAction.set('activate');
+      this.customerIdBeingToggled.set(customer.userId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onDeactivateAttempt(customer: CustomerResponse): void {
+    if (customer.isActive) {
+      this.customerToToggle.set(customer);
+      this.toggleAction.set('deactivate');
+      this.customerIdBeingToggled.set(customer.userId);
+      const trigger = document.getElementById('toggle-dialog-trigger') as HTMLButtonElement;
+      trigger?.click();
+    }
+  }
+
+  onCancelToggle(): void {
+    this.customerToToggle.set(null);
+    this.toggleAction.set(null);
+    this.customerIdBeingToggled.set(null);
+  }
+
+  onConfirmToggle(closeDialog: () => void): void {
+    const customer = this.customerToToggle();
+    const action = this.toggleAction();
+
+    if (!customer || !action) {
+      return;
+    }
+
+    this.isTogglingCustomer.set(true);
+
+    const serviceCall =
+      action === 'activate'
+        ? this.customerService.activateCustomer(customer.userId)
+        : this.customerService.deactivateCustomer(customer.userId);
+
+    const newState = action === 'activate';
+    const successMessage = action === 'activate' ? 'Cliente activado' : 'Cliente desactivado';
+    const errorMessage =
+      action === 'activate' ? 'Error al activar cliente' : 'Error al desactivar cliente';
+
+    serviceCall.subscribe({
+      next: (response) => {
+        this.customers.update((customers) =>
+          customers.map((c) => (c.userId === customer.userId ? { ...c, isActive: newState } : c))
+        );
+
+        toast.success(successMessage, {
+          description: response.message,
+        });
+
+        this.isTogglingCustomer.set(false);
+        this.customerToToggle.set(null);
+        this.toggleAction.set(null);
+        this.customerIdBeingToggled.set(null);
+        closeDialog();
+      },
+      error: (error: ApiErrorResponse) => {
+        this.isTogglingCustomer.set(false);
+        this.customerToToggle.set(null);
+        this.toggleAction.set(null);
+        this.customerIdBeingToggled.set(null);
+        closeDialog();
+
+        toast.error(errorMessage, {
+          description: error.message,
+        });
+      },
+    });
   }
 }
