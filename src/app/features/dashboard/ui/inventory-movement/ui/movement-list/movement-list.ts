@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MovementType } from '@features/dashboard/data/models/movement-type.enum';
 import { QuantityType } from '@features/dashboard/data/models/quantity-type.enum';
 import { SearchStockMovementsParams } from '@features/dashboard/data/models/search-stock-movements-params.interface';
@@ -28,9 +28,11 @@ import {
   lucideChevronsLeft,
   lucideChevronsRight,
   lucideEye,
+  lucidePlus,
   lucideRefreshCw,
   lucideSearch,
   lucideSlidersHorizontal,
+  lucideWrench,
   lucideX,
 } from '@ng-icons/lucide';
 import { MovementTypeSelect } from '@shared/components/movement-type-select/movement-type-select';
@@ -83,10 +85,12 @@ import { map } from 'rxjs/operators';
     SupplierAutocomplete,
     MovementTypeSelect,
     QuantityTypeSelect,
+    RouterLink,
   ],
   providers: [
     { provide: LOCALE_ID, useValue: 'es-PE' },
     provideIcons({
+      lucidePlus,
       lucideSearch,
       lucideX,
       lucideSlidersHorizontal,
@@ -97,6 +101,7 @@ import { map } from 'rxjs/operators';
       lucideChevronsLeft,
       lucideChevronsRight,
       lucideEye,
+      lucideWrench,
     }),
     provideHlmDatePickerConfig({
       formatDate: (date: Date) => {
@@ -440,6 +445,8 @@ export class MovementList implements OnInit, OnDestroy {
   }
 
   onViewDetail(movement: StockMovementResponse): void {
-    this.router.navigate(['/dashboard/inventory-movements', movement.movementId]).then(r => !r && undefined);
+    this.router
+    .navigate(['/dashboard/inventory-movements', movement.movementId])
+    .then((r) => !r && undefined);
   }
 }

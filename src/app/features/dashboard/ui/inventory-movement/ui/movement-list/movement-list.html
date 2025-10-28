@@ -11,6 +11,25 @@
         <div class="flex items-center gap-2">
           <button
             hlmBtn
+            size="sm"
+            routerLink="/dashboard/inventory-movements/create"
+            class="flex items-center gap-2 cursor-pointer"
+          >
+            <ng-icon hlm size="sm" name="lucidePlus"/>
+            <span>Registrar Entrada</span>
+          </button>
+          <button
+            hlmBtn
+            size="sm"
+            variant="secondary"
+            routerLink="/dashboard/inventory-movements/adjustment"
+            class="flex items-center gap-2 cursor-pointer"
+          >
+            <ng-icon hlm size="sm" name="lucideWrench"/>
+            <span>Realizar Ajuste</span>
+          </button>
+          <button
+            hlmBtn
             variant="outline"
             size="sm"
             (click)="onRefresh()"

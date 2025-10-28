@@ -170,11 +170,43 @@ export const dashboardRoutes: Routes = [
       ),
   },
   {
+    path: 'inventory-movements/create',
+    title: 'Registrar Entrada de Stock - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/inventory-movement/ui/movement-create/movement-create').then(
+        (m) => m.MovementCreate
+      ),
+  },
+  {
+    path: 'inventory-movements/adjustment',
+    title: 'Realizar Ajuste de Inventario - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import(
+        '@features/dashboard/ui/inventory-movement/ui/movement-adjustment/movement-adjustment'
+        ).then((m) => m.MovementAdjustment),
+  },
+  {
     path: 'inventory-movements/:id',
     title: 'Detalle del Movimiento - J&J Ingenieros SAC',
     loadComponent: () =>
       import('@features/dashboard/ui/inventory-movement/ui/movement-detail/movement-detail').then(
         (m) => m.MovementDetail
+      ),
+  },
+  {
+    path: 'customers',
+    title: 'Clientes - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/customer/ui/customer-list/customer-list').then(
+        (m) => m.CustomerList
+      ),
+  },
+  {
+    path: 'customers/:id',
+    title: 'Detalle del Cliente - J&J Ingenieros SAC',
+    loadComponent: () =>
+      import('@features/dashboard/ui/customer/ui/customer-detail/customer-detail').then(
+        (m) => m.CustomerDetail
       ),
   },
 ];

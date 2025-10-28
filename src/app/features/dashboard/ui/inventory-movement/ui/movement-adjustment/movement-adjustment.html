@@ -1,0 +1,327 @@
+<div hlmCard class="p-6">
+  <header class="mb-4">
+    <div class="flex items-center gap-3">
+      <button
+        hlmBtn
+        class="cursor-pointer"
+        variant="ghost"
+        size="icon"
+        type="button"
+        (click)="onCancel()"
+        [disabled]="isSubmitting()"
+      >
+        <ng-icon hlm size="sm" name="lucideArrowLeft"/>
+      </button>
+      <div>
+        <h1 class="text-2xl font-semibold mb-1">Realizar Ajuste de Inventario</h1>
+        <p class="text-sm text-slate-600">
+          Registra correcciones manuales de inventario con justificación obligatoria
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <div hlmSeparator class="my-4"></div>
+
+  <section class="mt-4">
+    <form class="space-y-4" autocomplete="off">
+      <div class="w-full">
+        <span hlmLabel class="mb-2">Producto *</span>
+        <app-product-autocomplete
+          [placeholder]="'Busca un producto...'"
+          [initialProductId]="selectedProductId()"
+          [disabled]="isSubmitting()"
+          (productSelected)="onProductSelected($event)"
+        ></app-product-autocomplete>
+        @if (currentStock() !== null) {
+          <p class="text-sm text-muted-foreground mt-1">
+            Stock actual: <span class="font-semibold">{{ currentStock() }} unidades</span>
+          </p>
+        }
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="w-full">
+          <span hlmLabel class="mb-2">Tipo de Ajuste *</span>
+          <brn-select
+            class="w-full"
+            placeholder="Selecciona tipo"
+            [disabled]="isSubmitting()"
+            (valueChange)="onAdjustmentTypeChange($event)"
+          >
+            <hlm-select-trigger class="w-full">
+              <hlm-select-value/>
+            </hlm-select-trigger>
+            <hlm-select-content>
+              @for (option of adjustmentTypeOptions; track option.value) {
+                <hlm-option [value]="option.value">{{ option.label }}</hlm-option>
+              }
+            </hlm-select-content>
+          </brn-select>
+        </div>
+
+        <div class="w-full">
+          <label hlmLabel for="quantity-input" class="mb-2">Cantidad *</label>
+          <input
+            id="quantity-input"
+            hlmInput
+            type="number"
+            min="1"
+            placeholder="Ingresa cantidad"
+            [disabled]="isSubmitting()"
+            [ngModel]="quantity()"
+            (ngModelChange)="onQuantityChange($event)"
+            class="w-full"
+            name="quantity"
+          />
+        </div>
+      </div>
+
+      <div class="w-full">
+        <span hlmLabel class="mb-2">Motivo del Ajuste *</span>
+        <brn-select
+          class="w-full"
+          placeholder="Selecciona motivo"
+          [disabled]="isSubmitting()"
+          (valueChange)="onReasonChange($event)"
+        >
+          <hlm-select-trigger class="w-full">
+            <hlm-select-value/>
+          </hlm-select-trigger>
+          <hlm-select-content>
+            @for (option of reasonOptions; track option.value) {
+              <hlm-option [value]="option.value">{{ option.label }}</hlm-option>
+            }
+          </hlm-select-content>
+        </brn-select>
+      </div>
+
+      <div class="w-full">
+        <div class="flex items-center justify-between mb-2">
+          <label hlmLabel for="notes-input">Notas Detalladas *</label>
+          <span
+            class="text-xs font-medium"
+            [class.text-red-600]="notesCharCount() < 20"
+            [class.text-green-600]="notesCharCount() >= 20 && notesCharCount() <= 500"
+            [class.text-slate-500]="notesCharCount() > 500"
+          >
+            {{ notesCharCount() }} / 500 caracteres
+          </span>
+        </div>
+        <textarea
+          id="notes-input"
+          hlmInput
+          placeholder="Describe el contexto completo del ajuste (mínimo 20 caracteres)..."
+          [disabled]="isSubmitting()"
+          [ngModel]="notes()"
+          (ngModelChange)="onNotesChange($event)"
+          class="w-full resize-none"
+          name="notes"
+          rows="4"
+        ></textarea>
+        @if (notesCharCount() > 0 && notesCharCount() < 20) {
+          <p class="text-xs text-red-600 mt-1">Las notas deben tener al menos 20 caracteres</p>
+        }
+      </div>
+
+      <div hlmSeparator class="my-4"></div>
+
+      @if (newStock() !== null && adjustmentType() !== null && quantity() !== null) {
+        <div
+          class="rounded-lg p-4 border"
+          [class.bg-blue-50]="!isNegativeStock() && adjustmentType() === AdjustmentType.INCREMENT"
+          [class.dark:bg-blue-950]="
+          !isNegativeStock() && adjustmentType() === AdjustmentType.INCREMENT
+        "
+          [class.border-blue-200]="
+          !isNegativeStock() && adjustmentType() === AdjustmentType.INCREMENT
+        "
+          [class.dark:border-blue-800]="
+          !isNegativeStock() && adjustmentType() === AdjustmentType.INCREMENT
+        "
+          [class.bg-yellow-50]="!isNegativeStock() && adjustmentType() === AdjustmentType.DECREMENT"
+          [class.dark:bg-yellow-950]="
+          !isNegativeStock() && adjustmentType() === AdjustmentType.DECREMENT
+        "
+          [class.border-yellow-200]="
+          !isNegativeStock() && adjustmentType() === AdjustmentType.DECREMENT
+        "
+          [class.dark:border-yellow-800]="
+          !isNegativeStock() && adjustmentType() === AdjustmentType.DECREMENT
+        "
+          [class.bg-red-50]="isNegativeStock()"
+          [class.dark:bg-red-950]="isNegativeStock()"
+          [class.border-red-200]="isNegativeStock()"
+          [class.dark:border-red-800]="isNegativeStock()"
+        >
+          <div class="flex items-start gap-3">
+            @if (isNegativeStock()) {
+              <ng-icon
+                hlm
+                name="lucideTriangleAlert"
+                class="mt-0.5"
+                size="lg"
+                style="color: white"
+              />
+            } @else {
+              <ng-icon hlm name="lucideInfo" class="mt-0.5" size="lg" style="color: white !important"/>
+            }
+            <div class="flex-1">
+              <h3
+                class="font-semibold mb-1"
+                [class.text-red-100]="isNegativeStock()"
+                [class.dark:text-red-400]="isNegativeStock()"
+                [class.text-blue-100]="
+                !isNegativeStock() && adjustmentType() === AdjustmentType.INCREMENT
+              "
+                [class.dark:text-blue-400]="
+                !isNegativeStock() && adjustmentType() === AdjustmentType.INCREMENT
+              "
+                [class.text-yellow-100]="
+                !isNegativeStock() && adjustmentType() === AdjustmentType.DECREMENT
+              "
+                [class.dark:text-yellow-400]="
+                !isNegativeStock() && adjustmentType() === AdjustmentType.DECREMENT
+              "
+              >
+                @if (isNegativeStock()) {
+                  ADVERTENCIA: Este ajuste resultaría en stock negativo
+                } @else {
+                  Vista Previa del Ajuste
+                }
+              </h3>
+              <div class="space-y-1 text-sm">
+                <p class="flex items-center justify-between">
+                <span
+                  [class.text-slate-300]="!isNegativeStock()"
+                  [class.text-red-200]="isNegativeStock()"
+                  [class.dark:text-muted-foreground]="true"
+                >Stock actual:</span
+                >
+                  <span class="font-semibold text-white">{{ currentStock() }} unidades</span>
+                </p>
+                <p class="flex items-center justify-between">
+                <span
+                  [class.text-slate-300]="!isNegativeStock()"
+                  [class.text-red-200]="isNegativeStock()"
+                  [class.dark:text-muted-foreground]="true"
+                >Ajuste:</span
+                >
+                  <span class="font-semibold text-white">
+                  {{
+                      adjustmentType() === AdjustmentType.INCREMENT ? '+' : '-'
+                    }}{{ quantity() }} unidades
+                </span>
+                </p>
+                <div hlmSeparator class="my-2"></div>
+                <p class="flex items-center justify-between">
+                <span
+                  class="font-medium"
+                  [class.text-slate-200]="!isNegativeStock()"
+                  [class.text-red-200]="isNegativeStock()"
+                  [class.dark:text-muted-foreground]="true"
+                >Stock nuevo:</span
+                >
+                  <span class="font-bold text-lg text-white"> {{ newStock() }} unidades </span>
+                </p>
+              </div>
+              @if (isNegativeStock()) {
+                <p class="text-xs text-red-100 dark:text-red-400 mt-2">
+                  El stock resultante es negativo ({{ newStock() }} unidades). Verifique la cantidad del
+                  ajuste. @if (currentStock() !== null) {
+                  El ajuste máximo permitido para reducción es
+                  {{ currentStock() }} unidades.
+                }
+                </p>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="flex items-center justify-end gap-3 mt-6">
+        <button
+          hlmBtn
+          type="button"
+          variant="outline"
+          (click)="onCancel()"
+          [disabled]="isSubmitting()"
+        >
+          Cancelar
+        </button>
+
+        <hlm-alert-dialog>
+          <button
+            hlmBtn
+            id="edit-profile"
+            brnAlertDialogTrigger
+            type="button"
+            class="cursor-pointer"
+            [disabled]="isSubmitting() || !isFormValid()"
+          >
+            <ng-icon hlm name="lucideCheck" class="mr-2"/>
+            Confirmar Ajuste
+          </button>
+          <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+            <hlm-alert-dialog-header>
+              <h3 hlmAlertDialogTitle>Confirmar Ajuste de Inventario</h3>
+              <p hlmAlertDialogDescription class="text-left">
+                Está a punto de realizar el siguiente ajuste de inventario. Esta acción es
+                <strong>permanente</strong> y no se puede deshacer.
+              </p>
+            </hlm-alert-dialog-header>
+
+            <div class="space-y-3 py-4 text-sm">
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Tipo:</span>
+                <span
+                  hlmBadge
+                  [variant]="
+                    adjustmentType() === AdjustmentType.INCREMENT ? 'default' : 'secondary'
+                  "
+                >
+                  {{ adjustmentType() === AdjustmentType.INCREMENT ? 'Incrementar' : 'Reducir' }}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Cantidad:</span>
+                <span class="font-semibold">{{ quantity() }} unidades</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Stock actual:</span>
+                <span class="font-semibold">{{ currentStock() }} unidades</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Stock nuevo:</span>
+                <span class="font-bold text-lg">{{ newStock() }} unidades</span>
+              </div>
+              <div hlmSeparator></div>
+              <div>
+                <span class="text-muted-foreground block mb-1">Motivo:</span>
+                <span class="text-sm text-foreground">
+                  {{ getReasonLabel(reason()) }}
+                </span>
+              </div>
+              <div>
+                <span class="text-muted-foreground block mb-1">Notas:</span>
+                <p class="text-xs bg-muted text-foreground p-2 rounded border">{{ notes() }}</p>
+              </div>
+            </div>
+
+            <hlm-alert-dialog-footer>
+              <button hlmAlertDialogCancel type="button" (click)="ctx.close()">Cancelar</button>
+              <button
+                hlmAlertDialogAction
+                type="button"
+                (click)="confirmAdjustment(); ctx.close()"
+                [disabled]="isSubmitting()"
+              >
+                Confirmar y Registrar
+              </button>
+            </hlm-alert-dialog-footer>
+          </hlm-alert-dialog-content>
+        </hlm-alert-dialog>
+      </div>
+    </form>
+  </section>
+</div>
